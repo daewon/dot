@@ -146,47 +146,44 @@
   ;; Guarantee all packages are installed on start
 	(defvar packages-list
     '(			
+			auto-highlight-symbol
+			flex-autopair
 			highlight-parentheses
-			markdown-mode
-			zen-and-art-theme
-			yasnippet
+			auto-indent-mode
+			elisp-cache
 			yas-jit
+			yasnippet
 			yasnippet-bundle
-			tango-2-theme
 			undo-tree
-			skewer-mode
-			s
+			js2-mode
 			ruby-mode
 			ruby-end
-			ruby-compilation
 			ruby-block
-			quickrun
-			popup
-			magit
-			js2-mode
-			isearch+
+			ruby-compilation
 			inf-ruby
+			quickrun
+			magit
+			isearch+
 			igrep
 			iedit
 			idomenu
-			auto-highlight-symbol
+			helm
 			helm-projectile
 			helm-c-yasnippet
-			helm
 			flymake-jshint
 			flymake-easy
 			flymake
-			elisp-cache
 			expand-region
 			dired-single
 			dired+
 			css-mode
 			color-theme
+			zen-and-art-theme
+			tango-2-theme
 			auto-complete
 			ac-js2
-			auto-indent-mode
-			flex-autopair
-			dash)
+			markdown-mode
+			)
     "List of packages needs to be installed at launch")
 
   (defun has-package-not-installed ()
