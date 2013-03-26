@@ -21,7 +21,7 @@
 
 	;; hilight
   (highlight-parentheses-mode)
-  (highlight-symbol-mode)
+  (auto-highlight-symbol-mode)
 	
 	;; set show-paren-mode
   (show-paren-mode t)
@@ -76,17 +76,23 @@
 
 	;; js2-mode
 	(add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
+	
   ;;(add-hook 'js2-mode-hook 'flymake-mode)
   (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
+  (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
 
 	;; file ext hook
 	(add-to-list 'auto-mode-alist '("\\.md$" . markdown-mode))
 	
-	;; default offset
+	;; default offset I hate tabs!
   (setq-default tab-width 2)
+	(setq tab-width 2)
   (setq js-indent-level 2)
   (setq c-basic-offset 2)
-  (setq basic-offset 2) 
+	(setq c-basic-indent 2)
+  (setq basic-offset 2)
+	(setq-default indent-tabs-mode nil)
+	(setq indent-tabs-mode nil)
   
   ;; magit-setting
   (global-set-key (kbd "C-x m") 'magit-status)
@@ -131,7 +137,7 @@
   (add-to-list 'package-archives `("melpa" . "http://melpa.milkbox.net/packages/") t)
   (add-to-list 'package-archives `("gnu" . "http://elpa.gnu.org/packages/") t)
   (add-to-list 'package-archives `("marmalade" . "http://marmalade-repo.org/packages/") t)
-  (add-to-list 'package-archives `("melpa", "http://melpa.milkbox.net/") t)
+	
   (package-initialize)
 
   ;; auto-install package
@@ -139,7 +145,8 @@
 
   ;; Guarantee all packages are installed on start
 	(defvar packages-list
-    '(highlight-parentheses
+    '(			
+			highlight-parentheses
 			markdown-mode
 			zen-and-art-theme
 			yasnippet
@@ -162,7 +169,7 @@
 			igrep
 			iedit
 			idomenu
-			highlight-symbol
+			auto-highlight-symbol
 			helm-projectile
 			helm-c-yasnippet
 			helm
