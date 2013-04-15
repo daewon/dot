@@ -82,7 +82,7 @@
 
   ;; scala-mode
   (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
-  (add-to-list 'load-path "~/rep_daewon/ensime/elisp")
+  (add-to-list 'load-path "~/dot/ensime/elisp")
   (require 'ensime)
   (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
   
