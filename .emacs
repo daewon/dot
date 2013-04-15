@@ -2,7 +2,7 @@
 ;; Author daewon
 (defun init-default()
   "init emacs default setting"
-	
+  
   (setq shell-file-name "bash") ;; set default shell bash
   (transient-mark-mode t) ;; show selection
   (setq make-backup-files t) ;; make backup file
@@ -12,87 +12,142 @@
   (keyboard-translate ?\C-h ?\C-?) ;; modify default key
   (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
   (setq default-truncate-lines t)
-	(global-flex-autopair-mode t)
-	(delete-selection-mode 1) ;; delete selection mode
+  (global-flex-autopair-mode t)
+  (delete-selection-mode 1) ;; delete selection mode
 
-	;; set hi-line
-	(global-linum-mode t)
-	(global-hl-line-mode t)
+  ;; set hi-line
+  (global-linum-mode t)
+  (global-hl-line-mode t)
 
-	;; hilight
+  ;; hilight
   (highlight-parentheses-mode)
   (auto-highlight-symbol-mode)
-	
-	;; set show-paren-mode
+  
+  ;; set show-paren-mode
   (show-paren-mode t)
 
-	;; set grep command
+  ;; set grep command
   (setq grep-command "grep -nh -r ") ;; set grep-commman
   (setq grep-find-command "find . -type f '!' -wholename '*/.svn/*' -print0 | xargs -0 -e grep -nH -e ") ;; set grep-find-command
-	
-	;; set default-key
+  
+  ;; set default-key
   (global-set-key (kbd "C-x C-k") 'kill-this-buffer) ;; kill this buffer
   (global-set-key (kbd "C-c C-c") 'quickrun-region) ;; quick this buffer
-	(global-set-key "\C-a" 'toggle-beginning-line)
+  (global-set-key "\C-a" 'toggle-beginning-line)
 
-	;; auto-complete-mode
+  ;; auto-complete-mode
   (require 'auto-complete) 
   (global-auto-complete-mode t) ;; set auto-complete mode 
 
-	(define-key ac-complete-mode-map "\C-p" 'ac-previous)
+  (define-key ac-complete-mode-map "\C-p" 'ac-previous)
   (define-key ac-complete-mode-map "\C-n" 'ac-next)
   (define-key ac-complete-mode-map "\r" nil)
   (ac-set-trigger-key "TAB")
 
-	;; yet another snippet
+  ;; yet another snippet
   (yas/global-mode t)
 
-	;; expand region
-	;; http://emacsrocks.com/e09.html
-	(require 'expand-region)
-	(global-set-key [(meta m)] 'er/expand-region)  
+  ;; expand region
+  ;; http://emacsrocks.com/e09.html
+  (require 'expand-region)
+  (global-set-key [(meta m)] 'er/expand-region)  
 
   (require 'undo-tree)
   (global-set-key (kbd "C-x /") 'undo-tree-visualize)
   
-	;; iedit-mode
+  ;; iedit-mode
   (require 'iedit)
   (global-set-key (kbd "C-c i") 'iedit-dwim) ;; iedit-mode
 
-	;; icomplete for mini buffer autocompletion	
+  ;; icomplete for mini buffer autocompletion	
   (icomplete-mode t)
 
-	;; hilight-symbol-at-point
+  ;; hilight-symbol-at-point
   (global-set-key (kbd "C-c l ") 'highlight-symbol-at-point)
 
   ;; projectile
   (setq projectile-enable-caching t)
-	(projectile-global-mode) ;; projectile
+  (projectile-global-mode) ;; projectile
 
   ;; helm
   (global-set-key (kbd "C-c h") 'helm-mini)
   (global-set-key (kbd "M-r") 'helm-for-files)
   (global-set-key (kbd "C-c o") 'grep-o-matic-current-directory)
 
-	;; js2-mode
-	(add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
-	
-  ;;(add-hook 'js2-mode-hook 'flymake-mode)
+  ;; js2-mode
+  (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
+  (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
   (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
 
-	;; file ext hook
-	(add-to-list 'auto-mode-alist '("\\.md$" . markdown-mode))
-	
-	;; default offset I hate tabs!
+  ;; scala-mode
+  (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
+  (add-to-list 'load-path "~/rep_daewon/ensime/elisp")
+  (require 'ensime)
+  (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
+  
+  ;; scheme-mode
+  ;; http://alexott.net/en/writings/emacs-devenv/EmacsScheme.html
+  (require 'quack)
+  (require 'cmuscheme)
+  (require 'autoinsert)
+  
+  (add-to-list 'auto-mode-alist '("\\.scm$" . scheme-mode))
+  
+  (setq quack-fontify-style 'emacs
+        quack-default-program "racket"
+        quack-newline-behavior 'newline)  
+
+  (add-hook 'find-file-hooks 'auto-insert)
+  (setq auto-insert-alist 
+        '(("\\.scm" . 
+           (insert "#!/bin/sh\n#| -*- scheme -*-\nexec csi -s $0 \"$@\"\n|#\n"))))
+
+  (autoload 'run-scheme "cmuscheme" "Run an inferior Scheme" t)
+  
+  ;; The basic settings
+  (setq scheme-program-name "racket"
+        scheme-mit-dialect nil)
+
+  (require 'slime)
+  ;;(slime-setup '(slime-fancy slime-banner))
+  (add-hook 'scheme-mode-hook (lambda () (slime-mode t)))
+
+  ;; elisp-hook
+  (defun ielm-auto-complete ()
+    ")Enables `auto-complete' support in \\[ielm]."
+    (setq ac-sources '(ac-source-functions
+                       ac-source-variables
+                       ac-source-features
+                       ac-source-symbols
+                       ac-source-words-in-same-mode-buffers))
+    (add-to-list 'ac-modes 'inferior-emacs-lisp-mode)
+    (auto-complete-mode 1))
+  (add-hook 'ielm-mode-hook 'ielm-auto-complete)
+
+  ;; Python Hook
+  (add-hook 'python-mode-hook
+            '(lambda () 
+               (setq python-indent 2)))
+
+  ;; less-mode
+  (add-hook 'less-css-mode-hook
+            '(lambda ()
+               (message "less-mode")
+               (defcustom less-css-indent-level 4 "Number of spaces to indent inside a block.")))
+
+  ;; file ext hook
+  (add-to-list 'auto-mode-alist '("\\.md$" . markdown-mode))
+  
+  ;; default offset I hate tabs!
   (setq-default tab-width 2)
-	(setq tab-width 2)
+  (setq tab-width 2)
   (setq js-indent-level 2)
   (setq c-basic-offset 2)
-	(setq c-basic-indent 2)
+  (setq c-basic-indent 2)
   (setq basic-offset 2)
-	(setq-default indent-tabs-mode nil)
-	(setq indent-tabs-mode nil)
+  (setq-default indent-tabs-mode nil)
+  (setq indent-tabs-mode nil)
   
   ;; magit-setting
   (global-set-key (kbd "C-x m") 'magit-status)
@@ -102,32 +157,41 @@
   (global-set-key (kbd "C-c r") 'replace-regexp)
   (global-set-key [(meta i)] 'ibuffer)
 
-	;; ido
+  ;; ido
   (ido-mode 'ibuffer)
-	(setq ibuffer-shrink-to-minimum-size t)
-	(setq ibuffer-always-show-last-buffer nil)
-	(setq ibuffer-sorting-mode 'recency)
-	(setq ibuffer-use-header-line t)
+  (setq ibuffer-shrink-to-minimum-size t)
+  (setq ibuffer-always-show-last-buffer nil)
+  (setq ibuffer-sorting-mode 'recency)
+  (setq ibuffer-use-header-line t)
 
-	;; set language-environment
-	(set-language-environment "Korean")
-	(setq default-input-method "korean-hangul")
-	(global-set-key (kbd "<Hangul>") 'toggle-input-method)
-	(global-set-key (kbd "S-SPC") 'toggle-korean-input-method)
-	(set-default-coding-systems 'utf-8)
-	(setq locale-coding-system 'utf-8)
-	(set-terminal-coding-system 'utf-8)
-	(set-keyboard-coding-system 'utf-8)
-	(set-selection-coding-system 'utf-8)
-	(prefer-coding-system 'utf-8)
+  ;; set language-environment
+  (set-language-environment "Korean")
+  (setq default-input-method "korean-hangul")
+  (global-set-key (kbd "<Hangul>") 'toggle-input-method)
+  (global-set-key (kbd "S-SPC") 'toggle-korean-input-method)
+  (set-default-coding-systems 'utf-8)
+  (setq locale-coding-system 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
 
-	;; backspace
-	(global-set-key "\C-h" 'delete-backward-char)
+  ;; backspace
+  (global-set-key "\C-h" 'delete-backward-char)
 
-	;; other-window
-	(global-set-key [(meta o)] 'previous-multiframe-window)
-	(global-set-key (kbd "C-o") 'next-multiframe-window)
-	) ;; end of init-default
+  ;; set path
+  (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
+  (setq exec-path
+        '("/usr/local/bin"
+          "/usr/bin"
+          "/bin"
+          "/usr/local/share/npm/bin/jshint"
+          "/usr/local/share/npm/bin"))
+
+  ;; other-window
+  (global-set-key [(meta o)] 'previous-multiframe-window)
+  (global-set-key (kbd "C-o") 'next-multiframe-window)
+  ) ;; end of init-default
 
 
 ;; setting packages
@@ -137,59 +201,60 @@
   (add-to-list 'package-archives `("melpa" . "http://melpa.milkbox.net/packages/") t)
   (add-to-list 'package-archives `("gnu" . "http://elpa.gnu.org/packages/") t)
   (add-to-list 'package-archives `("marmalade" . "http://marmalade-repo.org/packages/") t)
-	
+  
   (package-initialize)
 
   ;; auto-install package
   (require 'cl)
 
   ;; Guarantee all packages are installed on start
-	(defvar packages-list
-    '(			
-			auto-highlight-symbol
-			flex-autopair
-			highlight-parentheses
-			auto-indent-mode
-			elisp-cache
-			yas-jit
-			yasnippet
-			yasnippet-bundle
-			undo-tree
-			js2-mode
-			ruby-mode
-			ruby-end
-			ruby-block
-			ruby-compilation
-			inf-ruby
-			quickrun
-			magit
-			isearch+
-			igrep
-			iedit
-			idomenu
-			helm
-			helm-projectile
-			helm-c-yasnippet
-			flymake-jshint
-			flymake-easy
-			flymake
-			expand-region
-			dired-single
-			dired+
-			css-mode
-			color-theme
-			zen-and-art-theme
-			tango-2-theme
-			auto-complete
-			ac-js2
-			markdown-mode
-			)
+  (defvar packages-list
+    '(auto-highlight-symbol
+      flex-autopair
+      highlight-parentheses
+      auto-indent-mode
+      elisp-cache
+      yas-jit
+      yasnippet
+      yasnippet-bundle
+      undo-tree
+      js2-mode
+      scala-mode2
+      ruby-mode
+      ruby-end
+      ruby-block
+      ruby-compilation
+      inf-ruby
+      quickrun
+      magit
+      isearch+
+      igrep
+      iedit
+      idomenu
+      helm
+      helm-projectile
+      helm-c-yasnippet
+      flymake-jshint
+      flymake-jslint
+      flymake-easy
+      flymake
+      expand-region
+      dired-single
+      dired+
+      css-mode
+      color-theme
+      zen-and-art-theme
+      tango-2-theme
+      auto-complete
+      ac-js2
+      markdown-mode
+      less-css-mode)
     "List of packages needs to be installed at launch")
 
   (defun has-package-not-installed ()
     (loop for p in packages-list
-					when (not (package-installed-p p)) do (return t)
-					finally (return nil)))
+	  when (not (package-installed-p p)) do (return t)
+	  finally (return nil)))
 
   (when (has-package-not-installed)
     ;; Check for new packages (package versions)
@@ -199,22 +264,22 @@
     ;; Install the missing packages
     (dolist (p packages-list)
       (when (not (package-installed-p p))
-				(package-install p)))))
+	(package-install p)))))
 
 ;; init x-window mode
 (defun init-x-mode()
   "init x setting"
   (progn (scroll-bar-mode 'right)
-				 (setq font-lock-maximum-decoration t)
-				 (menu-bar-mode 0)  
-				 (tool-bar-mode 0)
-				 (require 'tango-2-theme)))
+	 (setq font-lock-maximum-decoration t)
+	 (menu-bar-mode 0)  
+	 (tool-bar-mode 0)
+	 (require 'tango-2-theme)))
 
 ;; init-terminal mode
 (defun init-terminal-mode() 
   "init terminal setting"
   (progn (setq linum-format "%d ")
-				 (require 'zen-and-art-theme)))
+	 (require 'zen-and-art-theme)))
 
 ;; mac specific settings, sets fn-delete to be right-delete
 (when (eq system-type 'darwin) 
@@ -246,14 +311,14 @@
       (iedit-mode)
     (save-excursion
       (save-restriction
-				(widen)
-				;; this function determines the scope of `iedit-start'.
-				(if iedit-mode
-						(iedit-done)
-					;; `current-word' can of course be replaced by other
-					;; functions.
-					(narrow-to-defun)
-					(iedit-start (current-word) (point-min) (point-max)))))))
+	(widen)
+	;; this function determines the scope of `iedit-start'.
+	(if iedit-mode
+	    (iedit-done)
+	  ;; `current-word' can of course be replaced by other
+	  ;; functions.
+	  (narrow-to-defun)
+	  (iedit-start (current-word) (point-min) (point-max)))))))
 
 (add-hook 'eshell-mode-hook
           'lambda nil
@@ -440,3 +505,15 @@ there's a region, all lines that region covers will be duplicated."
 
 ;; define macro
 ;; 01. C-x ( -> start, 02.C-x ) -> end macro, 03 C-x e run macro
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(quack-programs (quote ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
