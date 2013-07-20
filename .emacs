@@ -80,6 +80,12 @@
   (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
 
+  ;; ruby-mode
+  (add-hook 'ruby-mode-hook (lambda () (local-set-key "\r" 'newline-and-indent)))
+  (add-hook 'ruby-mode-hook 'ruby-end)
+  (add-hook 'ruby-mode-hook 'ruby-block)
+  (add-hook 'ruby-mode-hook 'ruby-compilation)
+
   ;; scala-mode
   (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
   (add-to-list 'load-path "~/dot/ensime/elisp")
@@ -248,7 +254,9 @@
       auto-complete
       ac-js2
       markdown-mode
-      less-css-mode)
+      less-css-mode
+      quack
+      slime)
     "List of packages needs to be installed at launch")
 
   (defun has-package-not-installed ()
