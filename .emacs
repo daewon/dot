@@ -256,7 +256,9 @@
       markdown-mode
       less-css-mode
       quack
-      slime)
+      slime
+      jade-mode
+      )
     "List of packages needs to be installed at launch")
 
   (defun has-package-not-installed ()
