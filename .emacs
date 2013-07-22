@@ -81,10 +81,10 @@
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
 
   ;; ruby-mode
+  (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+  (add-hook 'ruby-mode-hook 'ruby-end-mode)
+  (add-hook 'ruby-mode-hook 'robe-mode)
   (add-hook 'ruby-mode-hook (lambda () (local-set-key "\r" 'newline-and-indent)))
-  (add-hook 'ruby-mode-hook 'ruby-end)
-  (add-hook 'ruby-mode-hook 'ruby-block)
-  (add-hook 'ruby-mode-hook 'ruby-compilation)
 
   ;; scala-mode
   (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
@@ -228,8 +228,8 @@
       scala-mode2
       ruby-mode
       ruby-end
+      robe
       ruby-block
-      ruby-compilation
       inf-ruby
       quickrun
       magit
