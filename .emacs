@@ -84,7 +84,7 @@
   (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
   (add-hook 'ruby-mode-hook 'ruby-end-mode)
   (add-hook 'ruby-mode-hook 'robe-mode)
-  (add-hook 'ruby-mode-hook (lambda () (local-set-key "\r" 'newline-and-indent)))
+  ;; (add-hook 'ruby-mode-hook (lambda () (local-set-key "\r" 'newline-and-indent)))
 
   ;; scala-mode
   (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
