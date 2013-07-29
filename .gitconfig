@@ -4,28 +4,27 @@
 
 
 [alias]
-        lol = log --graph --decorate --pretty=oneline --abbrev-commit
-        lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
-	ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate
-	lds = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=short
+lol = log --graph --decorate --pretty=oneline --abbrev-commit
+lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
+ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate
+lds = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=short
 
-	lnc = log --pretty=format:"%h\\ %s\\ [%cn]"
-	ld = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=relative
-	le = log --oneline --decorate
-	dl = "!git ll -1"
-	dlc = diff --cached HEAD^
-	dr  = "!f() { git diff "$1"^.."$1"; }; f"
-	lc  = "!f() { git ll "$1"^.."$1"; }; f"
-	diffr  = "!f() { git diff "$1"^.."$1"; }; f"
+lnc = log --pretty=format:"%h\\ %s\\ [%cn]"
+ld = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=relative
+le = log --oneline --decorate
+dl = "!git ll -1"
+dlc = diff --cached HEAD^
+dr  = "!f() { git diff "$1"^.."$1"; }; f"
+lc  = "!f() { git ll "$1"^.."$1"; }; f"
+diffr  = "!f() { git diff "$1"^.."$1"; }; f"
 
-	f = "!git ls-files | grep -i"
+f = "!git ls-files | grep -i"
 		
 [color]
-        branch = auto
-        diff = auto
-        interactive = auto
-        status = auto
-
+  branch = auto
+  diff = auto
+  interactive = auto
+  status = auto
 
 [core]
 	excludesfile = /Users/jaegyeonglee/.gitignore_global
