@@ -84,6 +84,7 @@
   (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
   (add-hook 'ruby-mode-hook 'ruby-end-mode)
   (add-hook 'ruby-mode-hook 'robe-mode)
+  (add-hook 'ruby-mode-hook 'ruby-dev-mode)
   ;; (add-hook 'ruby-mode-hook (lambda () (local-set-key "\r" 'newline-and-indent)))
 
   ;; scala-mode
@@ -91,6 +92,16 @@
   (add-to-list 'load-path "~/dot/ensime/elisp")
   (require 'ensime)
   (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
+
+  ;; web-mode
+  (require 'web-mode)
+  (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsp\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
   
   ;; scheme-mode
   ;; http://alexott.net/en/writings/emacs-devenv/EmacsScheme.html
@@ -258,6 +269,7 @@
       quack
       slime
       jade-mode
+      web-mode
       )
     "List of packages needs to be installed at launch")
 
@@ -511,7 +523,13 @@ there's a region, all lines that region covers will be duplicated."
 
 ;; set default key
 (global-set-key (kbd "C-<prior>") 'previous-user-buffer)    
-(global-set-key (kbd "C-<next>") 'next-user-buffer)         
+(global-set-key (kbd "C-<next>") 'next-user-buffer)
+
+;; example of setting env var named “path”, by appending a new path to existing path
+(setenv "PATH" (concat "/Users/blueiur/.rvm/rubies/ruby-2.0.0-p247/bin" ";"
+                       "/usr/local/bin" ";"
+                       "/usr/bin" ";"
+                       "/bin" ";" (getenv "PATH")))
 
 ;; define macro
 ;; 01. C-x ( -> start, 02.C-x ) -> end macro, 03 C-x e run macro
