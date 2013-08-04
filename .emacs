@@ -1,20 +1,25 @@
 ;; daewon's emacs setting file
 ;; Author daewon
+;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
+;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html
+
 (defun init-default()
   "init emacs default setting"
   
-  (setq shell-file-name "bash") ;; set default shell bash
+  (setq shell-file-name "zsh") ;; set default shell bash
   (transient-mark-mode t) ;; show selection
   (setq make-backup-files t) ;; make backup file
   (setq inhibit-splash-screen t) ;; start screen 
   (setq frame-title-format "emacs - %b")
-  (setq default-truncate-lines t) ;; truncate line
+  (setq default-truncate-lines nil) ;; truncate line
+  (highlight-80+-mode)
+  (crosshairs-toggle-when-idle)
+  
   (keyboard-translate ?\C-h ?\C-?) ;; modify default key
   (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
-  (setq default-truncate-lines t)
-  (global-flex-autopair-mode t)
+  ;; (global-flex-autopair-mode nil)
   (delete-selection-mode 1) ;; delete selection mode
-
+  
   ;; set hi-line
   (global-linum-mode t)
   (global-hl-line-mode t)
@@ -79,13 +84,50 @@
   (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
   (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
+  
+  (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
+  (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
 
   ;; ruby-mode
-  (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+  (require 'inf-ruby)
+  (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
+  (add-hook 'ruby-mode-hook 'company-inf-ruby)
+  
   (add-hook 'ruby-mode-hook 'ruby-end-mode)
+  (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
+  
   (add-hook 'ruby-mode-hook 'robe-mode)
-  (add-hook 'ruby-mode-hook 'ruby-dev-mode)
+  (push 'ac-source-robe ac-sources)
+  ;; (add-hook 'ruby-mode-hook 'ruby-dev-mode)
+
+  (add-hook 'ruby-mode-hook 'flymake-ruby-load)
+  (add-hook 'ruby-mode-hook (lambda () (ruby-electric-mode t)))
+  
+  (inf-ruby-setup-keybindings)
+  (define-key ruby-mode-map (kbd "C-c r")
+    (lambda ()
+      (interactive)
+      (run-ruby)
+      (previous-multiframe-window)))
+
+  (define-key ruby-mode-map (kbd "C-c C-c")
+    (lambda ()
+      (interactive)
+      (run-ruby)
+      (previous-multiframe-window)
+      (ruby-send-region-and-go (point-min) (point-max))
+      (previous-multiframe-window)))
+  
+  (define-key ruby-mode-map (kbd "C-c C-a") 'autotest-switch)
+  (define-key ruby-mode-map (kbd "C-c C-p") 'pastebin)
+  (define-key ruby-mode-map (kbd "C-c C-r") 'rcov-buffer)
+  (define-key ruby-mode-map (kbd "C-c C-b") 'ruby-send-region-and-go)
+  (define-key ruby-mode-map (kbd "C-c C-t") 'ri-show-term-composite-at-point)
+  
   ;; (add-hook 'ruby-mode-hook (lambda () (local-set-key "\r" 'newline-and-indent)))
+
+  ;; company-mode
+  (add-hook 'after-init-hook 'global-company-mode)
 
   ;; scala-mode
   (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
@@ -540,6 +582,9 @@ there's a region, all lines that region covers will be duplicated."
                        "/usr/bin" ";"
                        "/bin" ";" (getenv "PATH")))
 
+;; install emacs from git
+;; brew install emacs --cocoa --use-git-head --HEAD
+
 ;; define macro
 ;; 01. C-x ( -> start, 02.C-x ) -> end macro, 03 C-x e run macro
 (custom-set-variables
@@ -547,10 +592,14 @@ there's a region, all lines that region covers will be duplicated."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(quack-programs (quote ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
+ '(ecb-options-version "2.40")
+ '(quack-programs
+   (quote
+    ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
