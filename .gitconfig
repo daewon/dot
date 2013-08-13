@@ -19,7 +19,11 @@ lc  = "!f() { git ll "$1"^.."$1"; }; f"
 diffr  = "!f() { git diff "$1"^.."$1"; }; f"
 
 f = "!git ls-files | grep -i"
-		
+ci = "commit -m"
+a = "add ."
+co = "checkout"
+cob = "checkout -b"
+
 [color]
   branch = auto
   diff = auto

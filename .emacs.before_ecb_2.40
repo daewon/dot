@@ -1,29 +1,20 @@
 ;; daewon's emacs setting file
 ;; Author daewon
-;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
-;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html
-
 (defun init-default()
   "init emacs default setting"
   
-  (setq shell-file-name "zsh") ;; set default shell bash
+  (setq shell-file-name "bash") ;; set default shell bash
   (transient-mark-mode t) ;; show selection
   (setq make-backup-files t) ;; make backup file
   (setq inhibit-splash-screen t) ;; start screen 
   (setq frame-title-format "emacs - %b")
   (setq default-truncate-lines nil) ;; truncate line
-  (highlight-80+-mode)
-  (crosshairs-toggle-when-idle)
   
   (keyboard-translate ?\C-h ?\C-?) ;; modify default key
   (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
-  ;; (setenv "PAGER" "/bin/cat")
-  ;; (setenv "PAGER" "/usr/bin/less")
-  (setenv "TERM" "xterm-256color")
-
-  ;; (global-flex-autopair-mode nil)
+  (global-flex-autopair-mode t)
   (delete-selection-mode 1) ;; delete selection mode
-  
+
   ;; set hi-line
   (global-linum-mode t)
   (global-hl-line-mode t)
@@ -47,7 +38,7 @@
   ;; auto-complete-mode
   (require 'auto-complete) 
   (global-auto-complete-mode t) ;; set auto-complete mode 
-  
+
   (define-key ac-complete-mode-map "\C-p" 'ac-previous)
   (define-key ac-complete-mode-map "\C-n" 'ac-next)
   (define-key ac-complete-mode-map "\r" nil)
@@ -88,24 +79,20 @@
   (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
   (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
-  
-  (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
-  (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
 
   ;; ruby-mode
-  ;; (require 'inf-ruby)
-  ;; (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
-  ;; (add-hook 'ruby-mode-hook 'company-inf-ruby)
+  (require 'inf-ruby)
   
+  (defvar flymake-ruby-executable "ruby"
+    "The ruby executable to use for syntax checking.")
+  (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+  (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
+  (add-hook 'ruby-mode-hook 'company-mode)  
   (add-hook 'ruby-mode-hook 'ruby-end-mode)
-  (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
-  
   (add-hook 'ruby-mode-hook 'robe-mode)
-  (push 'ac-source-robe ac-sources)
   ;; (add-hook 'ruby-mode-hook 'ruby-dev-mode)
-
+  (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
   (add-hook 'ruby-mode-hook 'flymake-ruby-load)
-  (add-hook 'ruby-mode-hook (lambda () (ruby-electric-mode t)))
   
   (inf-ruby-setup-keybindings)
   (define-key ruby-mode-map (kbd "C-c r")
@@ -155,61 +142,6 @@
   (setq web-mode-css-indent-offset 2)
   (setq web-mode-indent-style 2)
   (setq web-mode-comment-style 2)
-
-
-  ;; ;; gtags
-  ;; ;; http://bbingju.wordpress.com/2013/03/21/emacs-global-gtags-source-navigation/
-  ;; ;; find | etags -
-  ;; (autoload 'gtags-mode "gtags" "" t)
-  ;; (add-hook 'c-mode-common-hook
-  ;;           '(lambda ()
-  ;;              (gtags-mode 1)))
-
-  ;; (add-hook 'gtags-mode-hook
-  ;;           (lambda ()
-  ;;             (local-set-key (kbd "M-.") 'gtags-find-tag)
-  ;;             (local-set-key (kbd "M-,") 'gtags-find-rtag)))
-  
-  ;; (defun gtags-create-or-update ()
-  ;;   "create or update the gnu global tag file"
-  ;;   (interactive)
-  ;;   (if (not (= 0 (call-process "global" nil nil nil " -p"))) ; tagfile doesn't exist?
-  ;;       (let ((olddir default-directory)
-  ;;             (topdir (read-directory-name
-  ;;                      "gtags: top of source tree:" default-directory)))
-  ;;         (cd topdir)
-  ;;         (shell-command "gtags && echo 'created tagfile'")
-  ;;         (cd olddir)) ; restore
-  ;;     ;;  tagfile already exists; update it
-  ;;     (shell-command "global -u && echo 'updated tagfile'")))
-
-  ;; (add-hook 'c-mode-common-hook
-  ;;           (lambda ()
-  ;;             (gtags-create-or-update)))
-
-
-  ;; (defun gtags-update-single (filename)
-  ;;   "Update Gtags database for changes in a single file"
-  ;;   (interactive)
-  ;;   (start-process "update-gtags" "update-gtags" "bash" "-c" (concat "cd " (gtags-root-dir) " ; gtags --single-update " filename )))
-
-  ;; (defun gtags-update-current-file()
-  ;;   (interactive)
-  ;;   (defvar filename)
-  ;;   (setq filename (replace-regexp-in-string (gtags-root-dir) "." (buffer-file-name (current-buffer))))
-  ;;   (gtags-update-single filename)
-  ;;   (message "Gtags updated for %s" filename))
-
-  ;; (defun gtags-update-hook()
-  ;;   "Update GTAGS file incrementally upon saving a file"
-  ;;   (when gtags-mode
-  ;;     (when (gtags-root-dir)
-  ;;       (gtags-update-current-file))))
-
-  ;; (add-hook 'after-save-hook 'gtags-update-hook)
-  
-  (require 'etags)
-  ;; (setq tags-table-list '("/home/use/src/my-bash-lib"))
   
   ;; (set-face-attribute 'web-mode-css-rule-face nil :foreground "Pink3")
   
@@ -641,8 +573,6 @@ there's a region, all lines that region covers will be duplicated."
                        "/usr/bin" ";"
                        "/bin" ";" (getenv "PATH")))
 
-(setenv "TERM" "xterm-256color")
-
 ;; install emacs from git
 ;; brew install emacs --cocoa --use-git-head --HEAD
 
@@ -653,10 +583,7 @@ there's a region, all lines that region covers will be duplicated."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ecb-options-version "2.40")
- '(quack-programs
-   (quote
-    ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
+ '(quack-programs (quote ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
