@@ -31,7 +31,7 @@ cob = "checkout -b"
   status = auto
 
 [core]
-	excludesfile = /Users/jaegyeonglee/.gitignore_global
+	excludesfile = /Users/blueiur/.gitignore
 	editor = vim
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"

@@ -5,25 +5,23 @@
 
 (defun init-default()
   "init emacs default setting"
-  
+
   (setq shell-file-name "zsh") ;; set default shell bash
   (transient-mark-mode t) ;; show selection
   (setq make-backup-files t) ;; make backup file
-  (setq inhibit-splash-screen t) ;; start screen 
+  (setq inhibit-splash-screen t) ;; start screen
   (setq frame-title-format "emacs - %b")
   (setq default-truncate-lines nil) ;; truncate line
-  (highlight-80+-mode)
-  (crosshairs-toggle-when-idle)
-  
+
   (keyboard-translate ?\C-h ?\C-?) ;; modify default key
   (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
-  ;; (setenv "PAGER" "/bin/cat")
+  (setenv "PAGER" "/bin/cat")
   ;; (setenv "PAGER" "/usr/bin/less")
   (setenv "TERM" "xterm-256color")
 
   ;; (global-flex-autopair-mode nil)
   (delete-selection-mode 1) ;; delete selection mode
-  
+
   ;; set hi-line
   (global-linum-mode t)
   (global-hl-line-mode t)
@@ -31,23 +29,23 @@
   ;; hilight
   (highlight-parentheses-mode)
   (auto-highlight-symbol-mode)
-  
+
   ;; set show-paren-mode
   (show-paren-mode t)
 
   ;; set grep command
   (setq grep-command "grep -nh -r ") ;; set grep-commman
   (setq grep-find-command "find . -type f '!' -wholename '*/.svn/*' -print0 | xargs -0 -e grep -nH -e ") ;; set grep-find-command
-  
+
   ;; set default-key
   (global-set-key (kbd "C-x C-k") 'kill-this-buffer) ;; kill this buffer
   (global-set-key (kbd "C-c C-c") 'quickrun-region) ;; quick this buffer
   (global-set-key "\C-a" 'toggle-beginning-line)
 
   ;; auto-complete-mode
-  (require 'auto-complete) 
-  (global-auto-complete-mode t) ;; set auto-complete mode 
-  
+  (require 'auto-complete)
+  (global-auto-complete-mode t) ;; set auto-complete mode
+
   (define-key ac-complete-mode-map "\C-p" 'ac-previous)
   (define-key ac-complete-mode-map "\C-n" 'ac-next)
   (define-key ac-complete-mode-map "\r" nil)
@@ -59,24 +57,33 @@
   ;; expand region
   ;; http://emacsrocks.com/e09.html
   (require 'expand-region)
-  (global-set-key [(meta m)] 'er/expand-region)  
+  (global-set-key [(meta m)] 'er/expand-region)
 
   (require 'undo-tree)
   (global-set-key (kbd "C-x /") 'undo-tree-visualize)
-  
+
   ;; iedit-mode
   (require 'iedit)
   (global-set-key (kbd "C-c i") 'iedit-dwim) ;; iedit-mode
 
-  ;; icomplete for mini buffer autocompletion	
+  ;; icomplete for mini buffer autocompletion
   (icomplete-mode t)
 
   ;; hilight-symbol-at-point
   (global-set-key (kbd "C-c l ") 'highlight-symbol-at-point)
 
   ;; projectile
+  ;; C-u C-c p f ;; cache
   (setq projectile-enable-caching t)
   (projectile-global-mode) ;; projectile
+  (global-set-key (kbd "C-c p f") 'projectile-find-file)
+  (global-set-key (kbd "C-c p r") 'projectile-)
+  (global-set-key (kbd "C-c p r") 'projetile-grep)
+  (setq projectile-use-native-indexing t)
+  (setq projectile-enable-caching t)
+  (setq projectile-require-project-root nil)
+  (setq projectile-completion-system 'grizzl)
+  (global-set-key (kbd "C-c h") 'helm-projectile)
 
   ;; helm
   (global-set-key (kbd "C-c h") 'helm-mini)
@@ -88,25 +95,25 @@
   (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
   (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
-  
+
   (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
   (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
 
   ;; ruby-mode
-  ;; (require 'inf-ruby)
-  ;; (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
-  ;; (add-hook 'ruby-mode-hook 'company-inf-ruby)
-  
+  (require 'inf-ruby)
+  (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
   (add-hook 'ruby-mode-hook 'ruby-end-mode)
   (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
-  
+
   (add-hook 'ruby-mode-hook 'robe-mode)
   (push 'ac-source-robe ac-sources)
   ;; (add-hook 'ruby-mode-hook 'ruby-dev-mode)
 
   (add-hook 'ruby-mode-hook 'flymake-ruby-load)
   (add-hook 'ruby-mode-hook (lambda () (ruby-electric-mode t)))
-  
+  (add-hook 'ruby-mode-hook (lambda () (local-set-key (kbd "M-/") 'company-robe)))
+  ;; (global-set-key "\t" 'company-robe)
+
   (inf-ruby-setup-keybindings)
   (define-key ruby-mode-map (kbd "C-c r")
     (lambda ()
@@ -121,13 +128,13 @@
       (previous-multiframe-window)
       (ruby-send-region-and-go (point-min) (point-max))
       (previous-multiframe-window)))
-  
+
   (define-key ruby-mode-map (kbd "C-c C-a") 'autotest-switch)
   (define-key ruby-mode-map (kbd "C-c C-p") 'pastebin)
   (define-key ruby-mode-map (kbd "C-c C-r") 'rcov-buffer)
   (define-key ruby-mode-map (kbd "C-c C-b") 'ruby-send-region-and-go)
   (define-key ruby-mode-map (kbd "C-c C-t") 'ri-show-term-composite-at-point)
-  
+
   ;; (add-hook 'ruby-mode-hook (lambda () (local-set-key "\r" 'newline-and-indent)))
 
   ;; company-mode
@@ -169,7 +176,7 @@
   ;;           (lambda ()
   ;;             (local-set-key (kbd "M-.") 'gtags-find-tag)
   ;;             (local-set-key (kbd "M-,") 'gtags-find-rtag)))
-  
+
   ;; (defun gtags-create-or-update ()
   ;;   "create or update the gnu global tag file"
   ;;   (interactive)
@@ -207,31 +214,31 @@
   ;;       (gtags-update-current-file))))
 
   ;; (add-hook 'after-save-hook 'gtags-update-hook)
-  
+
   (require 'etags)
   ;; (setq tags-table-list '("/home/use/src/my-bash-lib"))
-  
+
   ;; (set-face-attribute 'web-mode-css-rule-face nil :foreground "Pink3")
-  
+
   ;; scheme-mode
   ;; http://alexott.net/en/writings/emacs-devenv/EmacsScheme.html
   (require 'quack)
   (require 'cmuscheme)
   (require 'autoinsert)
-  
+
   (add-to-list 'auto-mode-alist '("\\.scm$" . scheme-mode))
-  
+
   (setq quack-fontify-style 'emacs
         quack-default-program "racket"
-        quack-newline-behavior 'newline)  
+        quack-newline-behavior 'newline)
 
   (add-hook 'find-file-hooks 'auto-insert)
-  (setq auto-insert-alist 
-        '(("\\.scm" . 
+  (setq auto-insert-alist
+        '(("\\.scm" .
            (insert "#!/bin/sh\n#| -*- scheme -*-\nexec csi -s $0 \"$@\"\n|#\n"))))
 
   (autoload 'run-scheme "cmuscheme" "Run an inferior Scheme" t)
-  
+
   ;; The basic settings
   (setq scheme-program-name "racket"
         scheme-mit-dialect nil)
@@ -254,7 +261,7 @@
 
   ;; Python Hook
   (add-hook 'python-mode-hook
-            '(lambda () 
+            '(lambda ()
                (setq python-indent 2)))
 
   ;; less-mode
@@ -263,9 +270,15 @@
                (message "less-mode")
                (defcustom less-css-indent-level 4 "Number of spaces to indent inside a block.")))
 
+  ;; haml-mode
+  (add-hook 'haml-mode-hook '(lambda () (auto-complete-mode t)))
+
+  ;; yml-mode
+  (add-hook 'yml-mode-hook '(lambda () (auto-complete-mode t)))
+
   ;; file ext hook
   (add-to-list 'auto-mode-alist '("\\.md$" . markdown-mode))
-  
+
   ;; default offset I hate tabs!
   (setq-default tab-width 2)
   (setq tab-width 2)
@@ -275,7 +288,7 @@
   (setq basic-offset 2)
   (setq-default indent-tabs-mode nil)
   (setq indent-tabs-mode nil)
-  
+
   ;; magit-setting
   (global-set-key (kbd "C-x m") 'magit-status)
 
@@ -328,7 +341,7 @@
   (add-to-list 'package-archives `("melpa" . "http://melpa.milkbox.net/packages/") t)
   (add-to-list 'package-archives `("gnu" . "http://elpa.gnu.org/packages/") t)
   (add-to-list 'package-archives `("marmalade" . "http://marmalade-repo.org/packages/") t)
-  
+
   (package-initialize)
 
   ;; auto-install package
@@ -344,6 +357,7 @@
       yas-jit
       yasnippet
       yasnippet-bundle
+      grizzl
       undo-tree
       js2-mode
       scala-mode2
@@ -385,8 +399,8 @@
 
   (defun has-package-not-installed ()
     (loop for p in packages-list
-	  when (not (package-installed-p p)) do (return t)
-	  finally (return nil)))
+    when (not (package-installed-p p)) do (return t)
+    finally (return nil)))
 
   (when (has-package-not-installed)
     ;; Check for new packages (package versions)
@@ -396,25 +410,25 @@
     ;; Install the missing packages
     (dolist (p packages-list)
       (when (not (package-installed-p p))
-	(package-install p)))))
+  (package-install p)))))
 
 ;; init x-window mode
 (defun init-x-mode()
   "init x setting"
   (progn (scroll-bar-mode 'right)
-	 (setq font-lock-maximum-decoration t)
-	 (menu-bar-mode 0)  
-	 (tool-bar-mode 0)
-	 (require 'tango-2-theme)))
+   (setq font-lock-maximum-decoration t)
+   (menu-bar-mode 0)
+   (tool-bar-mode 0)
+   (require 'tango-2-theme)))
 
 ;; init-terminal mode
-(defun init-terminal-mode() 
+(defun init-terminal-mode()
   "init terminal setting"
   (progn (setq linum-format "%d ")
-	 (require 'zen-and-art-theme)))
+   (require 'zen-and-art-theme)))
 
 ;; mac specific settings, sets fn-delete to be right-delete
-(when (eq system-type 'darwin) 
+(when (eq system-type 'darwin)
   (setq mac-option-modifier 'alt)
   (setq mac-command-modifier 'meta)
   (global-set-key [kp-delete] 'delete-char))
@@ -443,14 +457,14 @@
       (iedit-mode)
     (save-excursion
       (save-restriction
-	(widen)
-	;; this function determines the scope of `iedit-start'.
-	(if iedit-mode
-	    (iedit-done)
-	  ;; `current-word' can of course be replaced by other
-	  ;; functions.
-	  (narrow-to-defun)
-	  (iedit-start (current-word) (point-min) (point-max)))))))
+  (widen)
+  ;; this function determines the scope of `iedit-start'.
+  (if iedit-mode
+      (iedit-done)
+    ;; `current-word' can of course be replaced by other
+    ;; functions.
+    (narrow-to-defun)
+    (iedit-start (current-word) (point-min) (point-max)))))))
 
 (add-hook 'eshell-mode-hook
           'lambda nil
@@ -575,6 +589,14 @@ there's a region, all lines that region covers will be duplicated."
       (goto-char (+ origin (* (length region) arg) arg)))))
 (global-set-key [(meta =)] 'duplicate-current-line-or-region)
 
+(defun my-save()
+  "cleanup whitespcae before save buffer"
+  (interactive)
+  (whitespace-cleanup)
+  (save-buffer))
+
+(global-set-key (kbd "C-x C-s") 'my-save)
+
 ;; comment-or-uncomment-region-or-line
 (defun comment-or-uncomment-region-or-line ()
   "Like comment-or-uncomment-region, but if there's no mark \(that means no region\) apply comment-or-uncomment to the current line"
@@ -585,7 +607,7 @@ there's a region, all lines that region covers will be duplicated."
     (if (< (point) (mark))
         (comment-or-uncomment-region (point) (mark))
       (comment-or-uncomment-region (mark) (point)))))
-(global-set-key (kbd "C-;") 'comment-or-uncomment-region-or-line) 
+(global-set-key (kbd "C-;") 'comment-or-uncomment-region-or-line)
 
 (defalias 'dk 'describe-key)
 (defalias 'df 'describe-function)
@@ -632,7 +654,7 @@ there's a region, all lines that region covers will be duplicated."
       (setq i (1+ i)) (previous-buffer) )))
 
 ;; set default key
-(global-set-key (kbd "C-<prior>") 'previous-user-buffer)    
+(global-set-key (kbd "C-<prior>") 'previous-user-buffer)
 (global-set-key (kbd "C-<next>") 'next-user-buffer)
 
 ;; example of setting env var named “path”, by appending a new path to existing path
@@ -663,4 +685,3 @@ there's a region, all lines that region covers will be duplicated."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-
