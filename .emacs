@@ -15,7 +15,7 @@
 
   (keyboard-translate ?\C-h ?\C-?) ;; modify default key
   (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
-  (setenv "PAGER" "/bin/cat")
+  ;; (setenv "PAGER" "/bin/cat")
   ;; (setenv "PAGER" "/usr/bin/less")
   (setenv "TERM" "xterm-256color")
 
@@ -138,7 +138,7 @@
   ;; (add-hook 'ruby-mode-hook (lambda () (local-set-key "\r" 'newline-and-indent)))
 
   ;; company-mode
-  (add-hook 'after-init-hook 'global-company-mode)
+  ;; (add-hook 'after-init-hook 'global-company-mode)
 
   ;; scala-mode
   (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
@@ -270,7 +270,7 @@
                (message "less-mode")
                (defcustom less-css-indent-level 4 "Number of spaces to indent inside a block.")))
 
-  ;; haml-mode
+  ;; haml-mode-hook
   (add-hook 'haml-mode-hook '(lambda () (auto-complete-mode t)))
 
   ;; yml-mode
@@ -278,6 +278,9 @@
 
   ;; file ext hook
   (add-to-list 'auto-mode-alist '("\\.md$" . markdown-mode))
+
+  ;; haml-mode
+  (add-to-list 'auto-mode-alist '("\\.haml$" . haml-mode))
 
   ;; default offset I hate tabs!
   (setq-default tab-width 2)
@@ -291,6 +294,13 @@
 
   ;; magit-setting
   (global-set-key (kbd "C-x m") 'magit-status)
+  ;; change magit diff colors
+  (eval-after-load 'magit
+    '(progn
+       (set-face-foreground 'magit-diff-add "green3")
+       (set-face-foreground 'magit-diff-del "red3")
+       (when (not window-system)
+         (set-face-background 'magit-item-highlight "black"))))
 
   ;; replace-string and replace-regexp need a key binding
   (global-set-key (kbd "C-c s") 'replace-string)
@@ -394,13 +404,14 @@
       slime
       jade-mode
       web-mode
+      yaml-mode
       )
     "List of packages needs to be installed at launch")
 
   (defun has-package-not-installed ()
     (loop for p in packages-list
-    when (not (package-installed-p p)) do (return t)
-    finally (return nil)))
+          when (not (package-installed-p p)) do (return t)
+          finally (return nil)))
 
   (when (has-package-not-installed)
     ;; Check for new packages (package versions)
@@ -410,22 +421,22 @@
     ;; Install the missing packages
     (dolist (p packages-list)
       (when (not (package-installed-p p))
-  (package-install p)))))
+        (package-install p)))))
 
 ;; init x-window mode
 (defun init-x-mode()
   "init x setting"
   (progn (scroll-bar-mode 'right)
-   (setq font-lock-maximum-decoration t)
-   (menu-bar-mode 0)
-   (tool-bar-mode 0)
-   (require 'tango-2-theme)))
+         (setq font-lock-maximum-decoration t)
+         (menu-bar-mode 0)
+         (tool-bar-mode 0)
+         (require 'tango-2-theme)))
 
 ;; init-terminal mode
 (defun init-terminal-mode()
   "init terminal setting"
   (progn (setq linum-format "%d ")
-   (require 'zen-and-art-theme)))
+         (require 'zen-and-art-theme)))
 
 ;; mac specific settings, sets fn-delete to be right-delete
 (when (eq system-type 'darwin)
@@ -457,14 +468,14 @@
       (iedit-mode)
     (save-excursion
       (save-restriction
-  (widen)
-  ;; this function determines the scope of `iedit-start'.
-  (if iedit-mode
-      (iedit-done)
-    ;; `current-word' can of course be replaced by other
-    ;; functions.
-    (narrow-to-defun)
-    (iedit-start (current-word) (point-min) (point-max)))))))
+        (widen)
+        ;; this function determines the scope of `iedit-start'.
+        (if iedit-mode
+            (iedit-done)
+          ;; `current-word' can of course be replaced by other
+          ;; functions.
+          (narrow-to-defun)
+          (iedit-start (current-word) (point-min) (point-max)))))))
 
 (add-hook 'eshell-mode-hook
           'lambda nil
@@ -481,7 +492,6 @@
                 (buffer-substring start end)
                 " * .*")))
 (global-set-key (kbd "C-c g") 'grep-selected)
-
 
 ;; start!
 (init-default)
@@ -589,13 +599,7 @@ there's a region, all lines that region covers will be duplicated."
       (goto-char (+ origin (* (length region) arg) arg)))))
 (global-set-key [(meta =)] 'duplicate-current-line-or-region)
 
-(defun my-save()
-  "cleanup whitespcae before save buffer"
-  (interactive)
-  (whitespace-cleanup)
-  (save-buffer))
-
-(global-set-key (kbd "C-x C-s") 'my-save)
+(add-hook 'before-save-hook 'whitespace-cleanup)
 
 ;; comment-or-uncomment-region-or-line
 (defun comment-or-uncomment-region-or-line ()
