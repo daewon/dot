@@ -84,6 +84,7 @@
   (setq projectile-require-project-root nil)
   (setq projectile-completion-system 'grizzl)
   (global-set-key (kbd "C-c h") 'helm-projectile)
+  ;; (setq projectile-ignored-directories (append projectile-ignored-directories '("tmp" "public" "coverage" "log" "vendor" "db/migrate")))
 
   ;; helm
   (global-set-key (kbd "C-c h") 'helm-mini)
@@ -268,7 +269,7 @@
   (add-hook 'less-css-mode-hook
             '(lambda ()
                (message "less-mode")
-               (defcustom less-css-indent-level 4 "Number of spaces to indent inside a block.")))
+               (defcustom less-css-indent-level 2 "Number of spaces to indent inside a block.")))
 
   ;; haml-mode-hook
   (add-hook 'haml-mode-hook '(lambda () (auto-complete-mode t)))
@@ -405,6 +406,7 @@
       jade-mode
       web-mode
       yaml-mode
+      haml-mode
       )
     "List of packages needs to be installed at launch")
 
@@ -680,6 +682,7 @@ there's a region, all lines that region covers will be duplicated."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(ecb-options-version "2.40")
+ '(less-css-indent-level 1)
  '(quack-programs
    (quote
     ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
