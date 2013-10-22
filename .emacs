@@ -115,7 +115,6 @@
   (add-hook 'ruby-mode-hook (lambda () (local-set-key (kbd "M-/") 'company-robe)))
   ;; (global-set-key "\t" 'company-robe)
 
-  (inf-ruby-setup-keybindings)
   (define-key ruby-mode-map (kbd "C-c r")
     (lambda ()
       (interactive)
