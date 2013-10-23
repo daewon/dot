@@ -5,7 +5,7 @@
 
 (defun init-default()
   "init emacs default setting"
-
+  (window-numbering-mode t)
   (setq shell-file-name "zsh") ;; set default shell bash
   (transient-mark-mode t) ;; show selection
   (setq make-backup-files t) ;; make backup file
@@ -385,6 +385,9 @@
       helm
       helm-projectile
       helm-c-yasnippet
+      ac-helm
+      sml-mode
+      sml-modeline
       flymake-jshint
       flymake-jslint
       flymake-easy
@@ -406,6 +409,16 @@
       web-mode
       yaml-mode
       haml-mode
+      elixir-mix
+      elixir-mode
+      ruby-compilation
+      ruby-interpolation
+      rvm
+      save-visited-files
+      thrift
+      twittering-mode
+      window-numbering
+      window-layout
       )
     "List of packages needs to be installed at launch")
 
