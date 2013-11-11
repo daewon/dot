@@ -75,15 +75,16 @@
   ;; projectile
   ;; C-u C-c p f ;; cache
   (setq projectile-enable-caching t)
+  ;; (setq projectile-keymap-prefix (kbd "C-c C-p"))
   (projectile-global-mode) ;; projectile
-  (global-set-key (kbd "C-c p f") 'projectile-find-file)
-  (global-set-key (kbd "C-c p r") 'projectile-)
-  (global-set-key (kbd "C-c p r") 'projetile-grep)
+  ;; (global-set-key (kbd "C-c p f") 'projectile-find-file)
+  ;; (global-set-key (kbd "C-c p r") 'projectile-)
+  ;; (global-set-key (kbd "C-c p r") 'projetile-grep)
   (setq projectile-use-native-indexing t)
   (setq projectile-enable-caching t)
   (setq projectile-require-project-root nil)
   (setq projectile-completion-system 'grizzl)
-  (global-set-key (kbd "C-c h") 'helm-projectile)
+  ;; (global-set-key (kbd "C-c h p") 'helm-projectile)
   ;; (setq projectile-ignored-directories (append projectile-ignored-directories '("tmp" "public" "coverage" "log" "vendor" "db/migrate")))
 
   ;; helm
@@ -98,15 +99,16 @@
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
 
   (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
-  (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+  ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+  (add-hook 'ruby-mode-hook 'projectile-on)
 
   ;; ruby-mode
   (require 'inf-ruby)
-  (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
-  (add-hook 'ruby-mode-hook 'ruby-end-mode)
+  ;; (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
+  ;; (add-hook 'ruby-mode-hook 'ruby-end-mode)
   (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
 
-  (add-hook 'ruby-mode-hook 'robe-mode)
+  ;; (add-hook 'ruby-mode-hook 'robe-mode)
   (push 'ac-source-robe ac-sources)
   ;; (add-hook 'ruby-mode-hook 'ruby-dev-mode)
 
@@ -163,7 +165,6 @@
   (setq web-mode-indent-style 2)
   (setq web-mode-comment-style 2)
 
-
   ;; ;; gtags
   ;; ;; http://bbingju.wordpress.com/2013/03/21/emacs-global-gtags-source-navigation/
   ;; ;; find | etags -
@@ -194,7 +195,6 @@
   ;;           (lambda ()
   ;;             (gtags-create-or-update)))
 
-
   ;; (defun gtags-update-single (filename)
   ;;   "Update Gtags database for changes in a single file"
   ;;   (interactive)
@@ -214,6 +214,7 @@
   ;;       (gtags-update-current-file))))
 
   ;; (add-hook 'after-save-hook 'gtags-update-hook)
+
 
   (require 'etags)
   ;; (setq tags-table-list '("/home/use/src/my-bash-lib"))
@@ -693,8 +694,9 @@ there's a region, all lines that region covers will be duplicated."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(css-indent-offset 2)
  '(ecb-options-version "2.40")
- '(less-css-indent-level 2)
+ '(less-css-indent-level 1)
  '(quack-programs
    (quote
     ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
@@ -704,3 +706,5 @@ there's a region, all lines that region covers will be duplicated."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+;; ===== Set standard indent to 2 rather that 4 ====
+(setq standard-indent 2)
