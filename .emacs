@@ -3,6 +3,7 @@
 ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
 ;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html
 
+
 (defun init-default()
   "init emacs default setting"
   (window-numbering-mode t)
@@ -22,9 +23,7 @@
   ;; (global-flex-autopair-mode nil)
   (delete-selection-mode 1) ;; delete selection mode
 
-  ;; set hi-line
   (global-linum-mode t)
-  (global-hl-line-mode t)
 
   ;; hilight
   (highlight-parentheses-mode)
@@ -57,10 +56,14 @@
   ;; expand region
   ;; http://emacsrocks.com/e09.html
   (require 'expand-region)
-  (global-set-key [(meta m)] 'er/expand-region)
+  (global-set-key (kbd "M-m") 'er/expand-region)
 
   (require 'undo-tree)
+  (global-undo-tree-mode 1)
   (global-set-key (kbd "C-x /") 'undo-tree-visualize)
+
+  (global-set-key (kbd "C--") 'undo-tree-undo)
+  (global-set-key (kbd "M--") 'undo-tree-redo)
 
   ;; iedit-mode
   (require 'iedit)
@@ -84,6 +87,11 @@
   (setq projectile-enable-caching t)
   (setq projectile-require-project-root nil)
   (setq projectile-completion-system 'grizzl)
+
+  (require 'flx-ido)
+  (ido-mode 1)
+  (ido-everywhere 1)
+  (flx-ido-mode 1)
   ;; (global-set-key (kbd "C-c h p") 'helm-projectile)
   ;; (setq projectile-ignored-directories (append projectile-ignored-directories '("tmp" "public" "coverage" "log" "vendor" "db/migrate")))
 
@@ -97,6 +105,7 @@
   (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
   (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
+  (add-hook 'js2-mode-hook 'highline-mode)
 
   (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
   ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
@@ -650,7 +659,7 @@ there's a region, all lines that region covers will be duplicated."
 
 (defun open-dot-emacs()
   (interactive)
-  (find-file "~/.emacs"))
+  (find-file "~/.emacs.d/daewon"))
 
 (defun open-bash-profile ()
   (interactive)
