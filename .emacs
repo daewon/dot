@@ -1,7 +1,9 @@
+
 ;; daewon's emacs setting file
 ;; Author daewon
 ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
 ;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html
+
 
 (defun init-default()
   "init emacs default setting"
@@ -22,9 +24,7 @@
   ;; (global-flex-autopair-mode nil)
   (delete-selection-mode 1) ;; delete selection mode
 
-  ;; set hi-line
   (global-linum-mode t)
-  (global-hl-line-mode t)
 
   ;; hilight
   (highlight-parentheses-mode)
@@ -57,10 +57,14 @@
   ;; expand region
   ;; http://emacsrocks.com/e09.html
   (require 'expand-region)
-  (global-set-key [(meta m)] 'er/expand-region)
+  (global-set-key (kbd "M-m") 'er/expand-region)
 
   (require 'undo-tree)
+  (global-undo-tree-mode 1)
   (global-set-key (kbd "C-x /") 'undo-tree-visualize)
+
+  (global-set-key (kbd "C--") 'undo-tree-undo)
+  (global-set-key (kbd "M--") 'undo-tree-redo)
 
   ;; iedit-mode
   (require 'iedit)
@@ -75,15 +79,21 @@
   ;; projectile
   ;; C-u C-c p f ;; cache
   (setq projectile-enable-caching t)
+  ;; (setq projectile-keymap-prefix (kbd "C-c C-p"))
   (projectile-global-mode) ;; projectile
-  (global-set-key (kbd "C-c p f") 'projectile-find-file)
-  (global-set-key (kbd "C-c p r") 'projectile-)
-  (global-set-key (kbd "C-c p r") 'projetile-grep)
+  ;; (global-set-key (kbd "C-c p f") 'projectile-find-file)
+  ;; (global-set-key (kbd "C-c p r") 'projectile-)
+  ;; (global-set-key (kbd "C-c p r") 'projetile-grep)
   (setq projectile-use-native-indexing t)
   (setq projectile-enable-caching t)
   (setq projectile-require-project-root nil)
   (setq projectile-completion-system 'grizzl)
-  (global-set-key (kbd "C-c h") 'helm-projectile)
+
+  (require 'flx-ido)
+  (ido-mode 1)
+  (ido-everywhere 1)
+  (flx-ido-mode 1)
+  ;; (global-set-key (kbd "C-c h p") 'helm-projectile)
   ;; (setq projectile-ignored-directories (append projectile-ignored-directories '("tmp" "public" "coverage" "log" "vendor" "db/migrate")))
 
   ;; helm
@@ -96,17 +106,21 @@
   (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
   (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
+  (add-hook 'js2-mode-hook 'highline-mode)
 
   ;; (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
   ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+  (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
+  ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+  (add-hook 'ruby-mode-hook 'projectile-on)
 
   ;; ruby-mode
   (require 'inf-ruby)
-  (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
-  (add-hook 'ruby-mode-hook 'ruby-end-mode)
+  ;; (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
+  ;; (add-hook 'ruby-mode-hook 'ruby-end-mode)
   (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
 
-  (add-hook 'ruby-mode-hook 'robe-mode)
+  ;; (add-hook 'ruby-mode-hook 'robe-mode)
   (push 'ac-source-robe ac-sources)
   (add-hook 'ruby-mode-hook 'ruby-dev-mode)
 
@@ -118,7 +132,7 @@
   ;; (define-key ruby-mode-map (kbd "C-c r")
   ;;   (lambda ()
   ;;     (interactive)
-  ;;     (run-ruby)
+>  ;;     (run-ruby)
   ;;     (previous-multiframe-window)))
 
   ;; (define-key ruby-mode-map (kbd "C-c C-c")
@@ -163,7 +177,6 @@
   (setq web-mode-indent-style 2)
   (setq web-mode-comment-style 2)
 
-
   ;; ;; gtags
   ;; ;; http://bbingju.wordpress.com/2013/03/21/emacs-global-gtags-source-navigation/
   ;; ;; find | etags -
@@ -194,7 +207,6 @@
   ;;           (lambda ()
   ;;             (gtags-create-or-update)))
 
-
   ;; (defun gtags-update-single (filename)
   ;;   "Update Gtags database for changes in a single file"
   ;;   (interactive)
@@ -214,6 +226,7 @@
   ;;       (gtags-update-current-file))))
 
   ;; (add-hook 'after-save-hook 'gtags-update-hook)
+
 
   (require 'etags)
   ;; (setq tags-table-list '("/home/use/src/my-bash-lib"))
@@ -649,7 +662,7 @@ there's a region, all lines that region covers will be duplicated."
 
 (defun open-dot-emacs()
   (interactive)
-  (find-file "~/.emacs"))
+  (find-file "~/.emacs.d/daewon"))
 
 (defun open-bash-profile ()
   (interactive)
@@ -693,8 +706,9 @@ there's a region, all lines that region covers will be duplicated."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(css-indent-offset 2)
  '(ecb-options-version "2.40")
- '(less-css-indent-level 2)
+ '(less-css-indent-level 1)
  '(quack-programs
    (quote
     ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
@@ -704,3 +718,5 @@ there's a region, all lines that region covers will be duplicated."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+;; ===== Set standard indent to 2 rather that 4 ====
+(setq standard-indent 2)
