@@ -1,3 +1,4 @@
+
 ;; daewon's emacs setting file
 ;; Author daewon
 ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
@@ -109,6 +110,8 @@
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
   (add-hook 'js2-mode-hook 'highline-mode)
 
+  ;; (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
+  ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
   (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
   ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
   (add-hook 'ruby-mode-hook 'projectile-on)
@@ -121,32 +124,32 @@
 
   ;; (add-hook 'ruby-mode-hook 'robe-mode)
   (push 'ac-source-robe ac-sources)
-  ;; (add-hook 'ruby-mode-hook 'ruby-dev-mode)
+  (add-hook 'ruby-mode-hook 'ruby-dev-mode)
 
-  (add-hook 'ruby-mode-hook 'flymake-ruby-load)
+  ;; (add-hook 'ruby-mode-hook 'flymake-ruby-load)
   (add-hook 'ruby-mode-hook (lambda () (ruby-electric-mode t)))
   (add-hook 'ruby-mode-hook (lambda () (local-set-key (kbd "M-/") 'company-robe)))
   ;; (global-set-key "\t" 'company-robe)
 
-  (define-key ruby-mode-map (kbd "C-c r")
-    (lambda ()
-      (interactive)
-      (run-ruby)
-      (previous-multiframe-window)))
+  ;; (define-key ruby-mode-map (kbd "C-c r")
+  ;;   (lambda ()
+  ;;     (interactive)
+>  ;;     (run-ruby)
+  ;;     (previous-multiframe-window)))
 
-  (define-key ruby-mode-map (kbd "C-c C-c")
-    (lambda ()
-      (interactive)
-      (run-ruby)
-      (previous-multiframe-window)
-      (ruby-send-region-and-go (point-min) (point-max))
-      (previous-multiframe-window)))
+  ;; (define-key ruby-mode-map (kbd "C-c C-c")
+  ;;   (lambda ()
+  ;;     (interactive)
+  ;;     (run-ruby)
+  ;;     (previous-multiframe-window)
+  ;;     (ruby-send-region-and-go (point-min) (point-max))
+  ;;     (previous-multiframe-window)))
 
-  (define-key ruby-mode-map (kbd "C-c C-a") 'autotest-switch)
-  (define-key ruby-mode-map (kbd "C-c C-p") 'pastebin)
-  (define-key ruby-mode-map (kbd "C-c C-r") 'rcov-buffer)
-  (define-key ruby-mode-map (kbd "C-c C-b") 'ruby-send-region-and-go)
-  (define-key ruby-mode-map (kbd "C-c C-t") 'ri-show-term-composite-at-point)
+  ;; (define-key ruby-mode-map (kbd "C-c C-a") 'autotest-switch)
+  ;; (define-key ruby-mode-map (kbd "C-c C-p") 'pastebin)
+  ;; (define-key ruby-mode-map (kbd "C-c C-r") 'rcov-buffer)
+  ;; (define-key ruby-mode-map (kbd "C-c C-b") 'ruby-send-region-and-go)
+  ;; (define-key ruby-mode-map (kbd "C-c C-t") 'ri-show-term-composite-at-point)
 
   ;; (add-hook 'ruby-mode-hook (lambda () (local-set-key "\r" 'newline-and-indent)))
 
