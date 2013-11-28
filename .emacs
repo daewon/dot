@@ -134,7 +134,7 @@
   ;; (define-key ruby-mode-map (kbd "C-c r")
   ;;   (lambda ()
   ;;     (interactive)
->  ;;     (run-ruby)
+  ;;     (run-ruby)
   ;;     (previous-multiframe-window)))
 
   ;; (define-key ruby-mode-map (kbd "C-c C-c")
