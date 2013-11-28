@@ -41,6 +41,8 @@
   (global-set-key (kbd "C-c C-c") 'quickrun-region) ;; quick this buffer
   (global-set-key "\C-a" 'toggle-beginning-line)
 
+  (global-set-key (kbd "C-x C-l") 'toggle-truncate-lines)
+
   ;; auto-complete-mode
   (require 'auto-complete)
   (global-auto-complete-mode t) ;; set auto-complete mode
