@@ -158,9 +158,6 @@
 
   ;; scala-mode
   (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
-  (add-to-list 'load-path "~/dot/ensime/elisp")
-  (require 'ensime)
-  (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
 
   ;; web-mode
   ;; http://web-mode.org/
@@ -434,6 +431,7 @@
       twittering-mode
       window-numbering
       window-layout
+      flx-ido
       )
     "List of packages needs to be installed at launch")
 
