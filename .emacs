@@ -1,4 +1,3 @@
-
 ;; daewon's emacs setting file
 ;; Author daewon
 ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
@@ -134,7 +133,7 @@
   ;; (define-key ruby-mode-map (kbd "C-c r")
   ;;   (lambda ()
   ;;     (interactive)
->  ;;     (run-ruby)
+  ;;     (run-ruby)
   ;;     (previous-multiframe-window)))
 
   ;; (define-key ruby-mode-map (kbd "C-c C-c")
@@ -434,6 +433,8 @@
       twittering-mode
       window-numbering
       window-layout
+      flx-ido
+      ensime
       )
     "List of packages needs to be installed at launch")
 
@@ -629,6 +630,28 @@ there's a region, all lines that region covers will be duplicated."
 (global-set-key [(meta =)] 'duplicate-current-line-or-region)
 
 (add-hook 'before-save-hook 'whitespace-cleanup)
+(add-hook 'web-mode-hook (lambda ()
+                           (setq standard-indent 2)
+                           (setq web-mode-code-indent-offset 2)
+                           (setq web-mode-markup-indent-offset 2)
+                           `(web-mode-code-indent-offset 2)
+                           `(web-mode-markup-indent-offset 2)
+                           ))
+(add-hook 'prelude-web-mode-hook (lambda ()
+                           (setq standard-indent 2)
+                           (setq web-mode-code-indent-offset 2)
+                           (setq web-mode-markup-indent-offset 2)
+                           `(web-mode-code-indent-offset 2)
+                           `(web-mode-markup-indent-offset 2)
+                           ))
+
+(defun web-mode-setup ()
+  (interactive)
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-indent-style 2)
+  (setq web-mode-comment-style 2))
+(global-set-key (kbd "C-x w") 'web-mode-setup)
 
 ;; comment-or-uncomment-region-or-line
 (defun comment-or-uncomment-region-or-line ()
@@ -722,3 +745,9 @@ there's a region, all lines that region covers will be duplicated."
  )
 ;; ===== Set standard indent to 2 rather that 4 ====
 (setq standard-indent 2)
+(setq web-mode-code-indent-offset 2)
+(setq web-mode-markup-indent-offset 2)
+`(web-mode-code-indent-offset 2)
+`(web-mode-markup-indent-offset 2)
+
+(global-set-key (kbd "C-2") 'set-mark-command)
