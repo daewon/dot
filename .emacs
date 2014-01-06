@@ -3,26 +3,20 @@
 ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
 ;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html
 
-
 (defun init-default()
   "init emacs default setting"
-  (window-numbering-mode t)
-  (setq shell-file-name "zsh") ;; set default shell bash
-  (transient-mark-mode t) ;; show selection
+  (window-numbering-mode t) ;; http://www.emacswiki.org/emacs/WindowNumberingMode
   (setq make-backup-files t) ;; make backup file
   (setq inhibit-splash-screen t) ;; start screen
   (setq frame-title-format "emacs - %b")
   (setq default-truncate-lines nil) ;; truncate line
-
   (keyboard-translate ?\C-h ?\C-?) ;; modify default key
   (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
-  ;; (setenv "PAGER" "/bin/cat")
-  ;; (setenv "PAGER" "/usr/bin/less")
+
   (setenv "TERM" "xterm-256color")
 
   ;; (global-flex-autopair-mode nil)
   (delete-selection-mode 1) ;; delete selection mode
-
   (global-linum-mode t)
 
   ;; hilight
@@ -63,7 +57,6 @@
   (require 'undo-tree)
   (global-undo-tree-mode 1)
   (global-set-key (kbd "C-x /") 'undo-tree-visualize)
-
   (global-set-key (kbd "C--") 'undo-tree-undo)
   (global-set-key (kbd "M--") 'undo-tree-redo)
 
@@ -71,34 +64,39 @@
   (require 'iedit)
   (global-set-key (kbd "C-c i") 'iedit-dwim) ;; iedit-mode
 
+  ;; ace-jump-mode
+  (global-set-key (kbd "C-c j") 'ace-jump-mode)
+
   ;; icomplete for mini buffer autocompletion
   (icomplete-mode t)
 
   ;; hilight-symbol-at-point
-  (global-set-key (kbd "C-c l ") 'highlight-symbol-at-point)
+  (global-set-key (kbd "C-c l") 'highlight-symbol-at-point)
+  (global-set-key [(meta n)] 'highlight-symbol-next)
+  (global-set-key [(meta p)] 'highlight-symbol-prev)
+  (global-set-key [(meta f3)] 'highlight-symbol-query-replace)
 
   ;; projectile
   ;; C-u C-c p f ;; cache
   (setq projectile-enable-caching t)
-  ;; (setq projectile-keymap-prefix (kbd "C-c C-p"))
+  (setq projectile-keymap-prefix (kbd "C-c C-p"))
   (projectile-global-mode) ;; projectile
-  ;; (global-set-key (kbd "C-c p f") 'projectile-find-file)
-  ;; (global-set-key (kbd "C-c p r") 'projectile-)
-  ;; (global-set-key (kbd "C-c p r") 'projetile-grep)
+  (global-set-key (kbd "C-c p f") 'projectile-find-file)
+  (global-set-key (kbd "C-c p r") 'projetile-grep)
   (setq projectile-use-native-indexing t)
   (setq projectile-enable-caching t)
   (setq projectile-require-project-root nil)
-  (setq projectile-completion-system 'grizzl)
+  (setq projectile-completion-system 'ido)
 
   (require 'flx-ido)
   (ido-mode 1)
   (ido-everywhere 1)
   (flx-ido-mode 1)
-  ;; (global-set-key (kbd "C-c h p") 'helm-projectile)
+  (global-set-key (kbd "C-c h") 'helm-projectile)
   ;; (setq projectile-ignored-directories (append projectile-ignored-directories '("tmp" "public" "coverage" "log" "vendor" "db/migrate")))
 
   ;; helm
-  (global-set-key (kbd "C-c h") 'helm-mini)
+  ;; (global-set-key (kbd "C-c h") 'helm-mini)
   (global-set-key (kbd "M-r") 'helm-for-files)
   (global-set-key (kbd "C-c o") 'grep-o-matic-current-directory)
 
@@ -170,10 +168,13 @@
   (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 
-  (setq web-mode-markup-indent-offset 2)
+  (setq standard-indent 2)
   (setq web-mode-css-indent-offset 2)
   (setq web-mode-indent-style 2)
   (setq web-mode-comment-style 2)
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-markup-indent-offset 2)
+  (global-set-key (kbd "C-2") 'set-mark-command)
 
   ;; ;; gtags
   ;; ;; http://bbingju.wordpress.com/2013/03/21/emacs-global-gtags-source-navigation/
@@ -432,9 +433,10 @@
       window-layout
       flx-ido
       ensime
+      ace-jump-mode
+      highlight-symbol
       )
     "List of packages needs to be installed at launch")
-
   (defun has-package-not-installed ()
     (loop for p in packages-list
           when (not (package-installed-p p)) do (return t)
@@ -462,6 +464,7 @@
 ;; init-terminal mode
 (defun init-terminal-mode()
   "init terminal setting"
+  (setq shell-file-name "zsh") ;; set default shell bash
   (menu-bar-mode 0)
   (tool-bar-mode 0)
   (progn (setq linum-format "%d ")
@@ -629,20 +632,6 @@ there's a region, all lines that region covers will be duplicated."
 (global-set-key [(meta =)] 'duplicate-current-line-or-region)
 
 (add-hook 'before-save-hook 'whitespace-cleanup)
-(add-hook 'web-mode-hook (lambda ()
-                           (setq standard-indent 2)
-                           (setq web-mode-code-indent-offset 2)
-                           (setq web-mode-markup-indent-offset 2)
-                           `(web-mode-code-indent-offset 2)
-                           `(web-mode-markup-indent-offset 2)
-                           ))
-(add-hook 'prelude-web-mode-hook (lambda ()
-                           (setq standard-indent 2)
-                           (setq web-mode-code-indent-offset 2)
-                           (setq web-mode-markup-indent-offset 2)
-                           `(web-mode-code-indent-offset 2)
-                           `(web-mode-markup-indent-offset 2)
-                           ))
 
 (defun web-mode-setup ()
   (interactive)
@@ -743,10 +732,3 @@ there's a region, all lines that region covers will be duplicated."
  ;; If there is more than one, they won't work right.
  )
 ;; ===== Set standard indent to 2 rather that 4 ====
-(setq standard-indent 2)
-(setq web-mode-code-indent-offset 2)
-(setq web-mode-markup-indent-offset 2)
-`(web-mode-code-indent-offset 2)
-`(web-mode-markup-indent-offset 2)
-
-(global-set-key (kbd "C-2") 'set-mark-command)
