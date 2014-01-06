@@ -462,6 +462,8 @@
 ;; init-terminal mode
 (defun init-terminal-mode()
   "init terminal setting"
+  (menu-bar-mode 0)
+  (tool-bar-mode 0)
   (progn (setq linum-format "%d ")
          (require 'zen-and-art-theme)))
 
