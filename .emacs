@@ -15,10 +15,27 @@
 
   (setenv "TERM" "xterm-256color")
 
+  (require 'key-combo)
+  (key-combo-mode 1)
+  (key-combo-define-global (kbd "=") '(" = " " == " " === " ))
+  (key-combo-define-global (kbd "=>") " => ")
+
+  (require 'key-chord)
+  (key-chord-mode 1)
+  (key-chord-define-global "jj" 'ace-jump-mode)
+  (key-chord-define-global ",." "<>\C-b")
+
   ;; (global-flex-autopair-mode nil)
   (delete-selection-mode 1) ;; delete selection mode
-  (global-linum-mode t)
 
+  (global-hl-line-mode 1)
+  (set-face-attribute 'region nil :background "black")
+  (set-face-background 'hl-line "#000000")
+
+  (add-hook `activate-mark-hook `(lambda () (global-hl-line-mode 0)))
+  (add-hook `deactivate-mark-hook `(lambda () (global-hl-line-mode 1)))
+
+  ;; (global-linum-mode nil)
   ;; hilight
   (highlight-parentheses-mode)
   (auto-highlight-symbol-mode)
@@ -78,25 +95,30 @@
 
   ;; projectile
   ;; C-u C-c p f ;; cache
-  (setq projectile-enable-caching t)
+  (setq projectile-enable-caching nil)
   (setq projectile-keymap-prefix (kbd "C-c C-p"))
   (projectile-global-mode) ;; projectile
   (global-set-key (kbd "C-c p f") 'projectile-find-file)
   (global-set-key (kbd "C-c p r") 'projetile-grep)
   (setq projectile-use-native-indexing t)
-  (setq projectile-enable-caching t)
   (setq projectile-require-project-root nil)
   (setq projectile-completion-system 'ido)
+
+  (setq projectile-project-root-files `())
+  (setq projectile-ignored-files `())
+  (setq projectile-ignored-directories `())
+
+  (setq projectile-project-root-files (append projectile-project-root-files '(".git" ".hg" ".bzr" "_darcs" ".projectile")))
+  (setq projectile-ignored-files (append projectile-ignored-files '("TAGS")))
+  (setq projectile-ignored-directories (append projectile-ignored-directories '(".idea")))
 
   (require 'flx-ido)
   (ido-mode 1)
   (ido-everywhere 1)
   (flx-ido-mode 1)
-  (global-set-key (kbd "C-c h") 'helm-projectile)
-  ;; (setq projectile-ignored-directories (append projectile-ignored-directories '("tmp" "public" "coverage" "log" "vendor" "db/migrate")))
 
   ;; helm
-  ;; (global-set-key (kbd "C-c h") 'helm-mini)
+  (global-set-key (kbd "C-c h") 'helm-projectile)
   (global-set-key (kbd "M-r") 'helm-for-files)
   (global-set-key (kbd "C-c o") 'grep-o-matic-current-directory)
 
@@ -427,14 +449,14 @@
       ruby-interpolation
       rvm
       save-visited-files
-      thrift
-      twittering-mode
       window-numbering
       window-layout
       flx-ido
       ensime
       ace-jump-mode
       highlight-symbol
+      key-combo
+      key-chord
       )
     "List of packages needs to be installed at launch")
   (defun has-package-not-installed ()
