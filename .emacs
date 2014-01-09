@@ -1,4 +1,4 @@
-;; daewon's emacs setting file
+t;; daewon's emacs setting file
 ;; Author daewon
 ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
 ;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html
@@ -29,11 +29,11 @@
   (delete-selection-mode 1) ;; delete selection mode
 
   (global-hl-line-mode 1)
-  (set-face-attribute 'region nil :background "black")
+  (set-face-attribute 'region nil :background "#000011")
   (set-face-background 'hl-line "#000000")
 
-  (add-hook `activate-mark-hook `(lambda () (global-hl-line-mode 0)))
-  (add-hook `deactivate-mark-hook `(lambda () (global-hl-line-mode 1)))
+  ;; (add-hook `activate-mark-hook `(lambda () (global-hl-line-mode 0)))
+  ;; (add-hook `deactivate-mark-hook `(lambda () (global-hl-line-mode 1)))
 
   ;; (global-linum-mode nil)
   ;; hilight
@@ -99,7 +99,7 @@
   (setq projectile-keymap-prefix (kbd "C-c C-p"))
   (projectile-global-mode) ;; projectile
   (global-set-key (kbd "C-c p f") 'projectile-find-file)
-  (global-set-key (kbd "C-c p r") 'projetile-grep)
+  (global-set-key (kbd "C-c p g") 'projectile-grep)
   (setq projectile-use-native-indexing t)
   (setq projectile-require-project-root nil)
   (setq projectile-completion-system 'ido)
@@ -120,7 +120,8 @@
   ;; helm
   (global-set-key (kbd "C-c h") 'helm-projectile)
   (global-set-key (kbd "M-r") 'helm-for-files)
-  (global-set-key (kbd "C-c o") 'grep-o-matic-current-directory)
+
+  (add-to-list 'auto-mode-alist '("\\.dust$" . web-mode))
 
   ;; js2-mode
   (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
@@ -457,6 +458,9 @@
       highlight-symbol
       key-combo
       key-chord
+      cider
+      ac-nrepl
+      nrepl
       )
     "List of packages needs to be installed at launch")
   (defun has-package-not-installed ()
