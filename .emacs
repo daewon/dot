@@ -15,6 +15,7 @@ t;; daewon's emacs setting file
 
   (setenv "TERM" "xterm-256color")
 
+
   (require 'key-combo)
   (key-combo-mode 1)
   (key-combo-define-global (kbd "=") '(" = " " == " " === " ))
@@ -23,6 +24,7 @@ t;; daewon's emacs setting file
   (require 'key-chord)
   (key-chord-mode 1)
   (key-chord-define-global "jj" 'ace-jump-mode)
+  ;; (key-chord-define-global "kk" 'next-multiframe-window)
   (key-chord-define-global ",." "<>\C-b")
 
   ;; (global-flex-autopair-mode nil)
@@ -378,7 +380,6 @@ t;; daewon's emacs setting file
   (global-set-key (kbd "C-o") 'next-multiframe-window)
   ) ;; end of init-default
 
-
 ;; setting packages
 (progn
   (require 'package)
@@ -461,6 +462,7 @@ t;; daewon's emacs setting file
       cider
       ac-nrepl
       nrepl
+      nhexl-mode
       )
     "List of packages needs to be installed at launch")
   (defun has-package-not-installed ()
@@ -748,13 +750,11 @@ there's a region, all lines that region covers will be duplicated."
  '(css-indent-offset 2)
  '(ecb-options-version "2.40")
  '(less-css-indent-level 1)
- '(quack-programs
-   (quote
-    ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
+ '(quack-programs (quote ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(helm-selection ((t (:background "color-18" :underline t)))))
 ;; ===== Set standard indent to 2 rather that 4 ====
