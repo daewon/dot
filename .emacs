@@ -1,4 +1,4 @@
-t;; daewon's emacs setting file
+;; daewon's emacs setting file
 ;; Author daewon
 ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
 ;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html
@@ -15,6 +15,7 @@ t;; daewon's emacs setting file
 
   (setenv "TERM" "xterm-256color")
 
+  (global-set-key (kbd "RET") 'newline-and-indent)
 
   (require 'key-combo)
   (key-combo-mode 1)
@@ -24,8 +25,14 @@ t;; daewon's emacs setting file
   (require 'key-chord)
   (key-chord-mode 1)
   (key-chord-define-global "jj" 'ace-jump-mode)
-  ;; (key-chord-define-global "kk" 'next-multiframe-window)
+  (key-chord-define-global "oo" my-new-line)
+  (key-chord-define-global "OO" 'next-multiframe-window)
   (key-chord-define-global ",." "<>\C-b")
+
+  (defun my-new-line ()
+    (interactive)
+    (end-of-line)
+    (newline-and-indent))
 
   ;; (global-flex-autopair-mode nil)
   (delete-selection-mode 1) ;; delete selection mode
