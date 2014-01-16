@@ -23,16 +23,17 @@
   (key-combo-define-global (kbd "=>") " => ")
 
   (require 'key-chord)
-  (key-chord-mode 1)
-  (key-chord-define-global "jj" 'ace-jump-mode)
-  (key-chord-define-global "oo" my-new-line)
-  (key-chord-define-global "OO" 'next-multiframe-window)
-  (key-chord-define-global ",." "<>\C-b")
-
   (defun my-new-line ()
     (interactive)
     (end-of-line)
     (newline-and-indent))
+  (key-chord-mode 1)
+  (key-chord-define-global "jj" 'ace-jump-mode)
+  (key-chord-define-global "oo" 'my-new-line)
+  (key-chord-define-global "OO" 'next-multiframe-window)
+  (key-chord-define-global ",." "<>\C-b")
+
+
 
   ;; (global-flex-autopair-mode nil)
   (delete-selection-mode 1) ;; delete selection mode
@@ -132,12 +133,12 @@
 
   (add-to-list 'auto-mode-alist '("\\.dust$" . web-mode))
 
-  ;; js2-mode
-  (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
-  (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
-  (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
-  (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
-  (add-hook 'js2-mode-hook 'highline-mode)
+  ;; ;; js2-mode
+  ;; (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
+  ;; (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
+  ;; (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
+  ;; (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
+  ;; (add-hook 'js2-mode-hook 'highline-mode)
 
   ;; (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
   ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
@@ -412,7 +413,6 @@
       yasnippet-bundle
       grizzl
       undo-tree
-      js2-mode
       scala-mode2
       ruby-mode
       ruby-end
@@ -443,7 +443,6 @@
       zen-and-art-theme
       tango-2-theme
       auto-complete
-      ac-js2
       markdown-mode
       less-css-mode
       quack
