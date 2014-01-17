@@ -133,12 +133,12 @@
 
   (add-to-list 'auto-mode-alist '("\\.dust$" . web-mode))
 
-  ;; ;; js2-mode
-  ;; (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
-  ;; (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
-  ;; (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
-  ;; (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
-  ;; (add-hook 'js2-mode-hook 'highline-mode)
+  ;; js2-mode
+  (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
+  (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
+  (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
+  (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
+  (add-hook 'js2-mode-hook 'highline-mode)
 
   ;; (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
   ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
@@ -409,6 +409,7 @@
       auto-indent-mode
       elisp-cache
       yas-jit
+      js2-mode
       yasnippet
       yasnippet-bundle
       grizzl
