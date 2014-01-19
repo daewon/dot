@@ -30,10 +30,9 @@
   (key-chord-mode 1)
   (key-chord-define-global "jj" 'ace-jump-mode)
   (key-chord-define-global "oo" 'my-new-line)
-  (key-chord-define-global "OO" 'next-multiframe-window)
+  (key-chord-define-global "ee" 'yas/expand)
   (key-chord-define-global ",." "<>\C-b")
-
-
+;;  (yas/load-directory (yas/guess-snippet-directories))
 
   ;; (global-flex-autopair-mode nil)
   (delete-selection-mode 1) ;; delete selection mode
@@ -72,6 +71,41 @@
   (define-key ac-complete-mode-map "\C-n" 'ac-next)
   (define-key ac-complete-mode-map "\r" nil)
   (ac-set-trigger-key "TAB")
+
+  (defun edit-current-file ()
+    "Execute the current file.
+For example, if the current buffer is the file xx.py,
+then it'll call “python xx.py” in a shell.
+The file can be php, perl, python, ruby, javascript, bash, ocaml, vb, elisp.
+File suffix is used to determine what program to run.
+
+If the file is modified, ask if you want to save first.
+
+If the file is emacs lisp, run the byte compiled version if exist."
+    (interactive)
+    (let* (
+           (suffixMap `(("*" . "/usr/local/bin/gvim")))
+           (fName (buffer-file-name))
+           (fSuffix (file-name-extension fName))
+           (progName "/usr/local/bin/gvim")
+           (cmdStr (concat progName " \""   fName "\""))
+           )
+
+      (when (buffer-modified-p)
+        (when (y-or-n-p "Buffer modified. Do you want to save first?")
+          (save-buffer) ) )
+
+      (if (string-equal fSuffix "el") ; special case for emacs lisp
+          (load (file-name-sans-extension fName))
+        (if progName
+            (progn
+              (message "Running…")
+              (shell-command cmdStr "*run-current-file output*" )
+              )
+          (message "No recognized program file suffix for this file.")
+          ) ) ))
+
+  (global-set-key (kbd "C-c o") 'edit-current-file)
 
   ;; yet another snippet
   (yas/global-mode t)
@@ -756,12 +790,16 @@ there's a region, all lines that region covers will be duplicated."
  ;; If there is more than one, they won't work right.
  '(css-indent-offset 2)
  '(ecb-options-version "2.40")
+ '(js2-basic-offset 2)
  '(less-css-indent-level 1)
- '(quack-programs (quote ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
+ '(quack-programs
+   (quote
+    ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(helm-selection ((t (:background "color-18" :underline t)))))
+ '(helm-selection ((t (:background "color-21" :underline t))))
+ '(isearch ((t (:background "color-21")))))
 ;; ===== Set standard indent to 2 rather that 4 ====
