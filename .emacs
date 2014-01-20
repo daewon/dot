@@ -27,19 +27,19 @@
     (interactive)
     (end-of-line)
     (newline-and-indent))
+
   (key-chord-mode 1)
   (key-chord-define-global "jj" 'ace-jump-mode)
-  (key-chord-define-global "oo" 'my-new-line)
   (key-chord-define-global "ee" 'yas/expand)
+
   (key-chord-define-global ",." "<>\C-b")
-;;  (yas/load-directory (yas/guess-snippet-directories))
+  ;; (yas/load-directory (yas/guess-snippet-directories))
 
   ;; (global-flex-autopair-mode nil)
   (delete-selection-mode 1) ;; delete selection mode
 
   (global-hl-line-mode 1)
-  (set-face-attribute 'region nil :background "#000011")
-  (set-face-background 'hl-line "#000000")
+  (set-face-attribute 'region nil :background "#d33682" :foreground "#fdf76e3")
 
   ;; (add-hook `activate-mark-hook `(lambda () (global-hl-line-mode 0)))
   ;; (add-hook `deactivate-mark-hook `(lambda () (global-hl-line-mode 1)))
@@ -444,6 +444,7 @@ If the file is emacs lisp, run the byte compiled version if exist."
       elisp-cache
       yas-jit
       js2-mode
+      clojure-mode
       yasnippet
       yasnippet-bundle
       grizzl
@@ -474,7 +475,6 @@ If the file is emacs lisp, run the byte compiled version if exist."
       dired-single
       dired+
       css-mode
-      color-theme
       zen-and-art-theme
       tango-2-theme
       auto-complete
@@ -788,7 +788,13 @@ there's a region, all lines that region covers will be duplicated."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-faces-vector
+   [default bold shadow italic underline bold bold-italic bold])
  '(css-indent-offset 2)
+ '(custom-enabled-themes (quote (sanityinc-solarized-light)))
+ '(custom-safe-themes
+   (quote
+    ("4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" default)))
  '(ecb-options-version "2.40")
  '(js2-basic-offset 2)
  '(less-css-indent-level 1)
@@ -800,6 +806,6 @@ there's a region, all lines that region covers will be duplicated."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(helm-selection ((t (:background "color-21" :underline t))))
- '(isearch ((t (:background "color-21")))))
+ '(helm-selection ((((class color) (min-colors 89)) (:background "#eee8d5" :underline t))))
+ '(isearch ((((class color) (min-colors 89)) (:foreground "#fdf6e3" :background "#d33682" :weight normal)))))
 ;; ===== Set standard indent to 2 rather that 4 ====
