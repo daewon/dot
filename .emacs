@@ -22,6 +22,18 @@
   (key-combo-define-global (kbd "=") '(" = " " == " " === " ))
   (key-combo-define-global (kbd "=>") " => ")
 
+  (key-chord-mode 1)
+  (key-chord-define-global "jj" 'ace-jump-mode)
+
+  (defun toggle-vim ()
+    (interactive)
+    (if (eq input-method-function 'key-chord-input-method)
+        (key-chord-mode 0)
+      (key-chord-mode 1))
+    (evil-mode)
+    )
+  (global-set-key (kbd "C-c C-v") 'toggle-vim) ;; kill this buffer
+
   (require 'key-chord)
   (defun my-new-line ()
     (interactive)
@@ -30,7 +42,7 @@
 
   (key-chord-mode 1)
   (key-chord-define-global "jj" 'ace-jump-mode)
-  (key-chord-define-global "ee" 'yas/expand)
+  ;; (key-chord-define-global "ee" 'yas/expand)
 
   (key-chord-define-global ",." "<>\C-b")
   ;; (yas/load-directory (yas/guess-snippet-directories))
@@ -39,7 +51,7 @@
   (delete-selection-mode 1) ;; delete selection mode
 
   (global-hl-line-mode 1)
-  (set-face-attribute 'region nil :background "#d33682" :foreground "#fdf76e3")
+  (set-face-attribute 'region nil :background "#d33682" :foreground "#fdf6e3")
 
   ;; (add-hook `activate-mark-hook `(lambda () (global-hl-line-mode 0)))
   ;; (add-hook `deactivate-mark-hook `(lambda () (global-hl-line-mode 1)))
@@ -62,6 +74,7 @@
   (global-set-key "\C-a" 'toggle-beginning-line)
 
   (global-set-key (kbd "C-x C-l") 'toggle-truncate-lines)
+  (global-set-key (kbd "C-x l") 'linum-mode)
 
   ;; auto-complete-mode
   (require 'auto-complete)
@@ -141,9 +154,12 @@ If the file is emacs lisp, run the byte compiled version if exist."
   ;; C-u C-c p f ;; cache
   (setq projectile-enable-caching nil)
   (setq projectile-keymap-prefix (kbd "C-c C-p"))
+
+  (global-set-key (kbd "C-c C-l") `helm-ag-r-current-file)
   (projectile-global-mode) ;; projectile
   (global-set-key (kbd "C-c p f") 'projectile-find-file)
-  (global-set-key (kbd "C-c p g") 'projectile-grep)
+  ;; (global-set-key (kbd "C-c p g") 'projectile-grep)
+  (global-set-key (kbd "C-c p g") 'projectile-ag)
   (setq projectile-use-native-indexing t)
   (setq projectile-require-project-root nil)
   (setq projectile-completion-system 'ido)
@@ -172,12 +188,14 @@ If the file is emacs lisp, run the byte compiled version if exist."
   (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
   (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
+  (add-hook 'js2-mode-hook 'ac-js2-mode)
   (add-hook 'js2-mode-hook 'highline-mode)
 
   ;; (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
   ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
   (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
   ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+  (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
   (add-hook 'ruby-mode-hook 'projectile-on)
 
   ;; ruby-mode
@@ -191,8 +209,8 @@ If the file is emacs lisp, run the byte compiled version if exist."
   (add-hook 'ruby-mode-hook 'ruby-dev-mode)
 
   ;; (add-hook 'ruby-mode-hook 'flymake-ruby-load)
-  (add-hook 'ruby-mode-hook (lambda () (ruby-electric-mode t)))
-  (add-hook 'ruby-mode-hook (lambda () (local-set-key (kbd "M-/") 'company-robe)))
+  ;; (add-hook 'ruby-mode-hook (lambda () (ruby-electric-mode t)))
+  ;; (add-hook 'ruby-mode-hook (lambda () (local-set-key (kbd "M-/") 'company-robe)))
   ;; (global-set-key "\t" 'company-robe)
 
   ;; (define-key ruby-mode-map (kbd "C-c r")
@@ -372,7 +390,10 @@ If the file is emacs lisp, run the byte compiled version if exist."
   (setq indent-tabs-mode nil)
 
   ;; magit-setting
-  (global-set-key (kbd "C-x m") 'magit-status)
+  (global-unset-key (kbd "C-x m"))
+  (global-set-key (kbd "C-x m m") 'magit-status)
+  (global-set-key (kbd "C-x m b") 'magit-branch-manager)
+
   ;; change magit diff colors
   (eval-after-load 'magit
     '(progn
@@ -788,24 +809,20 @@ there's a region, all lines that region covers will be duplicated."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector
-   [default bold shadow italic underline bold bold-italic bold])
+ '(ansi-color-faces-vector [default bold shadow italic underline bold bold-italic bold])
  '(css-indent-offset 2)
  '(custom-enabled-themes (quote (sanityinc-solarized-light)))
- '(custom-safe-themes
-   (quote
-    ("4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" default)))
+ '(custom-safe-themes (quote ("4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" default)))
  '(ecb-options-version "2.40")
+ '(helm-follow-mode-persistent t)
  '(js2-basic-offset 2)
  '(less-css-indent-level 1)
- '(quack-programs
-   (quote
-    ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
+ '(quack-programs (quote ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(helm-selection ((((class color) (min-colors 89)) (:background "#eee8d5" :underline t))))
+ '(helm-selection ((t (:background "#d33682" :foreground "#fdf6e3" :underline t))))
  '(isearch ((((class color) (min-colors 89)) (:foreground "#fdf6e3" :background "#d33682" :weight normal)))))
 ;; ===== Set standard indent to 2 rather that 4 ====
