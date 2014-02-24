@@ -28,10 +28,8 @@
   (defun toggle-vim ()
     (interactive)
     (if (eq input-method-function 'key-chord-input-method)
-        (key-chord-mode 0)
-      (key-chord-mode 1))
-    (evil-mode)
-    )
+        (progn (key-chord-mode 0)(evil-mode 1))
+      (progn (key-chord-mode 1))(evil-mode 0)))
   (global-set-key (kbd "C-c C-v") 'toggle-vim) ;; kill this buffer
 
   (require 'key-chord)
