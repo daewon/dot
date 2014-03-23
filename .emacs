@@ -188,6 +188,7 @@ If the file is emacs lisp, run the byte compiled version if exist."
   (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
   (add-hook 'js2-mode-hook 'ac-js2-mode)
   (add-hook 'js2-mode-hook 'highline-mode)
+  (add-hook 'js2-mode-hook (lambda () (tern-mode t)))
 
   ;; (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
   ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
@@ -434,7 +435,8 @@ If the file is emacs lisp, run the byte compiled version if exist."
           "/usr/bin"
           "/bin"
           "/usr/local/share/npm/bin/jshint"
-          "/usr/local/share/npm/bin"))
+          "/usr/local/share/npm/bin"
+          "/Users/blueiur/.nvm/v0.11.11/bin"))
 
   ;; other-window
   (global-set-key [(meta o)] 'previous-multiframe-window)
@@ -807,15 +809,20 @@ there's a region, all lines that region covers will be duplicated."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector [default bold shadow italic underline bold bold-italic bold])
+ '(ansi-color-faces-vector
+   [default bold shadow italic underline bold bold-italic bold])
  '(css-indent-offset 2)
  '(custom-enabled-themes (quote (sanityinc-solarized-light)))
- '(custom-safe-themes (quote ("4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" default)))
+ '(custom-safe-themes
+   (quote
+    ("4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" default)))
  '(ecb-options-version "2.40")
  '(helm-follow-mode-persistent t)
  '(js2-basic-offset 2)
  '(less-css-indent-level 1)
- '(quack-programs (quote ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
+ '(quack-programs
+   (quote
+    ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
