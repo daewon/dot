@@ -157,7 +157,6 @@
     (if (or (equal 'x ws) (equal 'ns ws))
         (init-x-mode) (init-terminal-mode)))
 
-
   ;; setting utf-8
   (setq utf-translate-cjk-mode nil) ;;  disable CJK coding/encoding (Chinese/Japanese/Korean characters)
   (set-language-environment 'utf-8)
