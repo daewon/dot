@@ -438,13 +438,13 @@ Subsequent calls expands the selection to larger semantic unit."
                 (buffer-substring start end)
                 " * .*")))
 
-(add-hook 'eshell-mode-hook
-          'lambda nil
-          (let ((bashpath (shell-command-to-string "/bin/bash -l -c 'printenv PATH'")))
-            (let ((pathlst (split-string bashpath ":")))
-              (setq exec-path pathlst))
-            (setq eshell-path-env bashpath)
-            (setenv "PATH" bashpath)))
+;; (add-hook 'eshell-mode-hook
+;;           'lambda nil
+;;           (let ((bashpath (shell-command-to-string "/bin/bash -l -c 'printenv PATH'")))
+;;             (let ((pathlst (split-string bashpath ":")))
+;;               (setq exec-path pathlst))
+;;             (setq eshell-path-env bashpath)
+;;             (setenv "PATH" bashpath)))
 
 ;; custom settings
 (custom-set-variables
