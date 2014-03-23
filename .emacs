@@ -21,8 +21,8 @@
   ;; Guarantee all packages are installed on start
   (defun has-package-not-installed ()
     (loop for p in packages-list
-    when (not (package-installed-p p)) do (return t)
-    finally (return nil)))
+          when (not (package-installed-p p)) do (return t)
+          finally (return nil)))
 
   ;; Check for new packages (package versions)
   (when (has-package-not-installed)
@@ -33,37 +33,37 @@
     ;; Install the missing packages-list
     (dolist (p packages-list)
       (when (not (package-installed-p p))
-  (package-install p)))))
+        (package-install p)))))
 
 ;; List of packages needs to be installed at launch
 (install-packages '(expand-region
-        company
-        company-inf-ruby
-        undo-tree
-        projectile
-        helm
-        helm-projectile
-        magit
-        key-chord
-        key-combo
-        ace-jump-mode
-        evil
-        web-mode
-        window-numbering
-        robe
-        ruby-interpolation
-        ruby-end
-        tern
-        tern-auto-complete
-        js2-mode
-        ac-js2
-        auto-complete
-        ag
-        helm-ag
-        ido
-        ibuffer
-        yasnippet
-        rvm))
+                    company
+                    company-inf-ruby
+                    undo-tree
+                    projectile
+                    helm
+                    helm-projectile
+                    magit
+                    key-chord
+                    key-combo
+                    ace-jump-mode
+                    evil
+                    web-mode
+                    window-numbering
+                    robe
+                    ruby-interpolation
+                    ruby-end
+                    tern
+                    tern-auto-complete
+                    js2-mode
+                    ac-js2
+                    auto-complete
+                    ag
+                    helm-ag
+                    ido
+                    ibuffer
+                    yasnippet
+                    rvm))
 
 (defun init-web-mode ()
   (setq web-mode-markup-indent-offset 2)
@@ -138,7 +138,7 @@
 (defun init-x-mode()
   "init x setting"
   (progn (scroll-bar-mode 'right)
-   (setq font-lock-maximum-decoration t)))
+         (setq font-lock-maximum-decoration t)))
 
 ;; init-terminal mode
 (defun init-terminal-mode()
@@ -156,7 +156,6 @@
   (let ((ws (window-system)))
     (if (or (equal 'x ws) (equal 'ns ws))
         (init-x-mode) (init-terminal-mode)))
-
 
   ;; setting utf-8
   (setq utf-translate-cjk-mode nil) ;;  disable CJK coding/encoding (Chinese/Japanese/Korean characters)
@@ -234,26 +233,26 @@
   (interactive)
   (if (= (count-windows) 2)
       (let* ((this-win-buffer (window-buffer))
-       (next-win-buffer (window-buffer (next-window)))
-       (this-win-edges (window-edges (selected-window)))
-       (next-win-edges (window-edges (next-window)))
-       (this-win-2nd (not (and (<= (car this-win-edges)
-           (car next-win-edges))
-             (<= (cadr this-win-edges)
-           (cadr next-win-edges)))))
-       (splitter
-        (if (= (car this-win-edges)
-         (car (window-edges (next-window))))
-      'split-window-horizontally
-    'split-window-vertically)))
-  (delete-other-windows)
-  (let ((first-win (selected-window)))
-    (funcall splitter)
-    (if this-win-2nd (other-window 1))
-    (set-window-buffer (selected-window) this-win-buffer)
-    (set-window-buffer (next-window) next-win-buffer)
-    (select-window first-win)
-    (if this-win-2nd (other-window 1))))))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd (not (and (<= (car this-win-edges)
+                                         (car next-win-edges))
+                                     (<= (cadr this-win-edges)
+                                         (cadr next-win-edges)))))
+             (splitter
+              (if (= (car this-win-edges)
+                     (car (window-edges (next-window))))
+                  'split-window-horizontally
+                'split-window-vertically)))
+        (delete-other-windows)
+        (let ((first-win (selected-window)))
+          (funcall splitter)
+          (if this-win-2nd (other-window 1))
+          (set-window-buffer (selected-window) this-win-buffer)
+          (set-window-buffer (next-window) next-win-buffer)
+          (select-window first-win)
+          (if this-win-2nd (other-window 1))))))
 
 
 ;; http://www.emacswiki.org/emacs/TransposeWindows
@@ -263,10 +262,10 @@
   (let ((selector (if (>= arg 0) 'next-window 'previous-window)))
     (while (/= arg 0)
       (let ((this-win (window-buffer))
-      (next-win (window-buffer (funcall selector))))
-  (set-window-buffer (selected-window) next-win)
-  (set-window-buffer (funcall selector) this-win)
-  (select-window (funcall selector)))
+            (next-win (window-buffer (funcall selector))))
+        (set-window-buffer (selected-window) next-win)
+        (set-window-buffer (funcall selector) this-win)
+        (select-window (funcall selector)))
       (setq arg (if (plusp arg) (1- arg) (1+ arg))))))
 
 (defun swap-window-positions ()         ; Stephen Gildea
@@ -274,9 +273,9 @@
   (interactive)
   (let ((other-window (next-window (selected-window) 'no-minibuf)))
     (let ((other-window-buffer (window-buffer other-window))
-    (other-window-hscroll (window-hscroll other-window))
-    (other-window-point (window-point other-window))
-    (other-window-start (window-start other-window)))
+          (other-window-hscroll (window-hscroll other-window))
+          (other-window-point (window-point other-window))
+          (other-window-start (window-start other-window)))
       (set-window-buffer other-window (current-buffer))
       (set-window-hscroll other-window (window-hscroll (selected-window)))
       (set-window-point other-window (point))
@@ -300,17 +299,17 @@ there's a region, all lines that region covers will be duplicated."
   (interactive "p")
   (let (beg end (origin (point)))
     (if (and mark-active (> (point) (mark)))
-  (exchange-point-and-mark))
+        (exchange-point-and-mark))
     (setq beg (line-beginning-position))
     (if mark-active
-  (exchange-point-and-mark))
+        (exchange-point-and-mark))
     (setq end (line-end-position))
     (let ((region (buffer-substring-no-properties beg end)))
       (dotimes (i arg)
-  (goto-char end)
-  (newline)
-  (insert region)
-  (setq end (point)))
+        (goto-char end)
+        (newline)
+        (insert region)
+        (setq end (point)))
       (goto-char (+ origin (* (length region) arg) arg)))))
 
 ;; comment-or-uncomment-region-or-line
@@ -321,7 +320,7 @@ there's a region, all lines that region covers will be duplicated."
       (comment-or-uncomment-region
        (line-beginning-position) (line-end-position))
     (if (< (point) (mark))
-  (comment-or-uncomment-region (point) (mark))
+        (comment-or-uncomment-region (point) (mark))
       (comment-or-uncomment-region (mark) (point)))))
 
 (defun check-expansion ()
@@ -329,8 +328,8 @@ there's a region, all lines that region covers will be duplicated."
     (if (looking-at "\\_>") t
       (backward-char 1)
       (if (looking-at "\\.") t
-  (backward-char 1)
-  (if (looking-at "->") t nil)))))
+        (backward-char 1)
+        (if (looking-at "->") t nil)))))
 
 (defun do-yas-expand ()
   (let ((yas/fallback-behavior 'return-nil))
@@ -341,10 +340,10 @@ there's a region, all lines that region covers will be duplicated."
   (if (minibufferp)
       (minibuffer-complete)
     (if (or (not yas/minor-mode)
-      (null (do-yas-expand)))
-  (if (check-expansion)
-      (company-complete-common)
-    (indent-for-tab-command)))))
+            (null (do-yas-expand)))
+        (if (check-expansion)
+            (company-complete-common)
+          (indent-for-tab-command)))))
 
 (defun toggle-vim ()
   (interactive)
@@ -403,10 +402,10 @@ there's a region, all lines that region covers will be duplicated."
   (interactive "p")
   (when (nth 3 (syntax-ppss))
     (if (> arg 0)
-  (progn
-    (skip-syntax-forward "^\"")
-    (goto-char (1+ (point)))
-    (decf arg))
+        (progn
+          (skip-syntax-forward "^\"")
+          (goto-char (1+ (point)))
+          (decf arg))
       (skip-syntax-backward "^\"")
       (goto-char (1- (point)))
       (incf arg)))
@@ -417,35 +416,35 @@ there's a region, all lines that region covers will be duplicated."
   "Select the current word.
 Subsequent calls expands the selection to larger semantic unit."
   (interactive (list (prefix-numeric-value current-prefix-arg)
-         (or (region-active-p)
-       (eq last-command this-command))))
+                     (or (region-active-p)
+                         (eq last-command this-command))))
   (if incremental
       (progn
-  (semnav-up (- arg))
-  (forward-sexp)
-  (mark-sexp -1))
+        (semnav-up (- arg))
+        (forward-sexp)
+        (mark-sexp -1))
     (if (> arg 1)
-  (extend-selection (1- arg) t)
+        (extend-selection (1- arg) t)
       (if (looking-at "\\=\\(\\s_\\|\\sw\\)*\\_>")
-    (goto-char (match-end 0))
-  (unless (memq (char-before) '(?\) ?\"))
-    (forward-sexp)))
+          (goto-char (match-end 0))
+        (unless (memq (char-before) '(?\) ?\"))
+          (forward-sexp)))
       (mark-sexp -1))))
 
 ;; grep-selected
 (defun grep-selected (start end)
   (interactive "r")
   (grep (concat "grep -nh -e "
-    (buffer-substring start end)
-    " * .*")))
+                (buffer-substring start end)
+                " * .*")))
 
 (add-hook 'eshell-mode-hook
-    'lambda nil
-    (let ((bashpath (shell-command-to-string "/bin/bash -l -c 'printenv PATH'")))
-      (let ((pathlst (split-string bashpath ":")))
-        (setq exec-path pathlst))
-      (setq eshell-path-env bashpath)
-      (setenv "PATH" bashpath)))
+          'lambda nil
+          (let ((bashpath (shell-command-to-string "/bin/bash -l -c 'printenv PATH'")))
+            (let ((pathlst (split-string bashpath ":")))
+              (setq exec-path pathlst))
+            (setq eshell-path-env bashpath)
+            (setenv "PATH" bashpath)))
 
 ;; custom settings
 (custom-set-variables
