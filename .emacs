@@ -1,651 +1,260 @@
 ;; daewon's emacs setting file
-;; Author daewon
+
 ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
 ;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html
 
-(defun init-default()
-  "init emacs default setting"
-  (window-numbering-mode t) ;; http://www.emacswiki.org/emacs/WindowNumberingMode
-  (setq make-backup-files t) ;; make backup file
-  (setq inhibit-splash-screen t) ;; start screen
-  (setq frame-title-format "emacs - %b")
-  (setq default-truncate-lines nil) ;; truncate line
-  (keyboard-translate ?\C-h ?\C-?) ;; modify default key
-  (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
+;; install packages
+(defun install-packages (packages-list)
+  (require 'cl)
+  (require 'package)
 
-  (setenv "TERM" "xterm-256color")
+  (package-initialize)
 
-  (global-set-key (kbd "RET") 'newline-and-indent)
+  (defvar-local package-archives-url
+    '(("melpa" . "http://melpa.milkbox.net/packages/")
+      ("gnu" . "http://elpa.gnu.org/packages/")
+      ("marmalade" . "http://marmalade-repo.org/packages/")))
 
-  (require 'key-combo)
-  (key-combo-mode 1)
-  (key-combo-define-global (kbd "=") '(" = " " == " " === " ))
-  (key-combo-define-global (kbd "=>") " => ")
+  (dolist (pa package-archives-url)
+    (add-to-list 'package-archives pa))
 
-  (key-chord-mode 1)
-  (key-chord-define-global "jj" 'ace-jump-mode)
+  ;; Guarantee all packages are installed on start
+  (defun has-package-not-installed ()
+    (loop for p in packages-list
+    when (not (package-installed-p p)) do (return t)
+    finally (return nil)))
 
-  (defun toggle-vim ()
-    (interactive)
-    (if (eq input-method-function 'key-chord-input-method)
-        (progn (key-chord-mode 0)(evil-mode 1))
-      (progn (key-chord-mode 1))(evil-mode 0)))
-  (global-set-key (kbd "C-c C-v") 'toggle-vim) ;; kill this buffer
+  ;; Check for new packages (package versions)
+  (when (has-package-not-installed)
+    (message "%s" "Get latest versions of all packages...")
+    (package-refresh-contents)
+    (message "%s" " done.")
 
-  (require 'key-chord)
-  (defun my-new-line ()
-    (interactive)
-    (end-of-line)
-    (newline-and-indent))
+    ;; Install the missing packages-list
+    (dolist (p packages-list)
+      (when (not (package-installed-p p))
+  (package-install p)))))
 
-  (key-chord-mode 1)
-  (key-chord-define-global "jj" 'ace-jump-mode)
-  ;; (key-chord-define-global "ee" 'yas/expand)
+;; List of packages needs to be installed at launch
+(install-packages '(expand-region
+        company
+        company-inf-ruby
+        undo-tree
+        projectile
+        helm
+        helm-projectile
+        magit
+        key-chord
+        key-combo
+        ace-jump-mode
+        evil
+        web-mode
+        window-numbering
+        robe
+        ruby-interpolation
+        ruby-end
+        tern
+        tern-auto-complete
+        js2-mode
+        ac-js2
+        auto-complete
+        ag
+        helm-ag
+        ido
+        ibuffer
+        yasnippet
+        rvm))
 
-  (key-chord-define-global ",." "<>\C-b")
-  ;; (yas/load-directory (yas/guess-snippet-directories))
+(defun init-web-mode ()
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-indent-style 2)
+  (setq web-mode-comment-style 2))
 
-  ;; (global-flex-autopair-mode nil)
-  (delete-selection-mode 1) ;; delete selection mode
-
-  (global-hl-line-mode 1)
-  (set-face-attribute 'region nil :background "#d33682" :foreground "#fdf6e3")
-
-  ;; (add-hook `activate-mark-hook `(lambda () (global-hl-line-mode 0)))
-  ;; (add-hook `deactivate-mark-hook `(lambda () (global-hl-line-mode 1)))
-
-  ;; (global-linum-mode nil)
-  ;; hilight
-  (highlight-parentheses-mode)
-  (auto-highlight-symbol-mode)
-
-  ;; set show-paren-mode
-  (show-paren-mode t)
-
-  ;; set grep command
-  (setq grep-command "grep -nh -r ") ;; set grep-commman
-  (setq grep-find-command "find . -type f '!' -wholename '*/.svn/*' -print0 | xargs -0 -e grep -nH -e ") ;; set grep-find-command
-
-  ;; set default-key
-  (global-set-key (kbd "C-x C-k") 'kill-this-buffer) ;; kill this buffer
-  (global-set-key (kbd "C-c C-c") 'quickrun-region) ;; quick this buffer
-  (global-set-key "\C-a" 'toggle-beginning-line)
-
-  (global-set-key (kbd "C-x C-l") 'toggle-truncate-lines)
-  (global-set-key (kbd "C-x l") 'linum-mode)
-
-  ;; auto-complete-mode
-  (require 'auto-complete)
-  (global-auto-complete-mode t) ;; set auto-complete mode
-
-  (define-key ac-complete-mode-map "\C-p" 'ac-previous)
-  (define-key ac-complete-mode-map "\C-n" 'ac-next)
-  (define-key ac-complete-mode-map "\r" nil)
-  (ac-set-trigger-key "TAB")
-
-  (defun edit-current-file ()
-    "Execute the current file.
-For example, if the current buffer is the file xx.py,
-then it'll call “python xx.py” in a shell.
-The file can be php, perl, python, ruby, javascript, bash, ocaml, vb, elisp.
-File suffix is used to determine what program to run.
-
-If the file is modified, ask if you want to save first.
-
-If the file is emacs lisp, run the byte compiled version if exist."
-    (interactive)
-    (let* (
-           (suffixMap `(("*" . "/usr/local/bin/gvim")))
-           (fName (buffer-file-name))
-           (fSuffix (file-name-extension fName))
-           (progName "/usr/local/bin/gvim")
-           (cmdStr (concat progName " \""   fName "\""))
-           )
-
-      (when (buffer-modified-p)
-        (when (y-or-n-p "Buffer modified. Do you want to save first?")
-          (save-buffer) ) )
-
-      (if (string-equal fSuffix "el") ; special case for emacs lisp
-          (load (file-name-sans-extension fName))
-        (if progName
-            (progn
-              (message "Running…")
-              (shell-command cmdStr "*run-current-file output*" )
-              )
-          (message "No recognized program file suffix for this file.")
-          ) ) ))
-
-  (global-set-key (kbd "C-c o") 'edit-current-file)
-
-  ;; yet another snippet
-  (yas/global-mode t)
-
-  ;; expand region
-  ;; http://emacsrocks.com/e09.html
-  (require 'expand-region)
-  (global-set-key (kbd "M-m") 'er/expand-region)
-
-  (require 'undo-tree)
+(defun init-undo ()
   (global-undo-tree-mode 1)
   (global-set-key (kbd "C-x /") 'undo-tree-visualize)
   (global-set-key (kbd "C--") 'undo-tree-undo)
-  (global-set-key (kbd "M--") 'undo-tree-redo)
+  (global-set-key (kbd "M--") 'undo-tree-redo))
 
-  ;; iedit-mode
-  (require 'iedit)
-  (global-set-key (kbd "C-c i") 'iedit-dwim) ;; iedit-mode
-
-  ;; ace-jump-mode
-  (global-set-key (kbd "C-c j") 'ace-jump-mode)
-
-  ;; icomplete for mini buffer autocompletion
-  (icomplete-mode t)
-
-  ;; hilight-symbol-at-point
-  (global-set-key (kbd "C-c l") 'highlight-symbol-at-point)
-  (global-set-key [(meta n)] 'highlight-symbol-next)
-  (global-set-key [(meta p)] 'highlight-symbol-prev)
-  (global-set-key [(meta f3)] 'highlight-symbol-query-replace)
-
-  ;; projectile
-  ;; C-u C-c p f ;; cache
-  (setq projectile-enable-caching nil)
-  (setq projectile-keymap-prefix (kbd "C-c C-p"))
-
-  (global-set-key (kbd "C-c C-l") `helm-ag-r-current-file)
-  (projectile-global-mode) ;; projectile
-  (global-set-key (kbd "C-c p f") 'projectile-find-file)
-  ;; (global-set-key (kbd "C-c p g") 'projectile-grep)
+(defun init-helm-projectile ()
+  (global-set-key (kbd "C-c h") 'helm-projectile)
+  (global-set-key (kbd "M-r") 'helm-for-files)
   (global-set-key (kbd "C-c p g") 'projectile-ag)
   (setq projectile-use-native-indexing t)
   (setq projectile-require-project-root nil)
   (setq projectile-completion-system 'ido)
+  (projectile-global-mode t))
 
-  (setq projectile-project-root-files `())
-  (setq projectile-ignored-files `())
-  (setq projectile-ignored-directories `())
-
-  (setq projectile-project-root-files (append projectile-project-root-files '(".git" ".hg" ".bzr" "_darcs" ".projectile")))
-  (setq projectile-ignored-files (append projectile-ignored-files '("TAGS")))
-  (setq projectile-ignored-directories (append projectile-ignored-directories '(".idea")))
-
-  (require 'flx-ido)
-  (ido-mode 1)
-  (ido-everywhere 1)
-  (flx-ido-mode 1)
-
-  ;; helm
-  (global-set-key (kbd "C-c h") 'helm-projectile)
-  (global-set-key (kbd "M-r") 'helm-for-files)
-
-  (add-to-list 'auto-mode-alist '("\\.dust$" . web-mode))
-
-  ;; js2-mode
+(defun init-javascript ()
   (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
-  (add-hook 'js2-mode-hook (lambda () (flymake-mode t)))
-  (add-hook 'js2-mode-hook 'highlight-parentheses-mode)
-  (add-hook 'js2-mode-hook 'auto-highlight-symbol-mode)
+  (add-hook 'js2-mode-hook '(lambda () (tern-mode t)))
+  (add-hook 'js2-mode-hook 'auto-complete-mode)
   (add-hook 'js2-mode-hook 'ac-js2-mode)
-  (add-hook 'js2-mode-hook 'highline-mode)
-  (add-hook 'js2-mode-hook (lambda () (tern-mode t)))
-
-  ;; (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
-  ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
-  (defvar flymake-ruby-executable "ruby" "The ruby executable to use for syntax checking.")
-  ;; (add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
-  (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
-  (add-hook 'ruby-mode-hook 'projectile-on)
-
-  ;; ruby-mode
-  (require 'inf-ruby)
-  ;; (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
-  ;; (add-hook 'ruby-mode-hook 'ruby-end-mode)
-  (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
-
-  ;; (add-hook 'ruby-mode-hook 'robe-mode)
-  (push 'ac-source-robe ac-sources)
-  (add-hook 'ruby-mode-hook 'ruby-dev-mode)
-
-  ;; (add-hook 'ruby-mode-hook 'flymake-ruby-load)
-  ;; (add-hook 'ruby-mode-hook (lambda () (ruby-electric-mode t)))
-  ;; (add-hook 'ruby-mode-hook (lambda () (local-set-key (kbd "M-/") 'company-robe)))
-  ;; (global-set-key "\t" 'company-robe)
-
-  ;; (define-key ruby-mode-map (kbd "C-c r")
-  ;;   (lambda ()
-  ;;     (interactive)
-  ;;     (run-ruby)
-  ;;     (previous-multiframe-window)))
-
-  ;; (define-key ruby-mode-map (kbd "C-c C-c")
-  ;;   (lambda ()
-  ;;     (interactive)
-  ;;     (run-ruby)
-  ;;     (previous-multiframe-window)
-  ;;     (ruby-send-region-and-go (point-min) (point-max))
-  ;;     (previous-multiframe-window)))
-
-  ;; (define-key ruby-mode-map (kbd "C-c C-a") 'autotest-switch)
-  ;; (define-key ruby-mode-map (kbd "C-c C-p") 'pastebin)
-  ;; (define-key ruby-mode-map (kbd "C-c C-r") 'rcov-buffer)
-  ;; (define-key ruby-mode-map (kbd "C-c C-b") 'ruby-send-region-and-go)
-  ;; (define-key ruby-mode-map (kbd "C-c C-t") 'ri-show-term-composite-at-point)
-
-  ;; (add-hook 'ruby-mode-hook (lambda () (local-set-key "\r" 'newline-and-indent)))
-
-  ;; company-mode
-  ;; (add-hook 'after-init-hook 'global-company-mode)
-
-  ;; scala-mode
-  (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
-
-  ;; web-mode
-  ;; http://web-mode.org/
-  (require 'web-mode)
-  (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.jsp\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-
-  (setq standard-indent 2)
-  (setq web-mode-css-indent-offset 2)
-  (setq web-mode-indent-style 2)
-  (setq web-mode-comment-style 2)
-  (setq web-mode-code-indent-offset 2)
-  (setq web-mode-markup-indent-offset 2)
-  (global-set-key (kbd "C-2") 'set-mark-command)
-
-  ;; ;; gtags
-  ;; ;; http://bbingju.wordpress.com/2013/03/21/emacs-global-gtags-source-navigation/
-  ;; ;; find | etags -
-  ;; (autoload 'gtags-mode "gtags" "" t)
-  ;; (add-hook 'c-mode-common-hook
-  ;;           '(lambda ()
-  ;;              (gtags-mode 1)))
-
-  ;; (add-hook 'gtags-mode-hook
-  ;;           (lambda ()
-  ;;             (local-set-key (kbd "M-.") 'gtags-find-tag)
-  ;;             (local-set-key (kbd "M-,") 'gtags-find-rtag)))
-
-  ;; (defun gtags-create-or-update ()
-  ;;   "create or update the gnu global tag file"
-  ;;   (interactive)
-  ;;   (if (not (= 0 (call-process "global" nil nil nil " -p"))) ; tagfile doesn't exist?
-  ;;       (let ((olddir default-directory)
-  ;;             (topdir (read-directory-name
-  ;;                      "gtags: top of source tree:" default-directory)))
-  ;;         (cd topdir)
-  ;;         (shell-command "gtags && echo 'created tagfile'")
-  ;;         (cd olddir)) ; restore
-  ;;     ;;  tagfile already exists; update it
-  ;;     (shell-command "global -u && echo 'updated tagfile'")))
-
-  ;; (add-hook 'c-mode-common-hook
-  ;;           (lambda ()
-  ;;             (gtags-create-or-update)))
-
-  ;; (defun gtags-update-single (filename)
-  ;;   "Update Gtags database for changes in a single file"
-  ;;   (interactive)
-  ;;   (start-process "update-gtags" "update-gtags" "bash" "-c" (concat "cd " (gtags-root-dir) " ; gtags --single-update " filename )))
-
-  ;; (defun gtags-update-current-file()
-  ;;   (interactive)
-  ;;   (defvar filename)
-  ;;   (setq filename (replace-regexp-in-string (gtags-root-dir) "." (buffer-file-name (current-buffer))))
-  ;;   (gtags-update-single filename)
-  ;;   (message "Gtags updated for %s" filename))
-
-  ;; (defun gtags-update-hook()
-  ;;   "Update GTAGS file incrementally upon saving a file"
-  ;;   (when gtags-mode
-  ;;     (when (gtags-root-dir)
-  ;;       (gtags-update-current-file))))
-
-  ;; (add-hook 'after-save-hook 'gtags-update-hook)
-
-
-  (require 'etags)
-  ;; (setq tags-table-list '("/home/use/src/my-bash-lib"))
-
-  ;; (set-face-attribute 'web-mode-css-rule-face nil :foreground "Pink3")
-
-  ;; scheme-mode
-  ;; http://alexott.net/en/writings/emacs-devenv/EmacsScheme.html
-  (require 'quack)
-  (require 'cmuscheme)
-  (require 'autoinsert)
-
-  (add-to-list 'auto-mode-alist '("\\.scm$" . scheme-mode))
-
-  (setq quack-fontify-style 'emacs
-        quack-default-program "racket"
-        quack-newline-behavior 'newline)
-
-  (add-hook 'find-file-hooks 'auto-insert)
-  (setq auto-insert-alist
-        '(("\\.scm" .
-           (insert "#!/bin/sh\n#| -*- scheme -*-\nexec csi -s $0 \"$@\"\n|#\n"))))
-
-  (autoload 'run-scheme "cmuscheme" "Run an inferior Scheme" t)
-
-  ;; The basic settings
-  (setq scheme-program-name "racket"
-        scheme-mit-dialect nil)
-
-  (require 'slime)
-  ;;(slime-setup '(slime-fancy slime-banner))
-  (add-hook 'scheme-mode-hook (lambda () (slime-mode t)))
-
-  ;; elisp-hook
-  (defun ielm-auto-complete ()
-    ")Enables `auto-complete' support in \\[ielm]."
-    (setq ac-sources '(ac-source-functions
-                       ac-source-variables
-                       ac-source-features
-                       ac-source-symbols
-                       ac-source-words-in-same-mode-buffers))
-    (add-to-list 'ac-modes 'inferior-emacs-lisp-mode)
-    (auto-complete-mode 1))
-  (add-hook 'ielm-mode-hook 'ielm-auto-complete)
-
-  ;; Python Hook
-  (add-hook 'python-mode-hook
-            '(lambda ()
-               (setq python-indent 2)))
-
-  ;; less-mode
-  (add-hook 'less-css-mode-hook
-            '(lambda ()
-               (message "less-mode")
-               (defcustom less-css-indent-level 2 "Number of spaces to indent inside a block.")))
-
-  ;; haml-mode-hook
-  (add-hook 'haml-mode-hook '(lambda () (auto-complete-mode t)))
-
-  ;; yml-mode
-  (add-hook 'yml-mode-hook '(lambda () (auto-complete-mode t)))
-
-  ;; file ext hook
-  (add-to-list 'auto-mode-alist '("\\.md$" . markdown-mode))
-
-  ;; haml-mode
-  (add-to-list 'auto-mode-alist '("\\.haml$" . haml-mode))
-
-  ;; default offset I hate tabs!
-  (setq-default tab-width 2)
-  (setq tab-width 2)
   (setq js-indent-level 2)
-  (setq c-basic-offset 2)
-  (setq c-basic-indent 2)
-  (setq basic-offset 2)
-  (setq-default indent-tabs-mode nil)
-  (setq indent-tabs-mode nil)
+  (eval-after-load 'tern '(progn (require 'tern-auto-complete) (tern-ac-setup))))
 
-  ;; magit-setting
-  (global-unset-key (kbd "C-x m"))
-  (global-set-key (kbd "C-x m m") 'magit-status)
-  (global-set-key (kbd "C-x m b") 'magit-branch-manager)
+(defun init-ruby ()
+  (require 'robe)
+  (add-hook 'ruby-mode-hook 'robe-mode)
+  (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate) (rvm-activate-corresponding-ruby))
+  (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
+  (add-hook 'ruby-mode-hook 'ruby-end-mode)
+  (add-hook 'company-mode-hook '(lambda () (push 'company-robe company-backends))))
 
-  ;; change magit diff colors
-  (eval-after-load 'magit
-    '(progn
-       (set-face-foreground 'magit-diff-add "green3")
-       (set-face-foreground 'magit-diff-del "red3")
-       (when (not window-system)
-         (set-face-background 'magit-item-highlight "black"))))
-
-  ;; replace-string and replace-regexp need a key binding
-  (global-set-key (kbd "C-c s") 'replace-string)
-  (global-set-key (kbd "C-c r") 'replace-regexp)
-  (global-set-key [(meta i)] 'ibuffer)
-
-  ;; ido
-  (ido-mode 'ibuffer)
-  (setq ibuffer-shrink-to-minimum-size t)
-  (setq ibuffer-always-show-last-buffer nil)
-  (setq ibuffer-sorting-mode 'recency)
-  (setq ibuffer-use-header-line t)
-
-  ;; set language-environment
-  (set-language-environment "Korean")
-  (setq default-input-method "korean-hangul")
-  (global-set-key (kbd "<Hangul>") 'toggle-input-method)
-  (global-set-key (kbd "S-SPC") 'toggle-korean-input-method)
-  (set-default-coding-systems 'utf-8)
-  (setq locale-coding-system 'utf-8)
-  (set-terminal-coding-system 'utf-8)
-  (set-keyboard-coding-system 'utf-8)
-  (set-selection-coding-system 'utf-8)
-  (prefer-coding-system 'utf-8)
-
-  ;; backspace
-  (global-set-key "\C-h" 'delete-backward-char)
-
-  ;; set path
-  (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
-  (setq exec-path
-        '("/usr/local/bin"
-          "/usr/bin"
-          "/bin"
-          "/usr/local/share/npm/bin/jshint"
-          "/usr/local/share/npm/bin"
-          "/Users/blueiur/.nvm/v0.11.11/bin"))
-
-  ;; other-window
-  (global-set-key [(meta o)] 'previous-multiframe-window)
+(defun init-shortcut ()
+  (global-set-key (kbd "C-x m") 'magit-status)
+  (global-set-key (kbd "C-x g") 'grep-selected)
+  (global-set-key (kbd "C-c w" ) 'wrap-quota)
+  (global-set-key (kbd "C-x <up>") 'tweakemacs-move-one-line-upward)
+  (global-set-key (kbd "C-x <down>") 'tweakemacs-move-one-line-downward)
+  (global-set-key (kbd "C-x [") 'previous-user-buffer)
+  (global-set-key (kbd "C-x ]") 'next-user-buffer)
+  (global-set-key (kbd "C-a") 'toggle-beginning-line)
+  (global-set-key (kbd "C-c C-v") 'toggle-vim) ;; kill this buffer
+  (global-set-key (kbd "C-x C-k") 'kill-this-buffer) ;; kill this buffer
+  (global-set-key (kbd "TAB") 'tab-indent-or-complete)
+  (global-set-key (kbd "C-x C-l") 'toggle-truncate-lines)
+  (global-set-key (kbd "C-x l") 'linum-mode)
+  (global-set-key (kbd "M-i") 'ibuffer)
+  (global-set-key (kbd "M-o") 'previous-multiframe-window)
   (global-set-key (kbd "C-o") 'next-multiframe-window)
-  ) ;; end of init-default
+  (global-set-key (kbd "M-;") 'comment-or-uncomment-region-or-line)
+  (global-set-key (kbd "M-=") 'duplicate-current-line-or-region)
+  (global-set-key (kbd "C-c c") 'insert-console)
+  (global-set-key (kbd "C-x !") 'swap-window-positions)
+  (global-set-key (kbd "M-m") 'er/expand-region)
+  (global-set-key (kbd "RET") 'newline-and-indent)
+  (global-set-key (kbd "C-x @") 'toggle-window-split))
 
-;; setting packages
-(progn
-  (require 'package)
-  ;; package add-on site
-  (add-to-list 'package-archives `("melpa" . "http://melpa.milkbox.net/packages/") t)
-  (add-to-list 'package-archives `("gnu" . "http://elpa.gnu.org/packages/") t)
-  (add-to-list 'package-archives `("marmalade" . "http://marmalade-repo.org/packages/") t)
-
-  (package-initialize)
-
-  ;; auto-install package
-  (require 'cl)
-
-  ;; Guarantee all packages are installed on start
-  (defvar packages-list
-    '(auto-highlight-symbol
-      flex-autopair
-      highlight-parentheses
-      auto-indent-mode
-      elisp-cache
-      yas-jit
-      js2-mode
-      clojure-mode
-      yasnippet
-      yasnippet-bundle
-      grizzl
-      undo-tree
-      scala-mode2
-      ruby-mode
-      ruby-end
-      robe
-      ruby-block
-      inf-ruby
-      quickrun
-      magit
-      isearch+
-      igrep
-      iedit
-      idomenu
-      helm
-      helm-projectile
-      helm-c-yasnippet
-      ac-helm
-      sml-mode
-      sml-modeline
-      flymake-jshint
-      flymake-jslint
-      flymake-easy
-      flymake
-      expand-region
-      dired-single
-      dired+
-      css-mode
-      zen-and-art-theme
-      tango-2-theme
-      auto-complete
-      markdown-mode
-      less-css-mode
-      quack
-      slime
-      jade-mode
-      web-mode
-      yaml-mode
-      haml-mode
-      elixir-mix
-      elixir-mode
-      ruby-compilation
-      ruby-interpolation
-      rvm
-      save-visited-files
-      window-numbering
-      window-layout
-      flx-ido
-      ensime
-      ace-jump-mode
-      highlight-symbol
-      key-combo
-      key-chord
-      cider
-      ac-nrepl
-      nrepl
-      nhexl-mode
-      )
-    "List of packages needs to be installed at launch")
-  (defun has-package-not-installed ()
-    (loop for p in packages-list
-          when (not (package-installed-p p)) do (return t)
-          finally (return nil)))
-
-  (when (has-package-not-installed)
-    ;; Check for new packages (package versions)
-    (message "%s" "Get latest versions of all packages...")
-    (package-refresh-contents)
-    (message "%s" " done.")
-    ;; Install the missing packages
-    (dolist (p packages-list)
-      (when (not (package-installed-p p))
-        (package-install p)))))
+(defun init-alias ()
+  (defalias 'dk 'describe-key)
+  (defalias 'df 'describe-function)
+  (defalias 'es 'eshell)
+  (defalias 'ko 'kill-other-buffers))
 
 ;; init x-window mode
 (defun init-x-mode()
   "init x setting"
   (progn (scroll-bar-mode 'right)
-         (setq font-lock-maximum-decoration t)
-         (menu-bar-mode 0)
-         (tool-bar-mode 0)
-         (require 'tango-2-theme)))
+   (setq font-lock-maximum-decoration t)))
 
 ;; init-terminal mode
 (defun init-terminal-mode()
   "init terminal setting"
-  (setq shell-file-name "zsh") ;; set default shell bash
+  (setq shell-file-name "zsh")) ;; set default shell bash
+
+(defun init-emacs-setting ()
+  ;; mac specific settings, sets fn-delete to be right-delete
+  (when (eq system-type 'darwin)
+    (setq mac-option-modifier 'alt)
+    (setq mac-command-modifier 'meta)
+    (global-set-key [kp-delete] 'delete-char))
+
+  ;; start Emacs with
+  (let ((ws (window-system)))
+    (if (or (equal 'x ws) (equal 'ns ws))
+        (init-x-mode) (init-terminal-mode)))
+
+
+  ;; setting utf-8
+  (setq utf-translate-cjk-mode nil) ;;  disable CJK coding/encoding (Chinese/Japanese/Korean characters)
+  (set-language-environment 'utf-8)
+  (set-keyboard-coding-system 'utf-8-mac) ;;  For old Carbon emacs on OS X only
+  (setq locale-coding-system 'utf-8)
+  (set-default-coding-systems 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (unless (eq system-type 'windows-nt)
+    (set-selection-coding-system 'utf-8))
+  (prefer-coding-system 'utf-8)
+
+  ;; default offset I hate tabs!
+  (setq-default tab-width 2)
+  (setq tab-width 2)
+  (setq c-basic-offset 2)
+  (setq c-basic-indent 2)
+  (setq basic-offset 2)
+  (setq-default indent-tabs-mode nil)
+  (setq indent-tabs-mode nil)
   (menu-bar-mode 0)
   (tool-bar-mode 0)
-  (progn (setq linum-format "%d ")
-         (require 'zen-and-art-theme)))
+  (setq standard-indent 2)
+  (setq linum-format "%d ")
+  (setenv "PATH" (concat (getenv "PATH")))
+  (setq default-truncate-lines nil) ;; truncate line
+  (keyboard-translate ?\C-h ?\C-?) ;; modify default key
+  (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
+  (setq make-backup-files t) ;; make backup file
+  (setq inhibit-splash-screen t)) ;; start screen
 
-;; mac specific settings, sets fn-delete to be right-delete
-(when (eq system-type 'darwin)
-  (setq mac-option-modifier 'alt)
-  (setq mac-command-modifier 'meta)
-  (global-set-key [kp-delete] 'delete-char))
+(defun init-theme ()
+  ;; (load-theme 'tango-dark t)
+  (load-theme 'wombat t))
 
-;; start Emacs with
-(let ((ws (window-system)))
-  (if (or (equal 'x ws) (equal 'ns ws))
-      (init-x-mode) (init-terminal-mode)))
+(defun init-key-chord ()
+  (key-chord-mode 1)
+  (key-chord-define-global ",." "<>\C-b")
+  (key-chord-define-global "jj" 'ace-jump-mode))
 
-;; tweak emacs program
-(defun toggle-beginning-line ()
-  "toggle-beginning-line"
-  (interactive)
-  (if (equal (current-column) 0)
-      (beginning-of-line-text) (beginning-of-line)))
+(defun init-key-combo ()
+  (require 'key-combo)
+  (key-combo-load-default)
+  (key-combo-define-global (kbd "=") '(" = " " == " " === " ))
+  (key-combo-define-global (kbd "=>") " => "))
 
-(defun kill-other-buffers()
-  "Kill all other buffers."
-  (interactive)
-  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+;; init default settings
+(add-hook 'after-init-hook 'init-default)
+(defun init-default ()
+  (init-web-mode)
+  (init-undo)
+  (init-helm-projectile)
+  (init-javascript)
+  (init-ruby)
+  (init-shortcut)
+  (init-alias)
+  (init-shortcut)
+  (init-emacs-setting)
+  (init-theme)
+  (init-key-chord)
+  (init-key-combo)
 
-(defun iedit-dwim (arg)
-  "Starts iedit but uses \\[narrow-to-defun] to limit its scope."
-  (interactive "P")
-  (if arg
-      (iedit-mode)
-    (save-excursion
-      (save-restriction
-        (widen)
-        ;; this function determines the scope of `iedit-start'.
-        (if iedit-mode
-            (iedit-done)
-          ;; `current-word' can of course be replaced by other
-          ;; functions.
-          (narrow-to-defun)
-          (iedit-start (current-word) (point-min) (point-max)))))))
+  ;; enable mode
+  (yas-minor-mode)
+  (window-numbering-mode t) ;; http://www.emacswiki.org/emacs/WindowNumberingMode
+  (show-paren-mode t) ;; set show-paren-mode
+  (global-company-mode t) ;; global-company-mode
+  (global-hi-lock-mode 1)
+  (add-hook 'before-save-hook 'whitespace-cleanup))
 
-(add-hook 'eshell-mode-hook
-          'lambda nil
-          (let ((bashpath (shell-command-to-string "/bin/bash -l -c 'printenv PATH'")))
-            (let ((pathlst (split-string bashpath ":")))
-              (setq exec-path pathlst))
-            (setq eshell-path-env bashpath)
-            (setenv "PATH" bashpath)))
+;; make custom functions
 
-;; grep-selected
-(defun grep-selected (start end)
-  (interactive "r")
-  (grep (concat "grep -nh -e "
-                (buffer-substring start end)
-                " * .*")))
-(global-set-key (kbd "C-c g") 'grep-selected)
-
-;; start!
-(init-default)
-(require 'quickrun)
-
-;; http://emacswiki.org/emacs/ToggleWindowSplit
 (defun toggle-window-split ()
+  "http://emacswiki.org/emacs/ToggleWindowSplit"
   (interactive)
   (if (= (count-windows) 2)
       (let* ((this-win-buffer (window-buffer))
-             (next-win-buffer (window-buffer (next-window)))
-             (this-win-edges (window-edges (selected-window)))
-             (next-win-edges (window-edges (next-window)))
-             (this-win-2nd (not (and (<= (car this-win-edges)
-                                         (car next-win-edges))
-                                     (<= (cadr this-win-edges)
-                                         (cadr next-win-edges)))))
-             (splitter
-              (if (= (car this-win-edges)
-                     (car (window-edges (next-window))))
-                  'split-window-horizontally
-                'split-window-vertically)))
-        (delete-other-windows)
-        (let ((first-win (selected-window)))
-          (funcall splitter)
-          (if this-win-2nd (other-window 1))
-          (set-window-buffer (selected-window) this-win-buffer)
-          (set-window-buffer (next-window) next-win-buffer)
-          (select-window first-win)
-          (if this-win-2nd (other-window 1))))))
+       (next-win-buffer (window-buffer (next-window)))
+       (this-win-edges (window-edges (selected-window)))
+       (next-win-edges (window-edges (next-window)))
+       (this-win-2nd (not (and (<= (car this-win-edges)
+           (car next-win-edges))
+             (<= (cadr this-win-edges)
+           (cadr next-win-edges)))))
+       (splitter
+        (if (= (car this-win-edges)
+         (car (window-edges (next-window))))
+      'split-window-horizontally
+    'split-window-vertically)))
+  (delete-other-windows)
+  (let ((first-win (selected-window)))
+    (funcall splitter)
+    (if this-win-2nd (other-window 1))
+    (set-window-buffer (selected-window) this-win-buffer)
+    (set-window-buffer (next-window) next-win-buffer)
+    (select-window first-win)
+    (if this-win-2nd (other-window 1))))))
 
-(global-set-key (kbd "C-x @") 'toggle-window-split)
 
 ;; http://www.emacswiki.org/emacs/TransposeWindows
 (defun transpose-windows (arg)
@@ -654,10 +263,10 @@ If the file is emacs lisp, run the byte compiled version if exist."
   (let ((selector (if (>= arg 0) 'next-window 'previous-window)))
     (while (/= arg 0)
       (let ((this-win (window-buffer))
-            (next-win (window-buffer (funcall selector))))
-        (set-window-buffer (selected-window) next-win)
-        (set-window-buffer (funcall selector) this-win)
-        (select-window (funcall selector)))
+      (next-win (window-buffer (funcall selector))))
+  (set-window-buffer (selected-window) next-win)
+  (set-window-buffer (funcall selector) this-win)
+  (select-window (funcall selector)))
       (setq arg (if (plusp arg) (1- arg) (1+ arg))))))
 
 (defun swap-window-positions ()         ; Stephen Gildea
@@ -665,9 +274,9 @@ If the file is emacs lisp, run the byte compiled version if exist."
   (interactive)
   (let ((other-window (next-window (selected-window) 'no-minibuf)))
     (let ((other-window-buffer (window-buffer other-window))
-          (other-window-hscroll (window-hscroll other-window))
-          (other-window-point (window-point other-window))
-          (other-window-start (window-start other-window)))
+    (other-window-hscroll (window-hscroll other-window))
+    (other-window-point (window-point other-window))
+    (other-window-start (window-start other-window)))
       (set-window-buffer other-window (current-buffer))
       (set-window-hscroll other-window (window-hscroll (selected-window)))
       (set-window-point other-window (point))
@@ -678,27 +287,11 @@ If the file is emacs lisp, run the byte compiled version if exist."
       (set-window-start (selected-window) other-window-start))
     (select-window other-window)))
 
-(global-set-key (kbd "C-x !") 'swap-window-positions)
 
 (defun insert-console ()
   (interactive)
-  ;; 각 모드별로 콘솔 다르게 찍기 작성합세
   (insert "console.log() ;")
   (backward-char 3))
-(global-set-key (kbd "C-c c") 'insert-console)
-
-(defun insert-lambda ()
-  (interactive)
-  (insert "function(input){}")
-  (backward-char 1))
-(global-set-key (kbd "C-c f") 'insert-lambda)
-
-(defun wrap-quota ()
-  (interactive)
-  (select-current-word)
-  (goto-char (region-end)) (insert "\"")
-  (goto-char (region-beginning)) (insert "\""))
-(global-set-key [(meta \')] 'wrap-quota)
 
 (defun duplicate-current-line-or-region (arg)
   "Duplicates the current line or region ARG times.
@@ -707,29 +300,18 @@ there's a region, all lines that region covers will be duplicated."
   (interactive "p")
   (let (beg end (origin (point)))
     (if (and mark-active (> (point) (mark)))
-        (exchange-point-and-mark))
+  (exchange-point-and-mark))
     (setq beg (line-beginning-position))
     (if mark-active
-        (exchange-point-and-mark))
+  (exchange-point-and-mark))
     (setq end (line-end-position))
     (let ((region (buffer-substring-no-properties beg end)))
       (dotimes (i arg)
-        (goto-char end)
-        (newline)
-        (insert region)
-        (setq end (point)))
+  (goto-char end)
+  (newline)
+  (insert region)
+  (setq end (point)))
       (goto-char (+ origin (* (length region) arg) arg)))))
-(global-set-key [(meta =)] 'duplicate-current-line-or-region)
-
-(add-hook 'before-save-hook 'whitespace-cleanup)
-
-(defun web-mode-setup ()
-  (interactive)
-  (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-css-indent-offset 2)
-  (setq web-mode-indent-style 2)
-  (setq web-mode-comment-style 2))
-(global-set-key (kbd "C-x w") 'web-mode-setup)
 
 ;; comment-or-uncomment-region-or-line
 (defun comment-or-uncomment-region-or-line ()
@@ -739,37 +321,47 @@ there's a region, all lines that region covers will be duplicated."
       (comment-or-uncomment-region
        (line-beginning-position) (line-end-position))
     (if (< (point) (mark))
-        (comment-or-uncomment-region (point) (mark))
+  (comment-or-uncomment-region (point) (mark))
       (comment-or-uncomment-region (mark) (point)))))
-(global-set-key (kbd "C-;") 'comment-or-uncomment-region-or-line)
 
-(defalias 'dk 'describe-key)
-(defalias 'df 'describe-function)
-(defalias 'es 'eshell)
-(defalias 'ko 'kill-other-buffers)
+(defun check-expansion ()
+  (save-excursion
+    (if (looking-at "\\_>") t
+      (backward-char 1)
+      (if (looking-at "\\.") t
+  (backward-char 1)
+  (if (looking-at "->") t nil)))))
 
-(defun tweakemacs-move-one-line-downward ()
-  "Move current line downward once."
+(defun do-yas-expand ()
+  (let ((yas/fallback-behavior 'return-nil))
+    (yas/expand)))
+
+(defun tab-indent-or-complete ()
   (interactive)
-  (forward-line)
-  (transpose-lines 1)
-  (forward-line -1))
-(global-set-key [C-M-down] 'tweakemacs-move-one-line-downward)
+  (if (minibufferp)
+      (minibuffer-complete)
+    (if (or (not yas/minor-mode)
+      (null (do-yas-expand)))
+  (if (check-expansion)
+      (company-complete-common)
+    (indent-for-tab-command)))))
 
-(defun tweakemacs-move-one-line-upward ()
-  "Move current line upward once."
+(defun toggle-vim ()
   (interactive)
-  (transpose-lines 1)
-  (forward-line -2))
-(global-set-key [C-M-up] 'tweakemacs-move-one-line-upward)
+  (if (eq input-method-function 'key-chord-input-method)
+      (progn (key-chord-mode 0)(evil-mode 1))
+    (progn (key-chord-mode 1))(evil-mode 0)))
 
-(defun open-dot-emacs()
+(defun toggle-beginning-line ()
+  "toggle-beginning-line"
   (interactive)
-  (find-file "~/.emacs.d/daewon"))
+  (if (equal (current-column) 0)
+      (beginning-of-line-text) (beginning-of-line)))
 
-(defun open-bash-profile ()
+(defun kill-other-buffers()
+  "Kill all other buffers."
   (interactive)
-  (find-file "~/.bash_profile"))
+  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
 
 (defun next-user-buffer ()
   "Switch to the next user buffer in cyclic order. User buffers are those not starting with *."
@@ -787,47 +379,93 @@ there's a region, all lines that region covers will be duplicated."
     (while (and (string-match "^*" (buffer-name)) (< i 50))
       (setq i (1+ i)) (previous-buffer) )))
 
-;; set default key
-(global-set-key (kbd "C-<prior>") 'previous-user-buffer)
-(global-set-key (kbd "C-<next>") 'next-user-buffer)
+(defun tweakemacs-move-one-line-downward ()
+  "Move current line downward once."
+  (interactive)
+  (forward-line)
+  (transpose-lines 1)
+  (forward-line -1))
 
-;; example of setting env var named “path”, by appending a new path to existing path
-(setenv "PATH" (concat "/Users/blueiur/.rvm/rubies/ruby-2.0.0-p247/bin" ";"
-                       "/usr/local/bin" ";"
-                       "/usr/bin" ";"
-                       "/bin" ";" (getenv "PATH")))
+(defun tweakemacs-move-one-line-upward ()
+  "Move current line upward once."
+  (interactive)
+  (transpose-lines 1)
+  (forward-line -2))
 
-(setenv "TERM" "xterm-256color")
+(defun wrap-quota ()
+  (interactive)
+  (extend-selection)
+  (goto-char (region-end)) (insert "\"")
+  (goto-char (region-beginning)) (insert "\""))
 
-;; install emacs from git
-;; brew install emacs --cocoa --use-git-head --HEAD
+;;;  by Nikolaj Schumacher, 2008-10-20. Released under GPL.
+(defun semnav-up (arg)
+  (interactive "p")
+  (when (nth 3 (syntax-ppss))
+    (if (> arg 0)
+  (progn
+    (skip-syntax-forward "^\"")
+    (goto-char (1+ (point)))
+    (decf arg))
+      (skip-syntax-backward "^\"")
+      (goto-char (1- (point)))
+      (incf arg)))
+  (up-list arg))
 
-;; define macro
-;; 01. C-x ( -> start, 02.C-x ) -> end macro, 03 C-x e run macro
+;;  by Nikolaj Schumacher, 2008-10-20. Released under GPL.
+(defun extend-selection (arg &optional incremental)
+  "Select the current word.
+Subsequent calls expands the selection to larger semantic unit."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+         (or (region-active-p)
+       (eq last-command this-command))))
+  (if incremental
+      (progn
+  (semnav-up (- arg))
+  (forward-sexp)
+  (mark-sexp -1))
+    (if (> arg 1)
+  (extend-selection (1- arg) t)
+      (if (looking-at "\\=\\(\\s_\\|\\sw\\)*\\_>")
+    (goto-char (match-end 0))
+  (unless (memq (char-before) '(?\) ?\"))
+    (forward-sexp)))
+      (mark-sexp -1))))
+
+;; grep-selected
+(defun grep-selected (start end)
+  (interactive "r")
+  (grep (concat "grep -nh -e "
+    (buffer-substring start end)
+    " * .*")))
+
+(add-hook 'eshell-mode-hook
+    'lambda nil
+    (let ((bashpath (shell-command-to-string "/bin/bash -l -c 'printenv PATH'")))
+      (let ((pathlst (split-string bashpath ":")))
+        (setq exec-path pathlst))
+      (setq eshell-path-env bashpath)
+      (setenv "PATH" bashpath)))
+
+;; custom settings
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector
-   [default bold shadow italic underline bold bold-italic bold])
- '(css-indent-offset 2)
- '(custom-enabled-themes (quote (sanityinc-solarized-light)))
- '(custom-safe-themes
-   (quote
-    ("4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" default)))
- '(ecb-options-version "2.40")
  '(helm-follow-mode-persistent t)
  '(js2-basic-offset 2)
- '(less-css-indent-level 1)
- '(quack-programs
-   (quote
-    ("mzscheme" "bigloo" "csi" "csi -hygienic" "gosh" "gracket" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "racket" "racket -il typed/racket" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi"))))
+ '(less-css-indent-level 1))
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(helm-selection ((t (:background "#d33682" :foreground "#fdf6e3" :underline t))))
- '(isearch ((((class color) (min-colors 89)) (:foreground "#fdf6e3" :background "#d33682" :weight normal)))))
-;; ===== Set standard indent to 2 rather that 4 ====
+ '(helm-selection
+   ((t
+     (:background "#d33682" :foreground "#fdf6e3" :underline t))))
+ '(isearch
+   ((((class color)
+      (min-colors 89))
+     (:foreground "#fdf6e3" :background "#d33682" :weight normal)))))
