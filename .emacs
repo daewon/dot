@@ -158,7 +158,7 @@
 
   ;; setting utf-8
   (setq utf-translate-cjk-mode nil) ;;  disable CJK coding/encoding (Chinese/Japanese/Korean characters)
-  (set-language-environment 'utf-8)
+  (set-language-environment 'Korean)
   (set-keyboard-coding-system 'utf-8-mac) ;;  For old Carbon emacs on OS X only
   (setq locale-coding-system 'utf-8)
   (set-default-coding-systems 'utf-8)
