@@ -61,6 +61,7 @@
                     ac-js2
                     auto-complete
                     ag
+                    autopair
                     helm-ag
                     ido
                     ibuffer
@@ -188,6 +189,7 @@
   (keyboard-translate ?\C-h ?\C-?) ;; modify default key
   (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
   (setq make-backup-files t) ;; make backup file
+  (global-prettify-symbols-mode 1) ;; make lambda -> λ
   (setq inhibit-splash-screen t)) ;; start screen
 
 (defun init-theme ()
@@ -198,6 +200,11 @@
   (key-chord-mode 1)
   (key-chord-define-global ",." "<>\C-b")
   (key-chord-define-global "jj" 'ace-jump-mode))
+
+(defun init-ido ()
+  (setq ido-enable-flex-matching t)
+  (setq ido-everywhere t)
+  (ido-mode 1))
 
 ;; init default settings
 (add-hook 'after-init-hook 'init-default)
@@ -213,6 +220,7 @@
   (init-theme)
   (init-key-chord)
   (init-shortcut)
+  (init-ido)
 
   ;; enable mode
   (yas-minor-mode)
