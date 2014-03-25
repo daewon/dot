@@ -1,4 +1,5 @@
 ;; daewon's emacs setting file
+;; brew install emacs --HEAD --use-git-head --cocoa --with-gnutls
 
 ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
 ;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html
@@ -52,6 +53,8 @@
                     robe
                     ruby-interpolation
                     ruby-end
+                    scala-mode2
+                    ensime
                     tern
                     tern-auto-complete
                     js2-mode
@@ -103,6 +106,7 @@
   (add-hook 'company-mode-hook '(lambda () (push 'company-robe company-backends))))
 
 (defun init-shortcut ()
+  (global-set-key (kbd "C-x TAB") 'indent-region)
   (global-set-key (kbd "C-x m") 'magit-status)
   (global-set-key (kbd "C-x g") 'grep-selected)
   (global-set-key (kbd "C-c w" ) 'wrap-quota)
