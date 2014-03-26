@@ -119,9 +119,9 @@
   (global-set-key (kbd "RET") 'newline-and-indent)
   (global-set-key (kbd "C-c i") 'indent-region)
   (global-set-key (kbd "C-c w" ) 'wrap-quota)
-  (global-set-key (kbd "C-c v") 'toggle-vim) ;; kill this buffer
+  (global-set-key (kbd "C-c v") 'toggle-vim)
   (global-set-key (kbd "C-c c") 'insert-console)
-  (global-set-key (kbd "C-c j") 'ace-jump-buffer)j
+  (global-set-key (kbd "C-c j") 'ace-jump-buffer)
   (global-set-key (kbd "C-x m l") 'magit-log)
   (global-set-key (kbd "C-x m m") 'magit-status)
   (global-set-key (kbd "C-x m b") 'magit-branch-manager)
@@ -133,7 +133,7 @@
   (global-set-key (kbd "C-x ]") 'next-user-buffer)
   (global-set-key (kbd "C-x C-l") 'toggle-truncate-lines)
   (global-set-key (kbd "C-x l") 'linum-mode)
-  (global-set-key (kbd "C-x C-k") 'kill-this-buffer) ;; kill this buffer
+  (global-set-key (kbd "C-x C-k") 'kill-this-buffer)
   (global-set-key (kbd "C-x !") 'swap-window-positions)
   (global-set-key (kbd "C-x @") 'toggle-window-split)
   (global-set-key (kbd "C-o") 'next-multiframe-window)
@@ -206,9 +206,11 @@
   (load-theme 'wombat t))
 
 (defun init-key-chord ()
-  (key-chord-mode 1)
+  (key-chord-mode +1)
   (key-chord-define-global ",." "<>\C-b")
-  (key-chord-define-global "jj" 'ace-jump-mode))
+  (key-chord-define-global "NN" 'next-user-buffer)
+  (key-chord-define-global "PP" 'previous-user-buffer)
+  (key-chord-define-global "JJ" 'ace-jump-mode))
 
 (defun init-ido ()
   (require 'flx-ido)
