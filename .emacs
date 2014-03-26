@@ -47,6 +47,7 @@
                     magit
                     key-chord
                     ace-jump-mode
+                    ace-jump-buffer
                     evil
                     web-mode
                     window-numbering
@@ -112,6 +113,7 @@
   (add-hook 'company-mode-hook '(lambda () (push 'company-robe company-backends))))
 
 (defun init-shortcut ()
+  (global-unset-key (kbd "C-x m"))
   (global-set-key (kbd "C-a") 'toggle-beginning-line)
   (global-set-key (kbd "TAB") 'tab-indent-or-complete)
   (global-set-key (kbd "RET") 'newline-and-indent)
@@ -119,10 +121,11 @@
   (global-set-key (kbd "C-c w" ) 'wrap-quota)
   (global-set-key (kbd "C-c v") 'toggle-vim) ;; kill this buffer
   (global-set-key (kbd "C-c c") 'insert-console)
-  (global-set-key (kbd "C-c m l") 'magit-log)
-  (global-set-key (kbd "C-c m m") 'magit-status)
-  (global-set-key (kbd "C-c m b") 'magit-branch-manager)
-  (global-set-key (kbd "C-c m a") 'magit-blame-mode)
+  (global-set-key (kbd "C-c j") 'ace-jump-buffer)j
+  (global-set-key (kbd "C-x m l") 'magit-log)
+  (global-set-key (kbd "C-x m m") 'magit-status)
+  (global-set-key (kbd "C-x m b") 'magit-branch-manager)
+  (global-set-key (kbd "C-x m a") 'magit-blame-mode)
   (global-set-key (kbd "C-x g") 'grep-selected)
   (global-set-key (kbd "C-x <up>") 'tweakemacs-move-one-line-upward)
   (global-set-key (kbd "C-x <down>") 'tweakemacs-move-one-line-downward)
@@ -231,7 +234,6 @@
   (init-javascript)
   (init-ruby)
   (init-alias)
-  (init-shortcut)
   (init-emacs-setting)
   (init-theme)
   (init-key-chord)
