@@ -64,9 +64,13 @@
                     autopair
                     helm-ag
                     ido
+                    flx-ido
+                    ido-vertical-mode
+                    ido-ubiquitous
                     ibuffer
                     haml-mode
                     yasnippet
+                    smex
                     rvm))
 
 (defun init-web-mode ()
@@ -107,30 +111,30 @@
   (add-hook 'company-mode-hook '(lambda () (push 'company-robe company-backends))))
 
 (defun init-shortcut ()
-  (global-set-key (kbd "C-x TAB") 'indent-region)
+  (global-set-key (kbd "C-a") 'toggle-beginning-line)
+  (global-set-key (kbd "TAB") 'tab-indent-or-complete)
+  (global-set-key (kbd "RET") 'newline-and-indent)
+  (global-set-key (kbd "C-c i") 'indent-region)
+  (global-set-key (kbd "C-c w" ) 'wrap-quota)
+  (global-set-key (kbd "C-c v") 'toggle-vim) ;; kill this buffer
+  (global-set-key (kbd "C-c c") 'insert-console)
   (global-set-key (kbd "C-x m") 'magit-status)
   (global-set-key (kbd "C-x g") 'grep-selected)
-  (global-set-key (kbd "C-c w" ) 'wrap-quota)
   (global-set-key (kbd "C-x <up>") 'tweakemacs-move-one-line-upward)
   (global-set-key (kbd "C-x <down>") 'tweakemacs-move-one-line-downward)
   (global-set-key (kbd "C-x [") 'previous-user-buffer)
   (global-set-key (kbd "C-x ]") 'next-user-buffer)
-  (global-set-key (kbd "C-a") 'toggle-beginning-line)
-  (global-set-key (kbd "C-c C-v") 'toggle-vim) ;; kill this buffer
-  (global-set-key (kbd "C-x C-k") 'kill-this-buffer) ;; kill this buffer
-  (global-set-key (kbd "TAB") 'tab-indent-or-complete)
   (global-set-key (kbd "C-x C-l") 'toggle-truncate-lines)
   (global-set-key (kbd "C-x l") 'linum-mode)
+  (global-set-key (kbd "C-x C-k") 'kill-this-buffer) ;; kill this buffer
+  (global-set-key (kbd "C-x !") 'swap-window-positions)
+  (global-set-key (kbd "C-x @") 'toggle-window-split)
+  (global-set-key (kbd "C-o") 'next-multiframe-window)
   (global-set-key (kbd "M-i") 'ibuffer)
   (global-set-key (kbd "M-o") 'previous-multiframe-window)
-  (global-set-key (kbd "C-o") 'next-multiframe-window)
   (global-set-key (kbd "M-;") 'comment-or-uncomment-region-or-line)
   (global-set-key (kbd "M-=") 'duplicate-current-line-or-region)
-  (global-set-key (kbd "C-c c") 'insert-console)
-  (global-set-key (kbd "C-x !") 'swap-window-positions)
-  (global-set-key (kbd "M-m") 'er/expand-region)
-  (global-set-key (kbd "RET") 'newline-and-indent)
-  (global-set-key (kbd "C-x @") 'toggle-window-split))
+  (global-set-key (kbd "M-m") 'er/expand-region))
 
 (defun init-alias ()
   (defalias 'dk 'describe-key)
@@ -138,13 +142,11 @@
   (defalias 'es 'eshell)
   (defalias 'ko 'kill-other-buffers))
 
-;; init x-window mode
 (defun init-x-mode()
   "init x setting"
   (progn (scroll-bar-mode 'right)
          (setq font-lock-maximum-decoration t)))
 
-;; init-terminal mode
 (defun init-terminal-mode()
   "init terminal setting"
   (setq shell-file-name "zsh")) ;; set default shell bash
@@ -202,11 +204,22 @@
   (key-chord-define-global "jj" 'ace-jump-mode))
 
 (defun init-ido ()
-  (setq ido-enable-flex-matching t)
+  (require 'flx-ido)
+  (require 'ido)
   (setq ido-everywhere t)
-  (ido-mode 1))
+  (setq ido-enable-flex-matching t) ; fuzzy matching is a must have
+  (ido-everywhere 1)
+  (flx-ido-mode 1)
+  (ido-vertical-mode)
+  ;; (ido-ubiquitous-mode)
+  (setq ido-use-faces nil)
+  (ido-mode 'buffer))
+
+(defun init-smex ()
+  (global-set-key (kbd "M-x") 'smex))
 
 ;; init default settings
+
 (add-hook 'after-init-hook 'init-default)
 (defun init-default ()
   (init-web-mode)
@@ -221,6 +234,7 @@
   (init-key-chord)
   (init-shortcut)
   (init-ido)
+  (init-smex)
 
   ;; enable mode
   (yas-minor-mode)
@@ -229,8 +243,6 @@
   (global-company-mode t) ;; global-company-mode
   (global-hi-lock-mode 1)
   (add-hook 'before-save-hook 'whitespace-cleanup))
-
-;; make custom functions
 
 (defun toggle-window-split ()
   "http://emacswiki.org/emacs/ToggleWindowSplit"
@@ -257,7 +269,6 @@
           (set-window-buffer (next-window) next-win-buffer)
           (select-window first-win)
           (if this-win-2nd (other-window 1))))))
-
 
 ;; http://www.emacswiki.org/emacs/TransposeWindows
 (defun transpose-windows (arg)
@@ -316,7 +327,6 @@ there's a region, all lines that region covers will be duplicated."
         (setq end (point)))
       (goto-char (+ origin (* (length region) arg) arg)))))
 
-;; comment-or-uncomment-region-or-line
 (defun comment-or-uncomment-region-or-line ()
   "Like comment-or-uncomment-region, but if there's no mark \(that means no region\) apply comment-or-uncomment to the current line"
   (interactive)
@@ -401,8 +411,8 @@ there's a region, all lines that region covers will be duplicated."
   (goto-char (region-end)) (insert "\"")
   (goto-char (region-beginning)) (insert "\""))
 
-;;;  by Nikolaj Schumacher, 2008-10-20. Released under GPL.
 (defun semnav-up (arg)
+;;;  by Nikolaj Schumacher, 2008-10-20. Released under GPL.
   (interactive "p")
   (when (nth 3 (syntax-ppss))
     (if (> arg 0)
@@ -435,7 +445,6 @@ Subsequent calls expands the selection to larger semantic unit."
           (forward-sexp)))
       (mark-sexp -1))))
 
-;; grep-selected
 (defun grep-selected (start end)
   (interactive "r")
   (grep (concat "grep -nh -e "
