@@ -69,6 +69,7 @@
                     ido-ubiquitous
                     ibuffer
                     haml-mode
+                    jade-mode
                     yasnippet
                     smex
                     rvm))
@@ -118,7 +119,10 @@
   (global-set-key (kbd "C-c w" ) 'wrap-quota)
   (global-set-key (kbd "C-c v") 'toggle-vim) ;; kill this buffer
   (global-set-key (kbd "C-c c") 'insert-console)
-  (global-set-key (kbd "C-x m") 'magit-status)
+  (global-set-key (kbd "C-c m l") 'magit-log)
+  (global-set-key (kbd "C-c m m") 'magit-status)
+  (global-set-key (kbd "C-c m b") 'magit-branch-manager)
+  (global-set-key (kbd "C-c m a") 'magit-blame-mode)
   (global-set-key (kbd "C-x g") 'grep-selected)
   (global-set-key (kbd "C-x <up>") 'tweakemacs-move-one-line-upward)
   (global-set-key (kbd "C-x <down>") 'tweakemacs-move-one-line-downward)
@@ -206,14 +210,13 @@
 (defun init-ido ()
   (require 'flx-ido)
   (require 'ido)
-  (setq ido-everywhere t)
   (setq ido-enable-flex-matching t) ; fuzzy matching is a must have
   (ido-everywhere 1)
   (flx-ido-mode 1)
+  (ido-mode 1)
   (ido-vertical-mode)
   ;; (ido-ubiquitous-mode)
-  (setq ido-use-faces nil)
-  (ido-mode 'buffer))
+  (setq ido-use-faces nil))
 
 (defun init-smex ()
   (global-set-key (kbd "M-x") 'smex))
