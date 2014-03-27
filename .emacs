@@ -97,26 +97,32 @@
   (setq projectile-completion-system 'ido))
 
 (defun init-javascript ()
+  (setq js-indent-level 2)
   (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
   (add-hook 'js2-mode-hook '(lambda () (tern-mode t)))
   (add-hook 'js2-mode-hook 'auto-complete-mode)
   (add-hook 'js2-mode-hook 'ac-js2-mode)
-  (setq js-indent-level 2)
   (eval-after-load 'tern '(progn (require 'tern-auto-complete) (tern-ac-setup))))
 
 (defun init-ruby ()
   (require 'robe)
-  (add-hook 'ruby-mode-hook 'robe-mode)
   (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate) (rvm-activate-corresponding-ruby))
+  (add-hook 'ruby-mode-hook 'robe-mode)
   (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
   (add-hook 'ruby-mode-hook 'ruby-end-mode)
   (add-hook 'company-mode-hook '(lambda () (push 'company-robe company-backends))))
 
 (defun init-shortcut ()
+
   (global-unset-key (kbd "C-x m"))
+  (global-set-key (kbd "M-?") 'help-command)
+  (global-set-key (kbd "C-?") 'mark-paragraph)
+  (global-set-key (kbd "C-h") 'delete-backward-char)
+  (global-set-key (kbd "M-h") 'backward-kill-word)
   (global-set-key (kbd "C-a") 'toggle-beginning-line)
   (global-set-key (kbd "TAB") 'tab-indent-or-complete)
   (global-set-key (kbd "RET") 'newline-and-indent)
+  (global-set-key (kbd "C-c l") 'list-packages)
   (global-set-key (kbd "C-c i") 'indent-region)
   (global-set-key (kbd "C-c w" ) 'wrap-quota)
   (global-set-key (kbd "C-c v") 'toggle-vim)
@@ -141,7 +147,8 @@
   (global-set-key (kbd "M-o") 'previous-multiframe-window)
   (global-set-key (kbd "M-;") 'comment-or-uncomment-region-or-line)
   (global-set-key (kbd "M-=") 'duplicate-current-line-or-region)
-  (global-set-key (kbd "M-m") 'er/expand-region))
+  (global-set-key (kbd "M-m") 'er/expand-region)
+  (global-set-key (kbd "M-x") 'smex))
 
 (defun init-alias ()
   (defalias 'dk 'describe-key)
@@ -195,7 +202,7 @@
   (setq linum-format "%d ")
   (setenv "PATH" (concat (getenv "PATH")))
   (setq default-truncate-lines nil) ;; truncate line
-  (keyboard-translate ?\C-h ?\C-?) ;; modify default key
+  ;; (keyboard-translate ?\C-h ?\C-?) ;; modify default key
   (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
   (setq make-backup-files t) ;; make backup file
   (global-prettify-symbols-mode 1) ;; make lambda -> λ
@@ -223,11 +230,7 @@
   ;; (ido-ubiquitous-mode)
   (setq ido-use-faces nil))
 
-(defun init-smex ()
-  (global-set-key (kbd "M-x") 'smex))
-
 ;; init default settings
-
 (add-hook 'after-init-hook 'init-default)
 (defun init-default ()
   (init-web-mode)
@@ -241,7 +244,6 @@
   (init-key-chord)
   (init-shortcut)
   (init-ido)
-  (init-smex)
 
   ;; enable mode
   (yas-minor-mode)
