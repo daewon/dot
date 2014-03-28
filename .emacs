@@ -8,7 +8,6 @@
 (defun install-packages (packages-list)
   (require 'cl)
   (require 'package)
-
   (package-initialize)
 
   (defvar-local package-archives-url
@@ -69,6 +68,7 @@
                     ido-vertical-mode
                     ido-ubiquitous
                     ibuffer
+                    dirtree
                     haml-mode
                     jade-mode
                     yasnippet
@@ -112,13 +112,15 @@
   (add-hook 'ruby-mode-hook 'ruby-end-mode)
   (add-hook 'company-mode-hook '(lambda () (push 'company-robe company-backends))))
 
-(defun init-shortcut ()
+(defun init-dirtree ()
+  (require 'dirtree))
 
+(defun init-shortcut ()
   (global-unset-key (kbd "C-x m"))
-  (global-set-key (kbd "M-?") 'help-command)
-  (global-set-key (kbd "C-?") 'mark-paragraph)
-  (global-set-key (kbd "C-h") 'delete-backward-char)
-  (global-set-key (kbd "M-h") 'backward-kill-word)
+  ;; (global-set-key (kbd "M-?") 'help-command)
+  ;; (global-set-key (kbd "C-?") 'mark-paragraph)
+  ;; (global-set-key (kbd "C-h") 'delete-backward-char)
+  ;; (global-set-key (kbd "M-h") 'backward-kill-word)
   (global-set-key (kbd "C-a") 'toggle-beginning-line)
   (global-set-key (kbd "TAB") 'tab-indent-or-complete)
   (global-set-key (kbd "RET") 'newline-and-indent)
@@ -128,6 +130,7 @@
   (global-set-key (kbd "C-c v") 'toggle-vim)
   (global-set-key (kbd "C-c c") 'insert-console)
   (global-set-key (kbd "C-c j") 'ace-jump-buffer)
+  (global-set-key (kbd "C-c t") 'dirtree)
   (global-set-key (kbd "C-x m l") 'magit-log)
   (global-set-key (kbd "C-x m m") 'magit-status)
   (global-set-key (kbd "C-x m b") 'magit-branch-manager)
@@ -202,7 +205,7 @@
   (setq linum-format "%d ")
   (setenv "PATH" (concat (getenv "PATH")))
   (setq default-truncate-lines nil) ;; truncate line
-  ;; (keyboard-translate ?\C-h ?\C-?) ;; modify default key
+  (keyboard-translate ?\C-h ?\C-?) ;; modify default key
   (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
   (setq make-backup-files t) ;; make backup file
   (global-prettify-symbols-mode 1) ;; make lambda -> λ
@@ -244,9 +247,11 @@
   (init-key-chord)
   (init-shortcut)
   (init-ido)
+  (init-dirtree)
 
   ;; enable mode
   (yas-minor-mode)
+  (autopair-global-mode t)
   (window-numbering-mode t) ;; http://www.emacswiki.org/emacs/WindowNumberingMode
   (show-paren-mode t) ;; set show-paren-mode
   (global-company-mode t) ;; global-company-mode
@@ -376,9 +381,11 @@ there's a region, all lines that region covers will be duplicated."
 
 (defun toggle-beginning-line ()
   "toggle-beginning-line"
+  ;; (string (following-char))
   (interactive)
-  (if (equal (current-column) 0)
-      (beginning-of-line-text) (beginning-of-line)))
+  (cond ((equal (current-column) 0) (beginning-of-line-text))
+        ((equal (string (preceding-char)) " ") (beginning-of-line))
+        (t (beginning-of-line-text))))
 
 (defun kill-other-buffers()
   "Kill all other buffers."
