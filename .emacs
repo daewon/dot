@@ -11,9 +11,9 @@
   (package-initialize)
 
   (defvar-local package-archives-url
-    '(("melpa" . "http://melpa.milkbox.net/packages/")
+    '(("marmalade" . "http://marmalade-repo.org/packages/")
       ("gnu" . "http://elpa.gnu.org/packages/")
-      ("marmalade" . "http://marmalade-repo.org/packages/")))
+      ("melpa" . "http://melpa.milkbox.net/packages/")))
 
   (dolist (pa package-archives-url)
     (add-to-list 'package-archives pa))
@@ -59,6 +59,7 @@
                     tern-auto-complete
                     js2-mode
                     ac-js2
+                    io-mode
                     auto-complete
                     ag
                     autopair
@@ -73,6 +74,7 @@
                     jade-mode
                     yasnippet
                     smex
+                    rainbow-delimiters
                     rvm))
 
 (defun init-web-mode ()
@@ -213,6 +215,7 @@
 
 (defun init-theme ()
   ;; (load-theme 'tango-dark t)
+  (global-rainbow-delimiters-mode)
   (load-theme 'wombat t))
 
 (defun init-key-chord ()
