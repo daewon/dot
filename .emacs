@@ -39,10 +39,12 @@
 (install-packages '(expand-region
                     company
                     company-inf-ruby
+                    info+
                     undo-tree
                     projectile
                     helm
                     helm-projectile
+                    ac-helm
                     magit
                     key-chord
                     ace-jump-mode
@@ -130,7 +132,7 @@
   (global-set-key (kbd "C-c i") 'indent-region)
   (global-set-key (kbd "C-c w" ) 'wrap-quota)
   (global-set-key (kbd "C-c v") 'toggle-vim)
-  (global-set-key (kbd "C-c c") 'insert-console)
+  (global-set-key (kbd "C-c c") 'insert-log)
   (global-set-key (kbd "C-c j") 'ace-jump-buffer)
   (global-set-key (kbd "C-c t") 'dirtree)
   (global-set-key (kbd "C-x m l") 'magit-log)
@@ -193,6 +195,10 @@
     (set-selection-coding-system 'utf-8))
   (prefer-coding-system 'utf-8)
 
+  (require 'ac-helm)  ;; Not necessary if using ELPA package
+  (global-set-key (kbd "C-:") 'ac-complete-with-helm)
+  (define-key ac-complete-mode-map (kbd "C-:") 'ac-complete-with-helm)
+
   ;; default offset I hate tabs!
   (setq-default tab-width 2)
   (setq tab-width 2)
@@ -206,7 +212,7 @@
   (setq standard-indent 2)
   (setq linum-format "%d ")
   (setenv "PATH" (concat (getenv "PATH")))
-  (setq default-truncate-lines nil) ;; truncate line
+  (setq default-truncate-lines t) ;; truncate line
   (keyboard-translate ?\C-h ?\C-?) ;; modify default key
   (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
   (setq make-backup-files t) ;; make backup file
@@ -223,7 +229,7 @@
   (key-chord-define-global ",." "<>\C-b")
   (key-chord-define-global "NN" 'next-user-buffer)
   (key-chord-define-global "PP" 'previous-user-buffer)
-  (key-chord-define-global "JJ" 'ace-jump-mode))
+  (key-chord-define-global "jj" 'ace-jump-mode))
 
 (defun init-ido ()
   (require 'flx-ido)
@@ -318,11 +324,13 @@
       (set-window-start (selected-window) other-window-start))
     (select-window other-window)))
 
-
-(defun insert-console ()
+(defun insert-log ()
+  "Insert log for each major-mode"
   (interactive)
-  (insert "console.log() ;")
-  (backward-char 3))
+  (cond ((equal (message "%s" major-mode) "js2-mode")
+        (progn (insert "console.log();") (backward-char 2)))
+        ((equal (message "%s" major-mode) "ruby-mode")
+        (progn (insert "logger.error()") (backward-char 1)))))
 
 (defun duplicate-current-line-or-region (arg)
   "Duplicates the current line or region ARG times.
