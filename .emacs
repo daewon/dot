@@ -59,12 +59,13 @@
                     ensime
                     tern
                     tern-auto-complete
+                    company-tern
                     js2-mode
                     ac-js2
                     io-mode
                     auto-complete
                     ag
-                    autopair
+                    flex-autopair
                     helm-ag
                     ido
                     flx-ido
@@ -260,7 +261,7 @@
 
   ;; enable mode
   (yas-minor-mode)
-  (autopair-global-mode t)
+  (global-flex-autopair-mode t)
   (window-numbering-mode t) ;; http://www.emacswiki.org/emacs/WindowNumberingMode
   (show-paren-mode t) ;; set show-paren-mode
   (global-company-mode t) ;; global-company-mode
@@ -330,7 +331,7 @@
   (cond ((equal (message "%s" major-mode) "js2-mode")
         (progn (insert "console.log();") (backward-char 2)))
         ((equal (message "%s" major-mode) "ruby-mode")
-        (progn (insert "logger.error()") (backward-char 1)))))
+        (progn (insert "logger.error ")))))
 
 (defun duplicate-current-line-or-region (arg)
   "Duplicates the current line or region ARG times.
@@ -492,6 +493,7 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(company-auto-complete t)
  '(helm-follow-mode-persistent t)
  '(js2-basic-offset 2)
  '(less-css-indent-level 1))
@@ -501,10 +503,5 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(helm-selection
-   ((t
-     (:background "#d33682" :foreground "#fdf6e3" :underline t))))
- '(isearch
-   ((((class color)
-      (min-colors 89))
-     (:foreground "#fdf6e3" :background "#d33682" :weight normal)))))
+ '(helm-selection ((t (:background "#d33682" :foreground "#fdf6e3" :underline t))))
+ '(isearch ((((class color) (min-colors 89)) (:foreground "#fdf6e3" :background "#d33682" :weight normal)))))
