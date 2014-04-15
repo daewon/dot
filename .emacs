@@ -113,8 +113,11 @@
   (require 'robe)
   (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate) (rvm-activate-corresponding-ruby))
   (add-hook 'ruby-mode-hook 'robe-mode)
+  (add-hook 'ruby-mode-hook 'flymake-mode)
+  (add-hook 'ruby-mode-hook 'flymake-ruby-load)
   (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
   (add-hook 'ruby-mode-hook 'ruby-end-mode)
+  ;;(add-hook 'robe-mode-hook 'ac-robe-setup)
   (add-hook 'company-mode-hook '(lambda () (push 'company-robe company-backends))))
 
 (defun init-dirtree ()
@@ -262,9 +265,11 @@
   ;; enable mode
   (yas-minor-mode)
   (global-flex-autopair-mode t)
+  (column-number-mode t)
   (window-numbering-mode t) ;; http://www.emacswiki.org/emacs/WindowNumberingMode
   (show-paren-mode t) ;; set show-paren-mode
   (global-company-mode t) ;; global-company-mode
+  ;;(global-auto-complete-mode t) ;; global-autocomplete-mode
   (global-hi-lock-mode 1)
   (add-hook 'before-save-hook 'whitespace-cleanup))
 
@@ -329,9 +334,9 @@
   "Insert log for each major-mode"
   (interactive)
   (cond ((equal (message "%s" major-mode) "js2-mode")
-        (progn (insert "console.log();") (backward-char 2)))
+         (progn (insert "console.log();") (backward-char 2)))
         ((equal (message "%s" major-mode) "ruby-mode")
-        (progn (insert "logger.error ")))))
+         (progn (insert "logger.error \"LOG:: => #{}\"") (backward-char 2)))))
 
 (defun duplicate-current-line-or-region (arg)
   "Duplicates the current line or region ARG times.
@@ -395,9 +400,9 @@ there's a region, all lines that region covers will be duplicated."
   "toggle-beginning-line"
   ;; (string (following-char))
   (interactive)
-  (cond ((equal (current-column) 0) (beginning-of-line-text))
-        ((equal (string (preceding-char)) " ") (beginning-of-line))
-        (t (beginning-of-line-text))))
+  (cond ((equal (current-column) 0) (progn (message "beginning-of-line-text")(beginning-of-line-text)))
+        ((equal (string (preceding-char)) " ") (progn (message "beginngin-of-line")(beginning-of-line)))
+        (t (progn (message ":else")(beginning-of-line-text)))))
 
 (defun kill-other-buffers()
   "Kill all other buffers."
@@ -493,6 +498,7 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(backup-directory-alist (quote (("." . "~/.emacs.d/backups"))))
  '(company-auto-complete t)
  '(helm-follow-mode-persistent t)
  '(js2-basic-offset 2)
