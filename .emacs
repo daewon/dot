@@ -46,6 +46,7 @@
                     helm-projectile
                     ac-helm
                     magit
+                    nginx-mode
                     key-chord
                     ace-jump-mode
                     ace-jump-buffer
