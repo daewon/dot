@@ -37,17 +37,19 @@
 
 ;; List of packages needs to be installed at launch
 (install-packages '(expand-region
-                    company
-                    company-inf-ruby
+                    bracketed-paste
+                    minitest
+                    yaml-mode
                     info+
                     undo-tree
                     projectile
                     helm
                     helm-projectile
-                    ac-helm
+                    helm-ag
                     magit
                     nginx-mode
                     key-chord
+                    ac-etags
                     ace-jump-mode
                     ace-jump-buffer
                     evil
@@ -60,14 +62,14 @@
                     ensime
                     tern
                     tern-auto-complete
-                    company-tern
                     js2-mode
-                    ac-js2
-                    io-mode
                     auto-complete
+                    ac-dabbrev
+                    ac-js2
+                    ac-helm
+                    io-mode
                     ag
                     flex-autopair
-                    helm-ag
                     ido
                     flx-ido
                     ido-vertical-mode
@@ -106,7 +108,6 @@
   (setq js-indent-level 2)
   (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
   (add-hook 'js2-mode-hook '(lambda () (tern-mode t)))
-  (add-hook 'js2-mode-hook 'auto-complete-mode)
   (add-hook 'js2-mode-hook 'ac-js2-mode)
   (eval-after-load 'tern '(progn (require 'tern-auto-complete) (tern-ac-setup))))
 
@@ -114,12 +115,14 @@
   (require 'robe)
   (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate) (rvm-activate-corresponding-ruby))
   (add-hook 'ruby-mode-hook 'robe-mode)
+  (add-hook 'ruby-mode-hook 'minitest-mode)
   (add-hook 'ruby-mode-hook 'flymake-mode)
-  (add-hook 'ruby-mode-hook 'flymake-ruby-load)
+  ;; (add-hook 'ruby-mode-hook 'flymake-ruby-load)
   (add-hook 'ruby-mode-hook 'ruby-interpolation-mode)
   (add-hook 'ruby-mode-hook 'ruby-end-mode)
-  ;;(add-hook 'robe-mode-hook 'ac-robe-setup)
-  (add-hook 'company-mode-hook '(lambda () (push 'company-robe company-backends))))
+  (add-hook 'robe-mode-hook 'ac-robe-setup)
+  ;; (add-hook 'company-mode-hook '(lambda () (push 'company-robe company-backends)))
+  )
 
 (defun init-dirtree ()
   (require 'dirtree))
@@ -131,7 +134,7 @@
   ;; (global-set-key (kbd "C-h") 'delete-backward-char)
   ;; (global-set-key (kbd "M-h") 'backward-kill-word)
   (global-set-key (kbd "C-a") 'toggle-beginning-line)
-  (global-set-key (kbd "TAB") 'tab-indent-or-complete)
+                                        ;(global-set-key (kbd "TAB") 'tab-indent-or-complete)
   (global-set-key (kbd "RET") 'newline-and-indent)
   (global-set-key (kbd "C-c l") 'list-packages)
   (global-set-key (kbd "C-c i") 'indent-region)
@@ -160,6 +163,8 @@
   (global-set-key (kbd "M-;") 'comment-or-uncomment-region-or-line)
   (global-set-key (kbd "M-=") 'duplicate-current-line-or-region)
   (global-set-key (kbd "M-m") 'er/expand-region)
+  (global-set-key (kbd "C-c w") 'copy-to-x-clipboard)
+  (global-set-key (kbd "C-c y") 'paste-from-x-clipboard)
   (global-set-key (kbd "M-x") 'smex))
 
 (defun init-alias ()
@@ -247,6 +252,13 @@
   ;; (ido-ubiquitous-mode)
   (setq ido-use-faces nil))
 
+(defun init-auto-complete ()
+  (global-auto-complete-mode t) ;; set auto-complete mode
+  (define-key ac-complete-mode-map "\C-p" 'ac-previous)
+  (define-key ac-complete-mode-map "\C-n" 'ac-next)
+  ;;(define-key ac-complete-mode-map "\r" nil)
+  (ac-set-trigger-key "TAB"))
+
 ;; init default settings
 (add-hook 'after-init-hook 'init-default)
 (defun init-default ()
@@ -262,16 +274,21 @@
   (init-shortcut)
   (init-ido)
   (init-dirtree)
+  (init-auto-complete)
+
+  (require 'bracketed-paste)
+  (bracketed-paste-enable)
+  (setenv "TERM" "xterm-256color")
 
   ;; enable mode
   (yas-minor-mode)
+  (highlight-80+-mode t)
+  (global-hi-lock-mode 1)
   (global-flex-autopair-mode t)
   (column-number-mode t)
   (window-numbering-mode t) ;; http://www.emacswiki.org/emacs/WindowNumberingMode
   (show-paren-mode t) ;; set show-paren-mode
-  (global-company-mode t) ;; global-company-mode
-  ;;(global-auto-complete-mode t) ;; global-autocomplete-mode
-  (global-hi-lock-mode 1)
+
   (add-hook 'before-save-hook 'whitespace-cleanup))
 
 (defun toggle-window-split ()
@@ -299,6 +316,29 @@
           (set-window-buffer (next-window) next-win-buffer)
           (select-window first-win)
           (if this-win-2nd (other-window 1))))))
+
+(defun copy-to-x-clipboard ()
+  (interactive)
+  (if (region-active-p)
+      (progn
+        (shell-command-on-region (region-beginning) (region-end)
+                                 (cond
+                                  ((eq system-type 'cygwin) "putclip")
+                                  ((eq system-type 'darwin) "pbcopy")
+                                  (t "xsel -ib")
+                                  ))
+        (message "Yanked region to clipboard!")
+        (deactivate-mark))
+    (message "No region active; can't yank to clipboard!")))
+
+(defun paste-from-x-clipboard()
+  (interactive)
+  (shell-command
+   (cond
+    ((eq system-type 'cygwin) "getclip")
+    ((eq system-type 'darwin) "pbpaste")
+    (t "xsel -ob")
+    ) 1))
 
 ;; http://www.emacswiki.org/emacs/TransposeWindows
 (defun transpose-windows (arg)
@@ -381,15 +421,15 @@ there's a region, all lines that region covers will be duplicated."
   (let ((yas/fallback-behavior 'return-nil))
     (yas/expand)))
 
-(defun tab-indent-or-complete ()
-  (interactive)
-  (if (minibufferp)
-      (minibuffer-complete)
-    (if (or (not yas/minor-mode)
-            (null (do-yas-expand)))
-        (if (check-expansion)
-            (company-complete-common)
-          (indent-for-tab-command)))))
+;; (defun tab-indent-or-complete ()
+;;   (interactive)
+;;   (if (minibufferp)
+;;       (minibuffer-complete)
+;;     (if (or (not yas/minor-mode)
+;;             (null (do-yas-expand)))
+;;         (if (check-expansion)
+;;             (company-complete-common)
+;;           (indent-for-tab-command)))))
 
 (defun toggle-vim ()
   (interactive)
@@ -500,7 +540,6 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(backup-directory-alist (quote (("." . "~/.emacs.d/backups"))))
- '(company-auto-complete t)
  '(helm-follow-mode-persistent t)
  '(js2-basic-offset 2)
  '(less-css-indent-level 1))
