@@ -41,6 +41,7 @@
                     minitest
                     yaml-mode
                     info+
+                    highlight-80+
                     undo-tree
                     projectile
                     helm
@@ -282,7 +283,9 @@
 
   ;; enable mode
   (yas-minor-mode)
-  (highlight-80+-mode t)
+  (highlight-80+-mode)
+  (add-hook 'after-change-major-mode-hook (lambda () (highlight-80+-mode 1)))
+  (setq highlight-80+-columns 100)
   (global-hi-lock-mode 1)
   (global-flex-autopair-mode t)
   (column-number-mode t)
@@ -542,7 +545,8 @@ Subsequent calls expands the selection to larger semantic unit."
  '(backup-directory-alist (quote (("." . "~/.emacs.d/backups"))))
  '(helm-follow-mode-persistent t)
  '(js2-basic-offset 2)
- '(less-css-indent-level 1))
+ '(less-css-indent-level 1)
+ '(magit-diff-options nil))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
