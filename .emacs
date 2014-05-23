@@ -82,6 +82,11 @@
                     yasnippet
                     smex
                     rainbow-delimiters
+                    flymake-less
+                    less-css-mode
+                    erlang
+                    elixir-mode
+                    elixir-mix
                     rvm))
 
 (defun init-web-mode ()
@@ -260,6 +265,10 @@
   ;;(define-key ac-complete-mode-map "\r" nil)
   (ac-set-trigger-key "TAB"))
 
+(defun init-hook ()
+  (add-hook 'after-change-major-mode-hook (lambda () (highlight-80+-mode 1)))
+  (add-hook 'before-save-hook 'whitespace-cleanup))
+
 ;; init default settings
 (add-hook 'after-init-hook 'init-default)
 (defun init-default ()
@@ -276,6 +285,7 @@
   (init-ido)
   (init-dirtree)
   (init-auto-complete)
+  (init-hook)
 
   (require 'bracketed-paste)
   (bracketed-paste-enable)
@@ -284,15 +294,12 @@
   ;; enable mode
   (yas-minor-mode)
   (highlight-80+-mode)
-  (add-hook 'after-change-major-mode-hook (lambda () (highlight-80+-mode 1)))
   (setq highlight-80+-columns 100)
   (global-hi-lock-mode 1)
   (global-flex-autopair-mode t)
   (column-number-mode t)
   (window-numbering-mode t) ;; http://www.emacswiki.org/emacs/WindowNumberingMode
-  (show-paren-mode t) ;; set show-paren-mode
-
-  (add-hook 'before-save-hook 'whitespace-cleanup))
+  (show-paren-mode t))
 
 (defun toggle-window-split ()
   "http://emacswiki.org/emacs/ToggleWindowSplit"
@@ -543,6 +550,8 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(backup-directory-alist (quote (("." . "~/.emacs.d/backups"))))
+ '(css-indent-offset 2)
+ '(helm-external-programs-associations (quote (("rdoc" . "gvim"))))
  '(helm-follow-mode-persistent t)
  '(js2-basic-offset 2)
  '(less-css-indent-level 1)
