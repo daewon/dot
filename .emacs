@@ -11,8 +11,8 @@
   (package-initialize)
 
   (defvar-local package-archives-url
-    '(("marmalade" . "http://marmalade-repo.org/packages/")
-      ("gnu" . "http://elpa.gnu.org/packages/")
+    '(("gnu" . "http://elpa.gnu.org/packages/")
+      ("marmalade" . "http://marmalade-repo.org/packages/")
       ("melpa" . "http://melpa.milkbox.net/packages/")))
 
   (dolist (pa package-archives-url)
@@ -41,7 +41,6 @@
                     minitest
                     yaml-mode
                     info+
-                    highlight-80+
                     undo-tree
                     projectile
                     helm
@@ -87,6 +86,7 @@
                     erlang
                     elixir-mode
                     elixir-mix
+                    column-enforce-mode
                     rvm))
 
 (defun init-web-mode ()
@@ -266,7 +266,7 @@
   (ac-set-trigger-key "TAB"))
 
 (defun init-hook ()
-  (add-hook 'after-change-major-mode-hook (lambda () (highlight-80+-mode 1)))
+  (add-hook 'after-change-major-mode-hook (lambda () (column-enforce-mode)))
   (add-hook 'before-save-hook 'whitespace-cleanup))
 
 ;; init default settings
@@ -293,8 +293,6 @@
 
   ;; enable mode
   (yas-minor-mode)
-  (highlight-80+-mode)
-  (setq highlight-80+-columns 100)
   (global-hi-lock-mode 1)
   (global-flex-autopair-mode t)
   (column-number-mode t)
@@ -551,6 +549,7 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If there is more than one, they won't work right.
  '(backup-directory-alist (quote (("." . "~/.emacs.d/backups"))))
  '(css-indent-offset 2)
+ '(column-enforce-column 100)
  '(helm-external-programs-associations (quote (("rdoc" . "gvim"))))
  '(helm-follow-mode-persistent t)
  '(js2-basic-offset 2)
