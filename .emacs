@@ -81,7 +81,6 @@
                     yasnippet
                     smex
                     rainbow-delimiters
-                    flymake-less
                     less-css-mode
                     erlang
                     elixir-mode
