@@ -86,6 +86,7 @@
                     elixir-mode
                     elixir-mix
                     column-enforce-mode
+                    markdown-mode
                     rvm))
 
 (defun init-web-mode ()
@@ -161,6 +162,7 @@
   (global-set-key (kbd "C-x l") 'linum-mode)
   (global-set-key (kbd "C-x C-k") 'kill-this-buffer)
   (global-set-key (kbd "C-x !") 'swap-window-positions)
+  (global-set-key (kbd "C-x r a") 'string-insert-rectangle)
   (global-set-key (kbd "C-x @") 'toggle-window-split)
   (global-set-key (kbd "C-o") 'next-multiframe-window)
   (global-set-key (kbd "M-i") 'ibuffer)
@@ -170,6 +172,7 @@
   (global-set-key (kbd "M-m") 'er/expand-region)
   (global-set-key (kbd "C-c w") 'copy-to-x-clipboard)
   (global-set-key (kbd "C-c y") 'paste-from-x-clipboard)
+  (global-set-key (kbd "C-c p a") 'ag)
   (global-set-key (kbd "M-x") 'smex))
 
 (defun init-alias ()
@@ -245,6 +248,27 @@
   (key-chord-define-global "NN" 'next-user-buffer)
   (key-chord-define-global "PP" 'previous-user-buffer)
   (key-chord-define-global "jj" 'ace-jump-mode))
+
+(defun copy-line (arg)
+  "Copy lines (as many as prefix argument) in the kill ring.
+      Ease of use features:
+      - Move to start of next line.
+      - Appends the copy on sequential calls.
+      - Use newline as last char even on the last line of the buffer.
+      - If region is active, copy its lines."
+  (interactive "p")
+  (let ((beg (line-beginning-position))
+        (end (line-end-position arg)))
+    (when mark-active
+      (if (> (point) (mark))
+          (setq beg (save-excursion (goto-char (mark)) (line-beginning-position)))
+        (setq end (save-excursion (goto-char (mark)) (line-end-position)))))
+    (if (eq last-command 'copy-line)
+        (kill-append (buffer-substring beg end) (< end beg))
+      (kill-ring-save beg end)))
+  (kill-append "\n" nil)
+  (beginning-of-line (or (and arg (1+ arg)) 2))
+  (if (and arg (not (= 1 arg))) (message "%d lines copied" arg)))
 
 (defun init-ido ()
   (require 'flx-ido)
@@ -547,13 +571,14 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(backup-directory-alist (quote (("." . "~/.emacs.d/backups"))))
- '(css-indent-offset 2)
  '(column-enforce-column 100)
+ '(css-indent-offset 2)
  '(helm-external-programs-associations (quote (("rdoc" . "gvim"))))
  '(helm-follow-mode-persistent t)
  '(js2-basic-offset 2)
  '(less-css-indent-level 1)
- '(magit-diff-options nil))
+ '(magit-diff-options nil)
+ '(python-indent-offset 2))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
