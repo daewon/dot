@@ -172,7 +172,7 @@
   (global-set-key (kbd "M-m") 'er/expand-region)
   (global-set-key (kbd "C-c w") 'copy-to-x-clipboard)
   (global-set-key (kbd "C-c y") 'paste-from-x-clipboard)
-  (global-set-key (kbd "C-c p a") 'ag)
+  (global-set-key (kbd "C-c p g") 'ag)
   (global-set-key (kbd "M-x") 'smex))
 
 (defun init-alias ()
@@ -321,6 +321,18 @@
   (column-number-mode t)
   (window-numbering-mode t) ;; http://www.emacswiki.org/emacs/WindowNumberingMode
   (show-paren-mode t))
+
+(defun v-resize (key)
+  "interactively resize the window"
+  (interactive "cHit +/- to enlarge/shrink")
+  (cond
+   ((eq key (string-to-char "+"))
+    (enlarge-window 1)
+    (call-interactively 'v-resize))
+   ((eq key (string-to-char "-"))
+    (enlarge-window -1)
+    (call-interactively 'v-resize))
+   (t (push key unread-command-events))))
 
 (defun toggle-window-split ()
   "http://emacswiki.org/emacs/ToggleWindowSplit"
