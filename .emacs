@@ -172,7 +172,7 @@
   (global-set-key (kbd "M-m") 'er/expand-region)
   (global-set-key (kbd "C-c w") 'copy-to-x-clipboard)
   (global-set-key (kbd "C-c y") 'paste-from-x-clipboard)
-  (global-set-key (kbd "C-c p g") 'ag)
+  (global-set-key (kbd "C-c p A") 'ag)
   (global-set-key (kbd "M-x") 'smex))
 
 (defun init-alias ()
