@@ -238,9 +238,9 @@
   (setq inhibit-splash-screen t)) ;; start screen
 
 (defun init-theme ()
-  ;; (load-theme 'tango-dark t)
-  (global-rainbow-delimiters-mode)
-  (load-theme 'wombat t))
+  (load-theme 'tango-dark t)
+  (global-rainbow-delimiters-mode))
+;; (load-theme 'wombat t))
 
 (defun init-key-chord ()
   (key-chord-mode +1)
@@ -464,16 +464,6 @@ there's a region, all lines that region covers will be duplicated."
   (let ((yas/fallback-behavior 'return-nil))
     (yas/expand)))
 
-;; (defun tab-indent-or-complete ()
-;;   (interactive)
-;;   (if (minibufferp)
-;;       (minibuffer-complete)
-;;     (if (or (not yas/minor-mode)
-;;             (null (do-yas-expand)))
-;;         (if (check-expansion)
-;;             (company-complete-common)
-;;           (indent-for-tab-command)))))
-
 (defun toggle-vim ()
   (interactive)
   (if (eq input-method-function 'key-chord-input-method)
@@ -568,13 +558,78 @@ Subsequent calls expands the selection to larger semantic unit."
                 (buffer-substring start end)
                 " * .*")))
 
-;; (add-hook 'eshell-mode-hook
-;;           'lambda nil
-;;           (let ((bashpath (shell-command-to-string "/bin/bash -l -c 'printenv PATH'")))
-;;             (let ((pathlst (split-string bashpath ":")))
-;;               (setq exec-path pathlst))
-;;             (setq eshell-path-env bashpath)
-;;             (setenv "PATH" bashpath)))
+(add-hook 'eshell-mode-hook
+          'lambda nil
+          (let ((bashpath (shell-command-to-string "/bin/bash -l -c 'printenv PATH'")))
+            (let ((pathlst (split-string bashpath ":")))
+              (setq exec-path pathlst))
+            (setq eshell-path-env bashpath)
+            (setenv "PATH" bashpath)))
+
+(eval-after-load 'magit
+  '(progn
+     (set-face-background 'magit-item-highlight "#202020")
+     (set-face-foreground 'magit-diff-add "#40ff40")
+     (set-face-foreground 'magit-diff-del "#ff4040")
+     (set-face-foreground 'magit-diff-file-header "#4040ff")))
+
+(deftheme magit-classic
+  "Old-style faces of Magit")
+
+(custom-theme-set-faces
+ 'magit-classic
+
+ '(magit-header
+   ((t)))
+
+ '(magit-section-title
+   ((t
+     :weight bold
+     :inherit magit-header)))
+
+ '(magit-branch
+   ((t
+     :weight bold
+     :inherit magit-header)))
+
+ '(magit-diff-file-header
+   ((t
+     :inherit magit-header)))
+
+ '(magit-diff-hunk-header
+   ((t
+     :slant italic
+     :inherit magit-header)))
+
+ '(magit-diff-add
+   ((((class color) (background light))
+     :foreground "blue1")
+    (((class color) (background dark))
+     :foreground "white")))
+
+ '(magit-diff-none
+   ((t)))
+
+ '(magit-diff-del
+   ((((class color) (background light))
+     :foreground "red")
+    (((class color) (background dark))
+     :foreground "OrangeRed")))
+
+ '(magit-item-highlight
+   ((((class color) (background light))
+     :background "gray95")
+    (((class color) (background dark))
+     :background "dim gray")))
+
+ '(magit-item-mark
+   ((((class color) (background light))
+     :foreground "red")
+    (((class color) (background dark))
+     :foreground "orange")))
+ )
+
+(provide-theme 'magit-classic)
 
 ;; custom settings
 (custom-set-variables
@@ -589,7 +644,6 @@ Subsequent calls expands the selection to larger semantic unit."
  '(helm-follow-mode-persistent t)
  '(js2-basic-offset 2)
  '(less-css-indent-level 1)
- '(magit-diff-options nil)
  '(python-indent-offset 2))
 
 (custom-set-faces
