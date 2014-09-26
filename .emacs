@@ -630,6 +630,12 @@ Subsequent calls expands the selection to larger semantic unit."
 
 (provide-theme 'magit-classic)
 
+(custom-set-faces
+ '(diff-added ((t (:foreground "Green"))) 'now)
+ '(diff-removed ((t (:foreground "Red"))) 'now)
+ )
+
+
 ;; custom settings
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
