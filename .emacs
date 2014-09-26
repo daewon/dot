@@ -625,16 +625,48 @@ Subsequent calls expands the selection to larger semantic unit."
    ((((class color) (background light))
      :foreground "red")
     (((class color) (background dark))
-     :foreground "orange")))
- )
+     :foreground "orange"))))
 
 (provide-theme 'magit-classic)
 
 (custom-set-faces
  '(diff-added ((t (:foreground "Green"))) 'now)
  '(diff-removed ((t (:foreground "Red"))) 'now)
+ '(diff-changed ((t (:foreground "purple"))) 'now)
  )
 
+(defun my-log-view-diff (beg end)
+  "Overwrite the default log-view-diff, make use of
+   log-view-get-marked --lgfang"
+
+  (interactive
+   (if (log-view-get-marked) (log-view-get-marked)
+     (list (log-view-current-tag (point))
+           (log-view-current-tag (point)))))
+  (when (string-equal beg end)
+    (save-excursion
+      (goto-char (point))               ;not marked
+      (log-view-msg-next)
+      (setq end (log-view-current-tag))))
+  (vc-version-diff
+   (if log-view-per-file-logs
+       (list (log-view-current-file))
+     log-view-vc-fileset)
+   beg end))
+
+(eval-after-load "log-view" '(fset 'log-view-diff 'my-log-view-diff))
+
+(defun my-log-view-revision ()
+  "get marked revision (or revision at point) --lgfang"
+  (interactive)
+  (let ((revision (if (log-view-get-marked) (car (log-view-get-marked))
+                    (log-view-current-tag (point)))))
+    (switch-to-buffer-other-window
+     (vc-find-revision (log-view-current-file) revision))))
+(eval-after-load "log-view"
+  '(define-key log-view-mode-map "v" 'my-log-view-revision))
+
+(add-hook 'diff-mode-hook '(lambda () (require 'ansi-color)(ansi-color-apply-on-region (point-min) (point-max))))
 
 ;; custom settings
 (custom-set-variables
