@@ -238,8 +238,7 @@
   (setq inhibit-splash-screen t)) ;; start screen
 
 (defun init-theme ()
-  (load-theme 'tango-dark t)
-  (global-rainbow-delimiters-mode))
+  (load-theme 'tango-dark t))
 ;; (load-theme 'wombat t))
 
 (defun init-key-chord ()
