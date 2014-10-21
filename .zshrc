@@ -1,47 +1,66 @@
-# Path to your oh-my-zsh configuration.
-ZSH=$HOME/.oh-my-zsh
+#
+# Executes commands at the start of an interactive session.
+#
+# Authors:
+#   Sorin Ionescu <sorin.ionescu@gmail.com>
+#
 
-# Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
-ZSH_THEME="robbyrussell"
+# Source Prezto.
+if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
+    source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+fi
 
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-
-# Set to this to use case-sensitive completion
-# CASE_SENSITIVE="true"
-
-# Comment this out to disable bi-weekly auto-update checks
-# DISABLE_AUTO_UPDATE="true"
-
-# Uncomment to change how often before auto-updates occur? (in days)
-# export UPDATE_ZSH_DAYS=13
-
-# Uncomment following line if you want to disable colors in ls
-# DISABLE_LS_COLORS="true"
-
-# Uncomment following line if you want to disable autosetting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment following line if you want to disable command autocorrection
-# DISABLE_CORRECTION="true"
-
-# Uncomment following line if you want red dots to be displayed while waiting for completion
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment following line if you want to disable marking untracked files under
-# VCS as dirty. This makes repository status check for large repositories much,
-# much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git osx ruby)
-
-source $ZSH/oh-my-zsh.sh
+[[ -s /Users/blueiur/.nvm/nvm.sh ]] && . /Users/blueiur/.nvm/nvm.sh # This loads NVM
 
 # Customize to your needs...
+
+export PATH=/usr/local/bin:$PATH
+for config_file ($HOME/.yadr/zsh/*.zsh) source $config_file
+
+bindkey -e 
+set -o emacs
+
+[[ -s ".ruby-version" ]] && rvm .
+
+# Ruby Version Manager
+if [ -s ~/.rvm/scripts/rvm ] ; then
+
+    # Prompt function. Return the full version string.
+    function ruby_prompt_version_full {
+        version=$(
+            rvm info |
+            grep -m 1 'full_version' |
+            sed 's/^.*full_version:[ ]*//' |
+            sed 's/["]//g'
+        ) || return
+        echo $version
+    }
+
+    # Prompt function. Return just the version number.
+    function ruby_prompt_version {
+        version=$(
+            rvm info |
+            grep -m 1 'version' |
+            sed 's/^.*version:[ ]*//' |
+            sed 's/["]//g'
+        ) || return
+        echo $version
+    }
+fi # Ruby Version Manager
+# add the rvm_info_for_prompt into your prompt
+# below is my full prompt
+
+# this tests for the presence of rvm
+# if its loaded, it'll add the prompt
+function rvm_info_for_prompt {
+    ruby_version=$(~/.rvm/bin/rvm-prompt)
+    if [ -n "$ruby_version" ]; then
+        echo "[$ruby_version]"
+    fi
+}
+
+PATH=$PATH:$HOME/dot/script
+
+alias vi=vim
+
+PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
