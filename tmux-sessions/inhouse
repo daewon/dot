@@ -1,0 +1,23 @@
+# Set window root path. Default is `$session_root`.
+# Must be called before `new_window`.
+window_root "~/code/nhatrang-webapp"
+
+# Create new window. If no argument is given, window name will be based on
+# layout file name.
+new_window "inhouse-agit"
+
+# Split window into panes.
+split_v 75
+split_v 66
+split_v 50
+
+select_pane 1
+run_cmd 'goto dubai004'
+select_pane 2
+run_cmd 'goto dubai005'
+select_pane 3
+run_cmd 'goto dubai017'
+select_pane 4
+run_cmd 'goto dubai021'
+
+# Set active pane.
