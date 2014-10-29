@@ -1,0 +1,12 @@
+namespace :build do
+  desc "build emacs from git head"
+  task :emacs do
+    system("brew uninstall emacs")
+    system("brew install emacs --HEAD --use-git-head --cocoa --with-gnutls")
+    rm_rf "#{ENV['HOME']}/.emacs.d"
+  end
+  
+  task :test do
+    puts ENV["HOME"]
+  end
+end
