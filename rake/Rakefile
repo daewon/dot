@@ -1,6 +1,22 @@
+task default: %w[build:emacs]
+
+task :setup do 
+  puts "setup"
+end
+
+file :'test.txt' => [:setup] do
+  puts 'here'
+end
+
 namespace :build do
+  desc "update brew"
+  task :brew do
+    system("brew update")
+    system("brew upgrade")
+  end
+
   desc "build emacs from git head"
-  task :emacs do
+  task emacs: [:brew] do
     system("brew uninstall emacs")
     system("brew install emacs --HEAD --use-git-head --cocoa --with-gnutls")
     rm_rf "#{ENV['HOME']}/.emacs.d"
