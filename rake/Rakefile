@@ -11,8 +11,10 @@ end
 namespace :build do
   desc "update brew"
   task :brew do
+    puts "start update brew"
     system("brew update")
     system("brew upgrade")
+    puts "finish update brew"
   end
 
   desc "build emacs from git head"
