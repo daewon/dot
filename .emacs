@@ -630,10 +630,15 @@ Subsequent calls expands the selection to larger semantic unit."
 (provide-theme 'magit-classic)
 
 (custom-set-faces
- '(diff-added ((t (:foreground "Green"))) 'now)
- '(diff-removed ((t (:foreground "Red"))) 'now)
- '(diff-changed ((t (:foreground "purple"))) 'now)
- )
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(diff-added ((t (:foreground "Green"))))
+ '(diff-changed ((t (:foreground "purple"))))
+ '(diff-refine-removed ((t (:inherit diff-refine-change :background "brightmagenta"))))
+ '(helm-selection ((t (:background "#d33682" :foreground "#fdf6e3" :underline t))))
+ '(isearch ((((class color) (min-colors 89)) (:foreground "#fdf6e3" :background "#d33682" :weight normal)))))
 
 (defun my-log-view-diff (beg end)
   "Overwrite the default log-view-diff, make use of
@@ -682,11 +687,3 @@ Subsequent calls expands the selection to larger semantic unit."
  '(js2-basic-offset 2)
  '(less-css-indent-level 1)
  '(python-indent-offset 2))
-
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(helm-selection ((t (:background "#d33682" :foreground "#fdf6e3" :underline t))))
- '(isearch ((((class color) (min-colors 89)) (:foreground "#fdf6e3" :background "#d33682" :weight normal)))))
