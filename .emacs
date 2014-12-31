@@ -84,6 +84,8 @@
                     less-css-mode
                     erlang
                     elixir-mode
+                    elixir-mix
+                    alchemist
                     column-enforce-mode
                     markdown-mode
                     rvm))
