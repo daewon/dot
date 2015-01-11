@@ -69,7 +69,7 @@
                     ac-helm
                     io-mode
                     ag
-                    flex-autopair
+                    ;; flex-autopair
                     ido
                     flx-ido
                     ido-vertical-mode
@@ -317,7 +317,7 @@
   ;; enable mode
   (yas-minor-mode)
   (global-hi-lock-mode 1)
-  (global-flex-autopair-mode t)
+  ; (global-flex-autopair-mode t)
   (column-number-mode t)
   (window-numbering-mode t) ;; http://www.emacswiki.org/emacs/WindowNumberingMode
   (show-paren-mode t))
