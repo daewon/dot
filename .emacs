@@ -55,6 +55,7 @@
                     evil
                     web-mode
                     window-number
+                    window-numbering
                     robe
                     ruby-interpolation
                     ruby-end
@@ -309,7 +310,9 @@
   (init-dirtree)
   (init-auto-complete)
   (init-hook)
-
+  (require 'window-number)
+  (window-number-mode 1)
+  (window-numbering-mode t)
   (require 'bracketed-paste)
   (bracketed-paste-enable)
   (setenv "TERM" "xterm-256color")
@@ -677,4 +680,4 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (rvm markdown-mode column-enforce-mode alchemist elixir-mix elixir-mode erlang less-css-mode rainbow-delimiters smex jade-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode tern-auto-complete tern ensime scala-mode2 ruby-end ruby-interpolation robe window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
+    (window-numbering rvm markdown-mode column-enforce-mode alchemist elixir-mix elixir-mode erlang less-css-mode rainbow-delimiters smex jade-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode tern-auto-complete tern ensime scala-mode2 ruby-end ruby-interpolation robe window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
