@@ -54,7 +54,7 @@
                     ace-jump-buffer
                     evil
                     web-mode
-                    window-numbering
+                    window-number
                     robe
                     ruby-interpolation
                     ruby-end
@@ -319,7 +319,6 @@
   (global-hi-lock-mode 1)
   ; (global-flex-autopair-mode t)
   (column-number-mode t)
-  (window-numbering-mode t) ;; http://www.emacswiki.org/emacs/WindowNumberingMode
   (show-paren-mode t))
 
 (defun v-resize (key)
@@ -635,11 +634,7 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(diff-added ((t (:foreground "Green"))))
- '(diff-changed ((t (:foreground "purple"))))
- '(diff-refine-removed ((t (:inherit diff-refine-change :background "brightmagenta"))))
- '(helm-selection ((t (:background "#d33682" :foreground "#fdf6e3" :underline t))))
- '(isearch ((((class color) (min-colors 89)) (:foreground "#fdf6e3" :background "#d33682" :weight normal)))))
+ )
 
 (defun my-log-view-diff (beg end)
   "Overwrite the default log-view-diff, make use of
@@ -680,11 +675,6 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(backup-directory-alist (quote (("." . "~/.emacs.d/backups"))))
- '(column-enforce-column 100)
- '(css-indent-offset 2)
- '(helm-external-programs-associations (quote (("rdoc" . "gvim"))))
- '(helm-follow-mode-persistent t)
- '(js2-basic-offset 2)
- '(less-css-indent-level 1)
- '(python-indent-offset 2))
+ '(package-selected-packages
+   (quote
+    (rvm markdown-mode column-enforce-mode alchemist elixir-mix elixir-mode erlang less-css-mode rainbow-delimiters smex jade-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode tern-auto-complete tern ensime scala-mode2 ruby-end ruby-interpolation robe window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
