@@ -81,6 +81,7 @@
                     dirtree
                     haml-mode
                     slim-mode
+                    zygospore
                     jade-mode
                     yasnippet
                     smex
@@ -327,13 +328,14 @@
   (init-dirtree)
   (init-auto-complete)
   (init-hook)
+
+  (global-set-key (kbd "C-x 1") 'zygospore-toggle-delete-other-windows)
   (require 'bracketed-paste)
   (bracketed-paste-enable)
   (setenv "TERM" "xterm-256color")
   (require 'window-number)
   (window-number-mode 1)
   (wn-mode)
-
   ;; enable mode
   (yas-minor-mode)
   (global-hi-lock-mode 1)
@@ -697,4 +699,4 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (rvm markdown-mode column-enforce-mode alchemist elixir-mix elixir-mode erlang less-css-mode rainbow-delimiters smex jade-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode tern-auto-complete tern ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
+    (slim-mode zygospore yaml-mode wn-mode window-number web-mode tern-auto-complete smex rvm ruby-interpolation ruby-hash-syntax ruby-end robe rainbow-delimiters nginx-mode minitest markdown-mode magit less-css-mode key-chord jade-mode io-mode info+ ido-vertical-mode ido-ubiquitous helm-projectile helm-ag haml-mode flx-ido expand-region evil erlang ensime elixir-mode elixir-mix dirtree column-enforce-mode bracketed-paste alchemist ag ace-jump-buffer ac-js2 ac-helm ac-etags ac-dabbrev))))
