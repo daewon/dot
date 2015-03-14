@@ -80,6 +80,7 @@
                     ibuffer
                     dirtree
                     haml-mode
+                    slim-mode
                     jade-mode
                     yasnippet
                     smex
@@ -106,9 +107,19 @@
   (global-set-key (kbd "C--") 'undo-tree-undo)
   (global-set-key (kbd "M--") 'undo-tree-redo))
 
+;; (defun try-helm-find-file ()
+;;   (unwind-protect
+;;       (let (retval)
+;;         (condition-case ex
+;;             (setq retval (error "Hello"))
+;;           ('error (message (format "Caught exception: [%s]" ex))))
+;;         retval)
+;;     (message "Cleaning up..."))
+;;   )
+
 (defun init-helm-projectile ()
   (projectile-global-mode t)
-  (global-set-key (kbd "C-c h") 'helm-projectile)
+  (global-set-key (kbd "C-c h") 'helm-projectile-find-file-dwim)
   (global-set-key (kbd "M-r") 'helm-for-files)
   (setq projectile-use-native-indexing t)
   (setq projectile-require-project-root nil)
@@ -280,12 +291,11 @@
 (defun init-ido ()
   (require 'flx-ido)
   (require 'ido)
-  (setq ido-enable-flex-matching t) ; fuzzy matching is a must have
-  (ido-everywhere 1)
-  (flx-ido-mode 1)
   (ido-mode 1)
+  (ido-everywhere 1)
   (ido-vertical-mode)
-  ;; (ido-ubiquitous-mode)
+  (setq ido-enable-flex-matching t) ; fuzzy matching is a must have
+  (flx-ido-mode 1)
   (setq ido-use-faces nil))
 
 (defun init-auto-complete ()
