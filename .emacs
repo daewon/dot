@@ -63,8 +63,6 @@
                     ruby-hash-syntax
                     scala-mode2
                     ensime
-                    tern
-                    tern-auto-complete
                     js2-mode
                     auto-complete
                     ac-dabbrev
@@ -129,9 +127,7 @@
 (defun init-javascript ()
   (setq js-indent-level 2)
   (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
-  (add-hook 'js2-mode-hook '(lambda () (tern-mode t)))
-  (add-hook 'js2-mode-hook 'ac-js2-mode)
-  (eval-after-load 'tern '(progn (require 'tern-auto-complete) (tern-ac-setup))))
+  (add-hook 'js2-mode-hook 'ac-js2-mode))
 
 (defun init-scala ()
   (add-hook 'scala-mode2-hook 'ensime-scala-mode-hook))
@@ -191,7 +187,9 @@
   (global-set-key (kbd "M-m") 'er/expand-region)
   (global-set-key (kbd "C-c w") 'copy-to-x-clipboard)
   (global-set-key (kbd "C-c y") 'paste-from-x-clipboard)
+  (global-set-key (kbd "C-x y") 'helm-show-kill-ring)
   (global-set-key (kbd "C-c p A") 'ag)
+  (global-set-key (kbd "C-c p a") 'helm-projectile-ag)
   (global-set-key (kbd "M-x") 'smex))
 
 (defun init-alias ()
@@ -339,7 +337,7 @@
   ;; enable mode
   (yas-minor-mode)
   (global-hi-lock-mode 1)
-  ; (global-flex-autopair-mode t)
+                                        ; (global-flex-autopair-mode t)
   (column-number-mode t)
   (show-paren-mode t))
 
@@ -699,4 +697,4 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (slim-mode zygospore yaml-mode wn-mode window-number web-mode tern-auto-complete smex rvm ruby-interpolation ruby-hash-syntax ruby-end robe rainbow-delimiters nginx-mode minitest markdown-mode magit less-css-mode key-chord jade-mode io-mode info+ ido-vertical-mode ido-ubiquitous helm-projectile helm-ag haml-mode flx-ido expand-region evil erlang ensime elixir-mode elixir-mix dirtree column-enforce-mode bracketed-paste alchemist ag ace-jump-buffer ac-js2 ac-helm ac-etags ac-dabbrev))))
+    (rvm markdown-mode column-enforce-mode alchemist elixir-mix elixir-mode erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
