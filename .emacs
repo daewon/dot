@@ -256,14 +256,13 @@
   (setq inhibit-splash-screen t)) ;; start screen
 
 (defun init-theme ()
-  (load-theme 'tango-dark t))
-;; (load-theme 'wombat t))
+  ;;(load-theme 'tango-dark t))
+  (load-theme 'wombat t))
 
 (defun init-key-chord ()
   (key-chord-mode +1)
-  (key-chord-define-global ",." "<>\C-b")
-  (key-chord-define-global "NN" 'next-user-buffer)
-  (key-chord-define-global "PP" 'previous-user-buffer)
+  ;; (key-chord-define-global "NN" 'next-user-buffer)
+  ;; (key-chord-define-global "PP" 'previous-user-buffer)
   (key-chord-define-global "jj" 'ace-jump-mode))
 
 (defun copy-line (arg)
@@ -326,6 +325,7 @@
   (init-dirtree)
   (init-auto-complete)
   (init-hook)
+  (aggressive-indent-mode t)
 
   (global-set-key (kbd "C-x 1") 'zygospore-toggle-delete-other-windows)
   (require 'bracketed-paste)
@@ -697,4 +697,4 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (rvm markdown-mode column-enforce-mode alchemist elixir-mix elixir-mode erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
+    (rvm aggressive-indent markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
