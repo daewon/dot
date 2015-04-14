@@ -325,7 +325,6 @@
   (init-dirtree)
   (init-auto-complete)
   (init-hook)
-  (aggressive-indent-mode t)
 
   (global-set-key (kbd "C-x 1") 'zygospore-toggle-delete-other-windows)
   (require 'bracketed-paste)
@@ -695,6 +694,7 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(css-indent-offset 2)
  '(package-selected-packages
    (quote
-    (rvm aggressive-indent markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
+    (rvm markdown-mode column-enforce-mode alchemist elixir-mix elixir-mode erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
