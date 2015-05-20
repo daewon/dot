@@ -86,8 +86,8 @@
                     rainbow-delimiters
                     less-css-mode
                     erlang
-                    elixir-mode
-                    elixir-mix
+                    ;; elixir-mode
+                    ;; elixir-mix
                     alchemist
                     column-enforce-mode
                     markdown-mode
@@ -106,19 +106,8 @@
   (global-set-key (kbd "C--") 'undo-tree-undo)
   (global-set-key (kbd "M--") 'undo-tree-redo))
 
-;; (defun try-helm-find-file ()
-;;   (unwind-protect
-;;       (let (retval)
-;;         (condition-case ex
-;;             (setq retval (error "Hello"))
-;;           ('error (message (format "Caught exception: [%s]" ex))))
-;;         retval)
-;;     (message "Cleaning up..."))
-;;   )
-
 (defun init-helm-projectile ()
   (projectile-global-mode t)
-  (global-set-key (kbd "C-c h") 'helm-projectile-find-file-dwim)
   (global-set-key (kbd "M-r") 'helm-for-files)
   (setq projectile-use-native-indexing t)
   (setq projectile-require-project-root nil)
@@ -256,8 +245,9 @@
   (setq inhibit-splash-screen t)) ;; start screen
 
 (defun init-theme ()
-  ;;(load-theme 'tango-dark t))
-  (load-theme 'wombat t))
+  ;;(load-theme 'tango-dark t)
+  (load-theme 'wombat t)
+)
 
 (defun init-key-chord ()
   (key-chord-mode +1)
@@ -326,6 +316,7 @@
   (init-auto-complete)
   (init-hook)
 
+  (setq css-indent-offset 2)
   (global-set-key (kbd "C-x 1") 'zygospore-toggle-delete-other-windows)
   (require 'bracketed-paste)
   (bracketed-paste-enable)
@@ -694,7 +685,6 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(css-indent-offset 2)
  '(package-selected-packages
    (quote
-    (rvm markdown-mode column-enforce-mode alchemist elixir-mix elixir-mode erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
+    (rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
