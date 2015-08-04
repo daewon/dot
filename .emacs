@@ -575,69 +575,69 @@ Subsequent calls expands the selection to larger semantic unit."
             (setq eshell-path-env bashpath)
             (setenv "PATH" bashpath)))
 
-(eval-after-load 'magit
-  '(progn
-     (set-face-background 'magit-item-highlight "#202020")
-     (set-face-foreground 'magit-diff-add "#40ff40")
-     (set-face-foreground 'magit-diff-del "#ff4040")
-     (set-face-foreground 'magit-diff-file-header "#4040ff")))
+;; (eval-after-load 'magit
+;;   '(progn
+;;      (set-face-background 'magit-item-highlight "#202020")
+;;      (set-face-foreground 'magit-diff-add "#40ff40")
+;;      (set-face-foreground 'magit-diff-del "#ff4040")
+;;      (set-face-foreground 'magit-diff-file-header "#4040ff")))
 
-(deftheme magit-classic
-  "Old-style faces of Magit")
+;; (deftheme magit-classic
+;;   "Old-style faces of Magit")
 
-(custom-theme-set-faces
- 'magit-classic
+;; (custom-theme-set-faces
+;;  'magit-classic
 
- '(magit-header
-   ((t)))
+;;  '(magit-header
+;;    ((t)))
 
- '(magit-section-title
-   ((t
-     :weight bold
-     :inherit magit-header)))
+;;  '(magit-section-title
+;;    ((t
+;;      :weight bold
+;;      :inherit magit-header)))
 
- '(magit-branch
-   ((t
-     :weight bold
-     :inherit magit-header)))
+;;  '(magit-branch
+;;    ((t
+;;      :weight bold
+;;      :inherit magit-header)))
 
- '(magit-diff-file-header
-   ((t
-     :inherit magit-header)))
+;;  '(magit-diff-file-header
+;;    ((t
+;;      :inherit magit-header)))
 
- '(magit-diff-hunk-header
-   ((t
-     :slant italic
-     :inherit magit-header)))
+;;  '(magit-diff-hunk-header
+;;    ((t
+;;      :slant italic
+;;      :inherit magit-header)))
 
- '(magit-diff-add
-   ((((class color) (background light))
-     :foreground "blue1")
-    (((class color) (background dark))
-     :foreground "white")))
+;;  '(magit-diff-add
+;;    ((((class color) (background light))
+;;      :foreground "blue1")
+;;     (((class color) (background dark))
+;;      :foreground "white")))
 
- '(magit-diff-none
-   ((t)))
+;;  '(magit-diff-none
+;;    ((t)))
 
- '(magit-diff-del
-   ((((class color) (background light))
-     :foreground "red")
-    (((class color) (background dark))
-     :foreground "OrangeRed")))
+;;  '(magit-diff-del
+;;    ((((class color) (background light))
+;;      :foreground "red")
+;;     (((class color) (background dark))
+;;      :foreground "OrangeRed")))
 
- '(magit-item-highlight
-   ((((class color) (background light))
-     :background "gray95")
-    (((class color) (background dark))
-     :background "dim gray")))
+;;  '(magit-item-highlight
+;;    ((((class color) (background light))
+;;      :background "gray95")
+;;     (((class color) (background dark))
+;;      :background "dim gray")))
 
- '(magit-item-mark
-   ((((class color) (background light))
-     :foreground "red")
-    (((class color) (background dark))
-     :foreground "orange"))))
+;;  '(magit-item-mark
+;;    ((((class color) (background light))
+;;      :foreground "red")
+;;     (((class color) (background dark))
+;;      :foreground "orange"))))
 
-(provide-theme 'magit-classic)
+;; (provide-theme 'magit-classic)
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -687,4 +687,5 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))))
+    (rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region)))
+ '(python-indent-offset 2))

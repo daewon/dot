@@ -13,7 +13,7 @@ namespace :build do
   task :brew do
     puts "start update brew"
     system("brew update")
-    system("brew upgrade")
+    system("brew upgrade --all")
     puts "finish update brew"
   end
 
