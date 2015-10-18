@@ -20,7 +20,7 @@ namespace :build do
   desc "build emacs from git head"
   task emacs: [:brew] do
     system("brew uninstall emacs")
-    system("brew install emacs --HEAD --use-git-head --cocoa --with-gnutls")
+    system("brew install emacs --HEAD --use-git-head --with-gnutls --without-x11")
     rm_rf "#{ENV['HOME']}/.emacs.d"
   end
   

@@ -12,9 +12,26 @@ fi
 
 [[ -s /Users/blueiur/.nvm/nvm.sh ]] && . /Users/blueiur/.nvm/nvm.sh # This loads NVM
 
+function setjdk() {
+  if [ $# -ne 0 ]; then
+   removeFromPath '/System/Library/Frameworks/JavaVM.framework/Home/bin'
+   if [ -n "${JAVA_HOME+x}" ]; then
+    removeFromPath $JAVA_HOME
+   fi
+   export JAVA_HOME=`/usr/libexec/java_home -v $@`
+   export PATH=$JAVA_HOME/bin:$PATH
+  fi
+ }
+ function removeFromPath() {
+  export PATH=$(echo $PATH | sed -E -e "s;:$1;;" -e "s;$1:?;;")
+ }
+setjdk 1.8
+
+export SBT_OPTS="-Xmx2G -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xss2M  -Duser.timezone=GMT"
+
 # Customize to your needs...
 
-export PATH=/usr/local/bin:$PATH
+export PATH=/usr/local/bin:$PATH:~/apps/bin:
 for config_file ($HOME/.yadr/zsh/*.zsh) source $config_file
 
 bindkey -e 
@@ -63,4 +80,6 @@ PATH=$PATH:$HOME/dot/script
 
 alias vi=vim
 
-PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+# export RUBYOPT='-w'
+export JAVA_HOME=$(/usr/libexec/java_home)
