@@ -1,4 +1,6 @@
 dot
 ===
 
-daewon's dot files
+dot files
+override some config from [yadr](https://github.com/skwp/dotfiles)
+
