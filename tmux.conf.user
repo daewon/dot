@@ -91,6 +91,7 @@ set-option -g default-command "reattach-to-user-namespace -l zsh"
 bind-key -t vi-copy v begin-selection
 bind-key -t vi-copy y copy-pipe "reattach-to-user-namespace pbcopy"
 
+
 # update default binding of 'Enter' to also use copy-pipe
 unbind -t vi-copy Enter
 bind-key -t vi-copy Enter copy-pipe "reattach-to-user-namespace pbcopy"
@@ -109,6 +110,8 @@ bind-key -n M-? previous-window
 
 bind-key C-]-n next
 bind-key C-]-p prev
+
+bind-key k send-keys C-l \; clear-history
 
 # bind-key -n M-[ select-pane -t :.-
 bind-key C-]-o select-pane -t :.-

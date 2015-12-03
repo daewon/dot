@@ -44,6 +44,7 @@
                     info+
                     undo-tree
                     projectile
+                    elm-mode
                     helm
                     helm-projectile
                     helm-ag
