@@ -87,8 +87,8 @@
                     rainbow-delimiters
                     less-css-mode
                     erlang
-                    ;; elixir-mode
-                    ;; elixir-mix
+                    elixir-mode
+                    elixir-mix
                     alchemist
                     column-enforce-mode
                     markdown-mode
@@ -149,7 +149,6 @@
   (global-set-key (kbd "RET") 'newline-and-indent)
   (global-set-key (kbd "C-c l") 'list-packages)
   (global-set-key (kbd "C-c i") 'indent-region)
-  (global-set-key (kbd "C-c w" ) 'wrap-quota)
   (global-set-key (kbd "C-c v") 'toggle-vim)
   (global-set-key (kbd "C-c c") 'insert-log)
   (global-set-key (kbd "C-c j") 'ace-jump-buffer)
@@ -178,9 +177,9 @@
   (global-set-key (kbd "C-c w") 'copy-to-x-clipboard)
   (global-set-key (kbd "C-c y") 'paste-from-x-clipboard)
   (global-set-key (kbd "C-x y") 'helm-show-kill-ring)
+  (global-set-key (kbd "M-x") 'helm-M-x)  (global-set-key (kbd "M-x") 'helm-M-x)
   (global-set-key (kbd "C-c p A") 'ag)
-  (global-set-key (kbd "C-c p a") 'helm-projectile-ag)
-  (global-set-key (kbd "M-x") 'smex))
+  (global-set-key (kbd "C-c p a") 'helm-projectile-ag))
 
 (defun init-alias ()
   (defalias 'dk 'describe-key)
@@ -679,6 +678,24 @@ Subsequent calls expands the selection to larger semantic unit."
   '(define-key log-view-mode-map "v" 'my-log-view-revision))
 
 (add-hook 'diff-mode-hook '(lambda () (require 'ansi-color)(ansi-color-apply-on-region (point-min) (point-max))))
+
+(add-to-list 'auto-mode-alist '("\\emacs$" . emacs-lisp-mode))
+
+(define-generic-mode 'ebnf-mode
+  '(("(*" . "*)"))
+  '("=")
+  '(("^[^ \t\n][^=]+" . font-lock-variable-name-face)
+    ("['\"].*?['\"]" . font-lock-string-face)
+    ("\\?.*\\?" . font-lock-negation-char-face)
+    ("\\[\\|\\]\\|{\\|}\\|(\\|)\\||\\|,\\|;" . font-lock-type-face)
+    ("[^ \t\n]" . font-lock-function-name-face))
+  '("\\.ebnf\\'")
+  `(,(lambda () (setq mode-name "EBNF")))
+  "Major mode for EBNF metasyntax text highlighting.")
+
+(provide 'ebnf-mode)
+
+(add-to-list 'auto-mode-alist '("\\.ebnf$" . ebnf-mode))
 
 ;; custom settings
 (custom-set-variables
