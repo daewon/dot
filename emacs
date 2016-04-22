@@ -48,6 +48,7 @@
                     helm
                     helm-projectile
                     helm-ag
+                    helm-google
                     magit
                     nginx-mode
                     key-chord
@@ -169,7 +170,7 @@
   (global-set-key (kbd "C-x r a") 'string-insert-rectangle)
   (global-set-key (kbd "C-x @") 'toggle-window-split)
   (global-set-key (kbd "C-o") 'next-multiframe-window)
-  (global-set-key (kbd "M-i") 'ibuffer)
+  ;; (global-set-key (kbd "M-i") 'ibuffer)
   (global-set-key (kbd "M-o") 'previous-multiframe-window)
   (global-set-key (kbd "M-;") 'comment-or-uncomment-region-or-line)
   (global-set-key (kbd "M-=") 'duplicate-current-line-or-region)
@@ -179,7 +180,15 @@
   (global-set-key (kbd "C-x y") 'helm-show-kill-ring)
   (global-set-key (kbd "M-x") 'helm-M-x)  (global-set-key (kbd "M-x") 'helm-M-x)
   (global-set-key (kbd "C-c p A") 'ag)
-  (global-set-key (kbd "C-c p a") 'helm-projectile-ag))
+  (global-set-key (kbd "C-c p a") 'helm-projectile-ag)
+  (global-set-key (kbd "C-c h") 'helm-mini)
+  (global-set-key (kbd "C-c C-c") 'helm-mini)
+  (global-set-key (kbd "C-c g") 'helm-google)
+  (global-set-key (kbd "C-x C-f") 'helm-find-files)
+  (global-set-key (kbd "M-i") 'helm-company)
+
+  ;; (key-chord-define-global "fm" 'helm-mini)
+  )
 
 (defun init-alias ()
   (defalias 'dk 'describe-key)
@@ -247,7 +256,7 @@
 (defun init-theme ()
   ;;(load-theme 'tango-dark t)
   (load-theme 'wombat t)
-)
+  )
 
 (defun init-key-chord ()
   (key-chord-mode +1)
@@ -287,7 +296,9 @@
   (setq ido-use-faces nil))
 
 (defun init-auto-complete ()
+  (global-company-mode t) ;; set company-mode
   (global-auto-complete-mode t) ;; set auto-complete mode
+
   (define-key ac-complete-mode-map "\C-p" 'ac-previous)
   (define-key ac-complete-mode-map "\C-n" 'ac-next)
   ;;(define-key ac-complete-mode-map "\r" nil)
@@ -707,3 +718,4 @@ Subsequent calls expands the selection to larger semantic unit."
    (quote
     (sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region)))
  '(python-indent-offset 2))
+(put 'dired-find-alternate-file 'disabled nil)
