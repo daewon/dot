@@ -48,7 +48,6 @@
                     helm
                     helm-projectile
                     helm-ag
-                    helm-google
                     magit
                     nginx-mode
                     key-chord
@@ -90,6 +89,7 @@
                     erlang
                     elixir-mode
                     elixir-mix
+                    ac-alchemist
                     alchemist
                     column-enforce-mode
                     markdown-mode
@@ -104,7 +104,7 @@
 
 (defun init-undo ()
   (global-undo-tree-mode 1)
-  (global-set-key (kbd "C-x /") 'undo-tree-visualize)
+  (global-set-key (kbd "C-c /") 'undo-tree-visualize)
   (global-set-key (kbd "C--") 'undo-tree-undo)
   (global-set-key (kbd "M--") 'undo-tree-redo))
 
