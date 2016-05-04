@@ -83,10 +83,10 @@
                     zygospore
                     jade-mode
                     yasnippet
-                    smex
                     rainbow-delimiters
                     less-css-mode
                     erlang
+                    rust-mode
                     elixir-mode
                     elixir-mix
                     ac-alchemist
