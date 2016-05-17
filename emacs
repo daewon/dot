@@ -93,6 +93,7 @@
                     alchemist
                     column-enforce-mode
                     markdown-mode
+                    dockerfile-mode
                     rvm))
 
 (defun init-web-mode ()
@@ -255,8 +256,9 @@
   (setq inhibit-splash-screen t)) ;; start screen
 
 (defun init-theme ()
-  ;;(load-theme 'tango-dark t)
-  (load-theme 'wombat t)
+  (load-theme 'tango-dark t)
+  ;; (load-theme 'wombat t)
+  ;; (load-theme 'dracula t)
   )
 
 (defun init-key-chord ()
