@@ -62,7 +62,6 @@
                     ruby-interpolation
                     ruby-end
                     ruby-hash-syntax
-                    scala-mode2
                     ensime
                     js2-mode
                     auto-complete
@@ -122,7 +121,7 @@
   (add-hook 'js2-mode-hook 'ac-js2-mode))
 
 (defun init-scala ()
-  (add-hook 'scala-mode2-hook 'ensime-scala-mode-hook))
+  (add-hook 'scala-mode-hook 'ensime-scala-mode-hook))
 
 (defun init-ruby ()
   (require 'robe)
