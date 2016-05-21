@@ -120,8 +120,7 @@
   (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
   (add-hook 'js2-mode-hook 'ac-js2-mode))
 
-(defun init-scala ()
-  (add-hook 'scala-mode-hook 'ensime-scala-mode-hook))
+(defun init-scala ())
 
 (defun init-ruby ()
   (require 'robe)
