@@ -87,7 +87,6 @@
                     erlang
                     rust-mode
                     elixir-mode
-                    elixir-mix
                     ac-alchemist
                     alchemist
                     column-enforce-mode
