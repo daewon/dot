@@ -70,6 +70,7 @@
                     ac-helm
                     io-mode
                     ag
+                    fsharp-mode
                     ;; flex-autopair
                     ido
                     flx-ido
