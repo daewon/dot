@@ -41,6 +41,7 @@
                     bracketed-paste
                     minitest
                     yaml-mode
+                    haskell-mode
                     info+
                     undo-tree
                     projectile
