@@ -49,6 +49,7 @@
                     helm
                     helm-projectile
                     helm-ag
+                    helm-google
                     magit
                     nginx-mode
                     key-chord
