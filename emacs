@@ -181,10 +181,12 @@
   (global-set-key (kbd "C-c y") 'paste-from-x-clipboard)
   (global-set-key (kbd "M-i") 'helm-show-kill-ring)
   (global-set-key (kbd "M-x") 'helm-M-x)
+  (global-set-key (kbd "C-c x") 'helm-M-x)
   (global-set-key (kbd "C-c p A") 'ag)
   (global-set-key (kbd "C-c p a") 'helm-projectile-ag)
   (global-set-key (kbd "M-h") 'helm-mini)
   (global-set-key (kbd "C-c C-c") 'helm-mini)
+  (global-set-key (kbd "C-c c") 'helm-mini)
   (global-set-key (kbd "C-c g") 'helm-google)
   (global-set-key (kbd "C-x C-f") 'helm-find-files)
   (global-set-key (kbd "M-/") 'helm-company)
@@ -244,6 +246,7 @@
   (setq indent-tabs-mode nil)
   (menu-bar-mode 0)
   (tool-bar-mode 0)
+  (global-linum-mode t)
   (setq standard-indent 2)
   (setq linum-format "%d ")
   (setenv "PATH" (concat (getenv "PATH")))
@@ -489,9 +492,19 @@ there's a region, all lines that region covers will be duplicated."
 
 (defun toggle-vim ()
   (interactive)
+
   (if (eq input-method-function 'key-chord-input-method)
-      (progn (key-chord-mode 0)(evil-mode 1))
-    (progn (key-chord-mode 1))(evil-mode 0)))
+      (progn
+        (key-chord-mode 0)
+        (global-unset-key (kbd "C-u"))
+        (global-set-key (kbd "C-u") 'evil-scroll-up)
+        (evil-mode 1))
+    (progn
+      (key-chord-mode 1)
+      (global-unset-key (kbd "C-u"))
+      (global-set-key (kbd "C-u") 'universal-argument)
+      (evil-mode 0)
+      )))
 
 (defun toggle-beginning-line ()
   "toggle-beginning-line"
