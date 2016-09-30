@@ -51,6 +51,7 @@
                     projectile
                     elm-mode
                     helm
+                    helm-company
                     helm-projectile
                     helm-ag
                     helm-google
@@ -129,8 +130,7 @@
   (add-hook 'js2-mode-hook 'ac-js2-mode))
 
 (defun init-scala ()
-  (interactive)
-  )
+  (interactive))
 
 (defun init-ruby ()
   (require 'robe)
@@ -161,17 +161,15 @@
   (global-set-key (kbd "C-c TAB") 'indent-region)
   (global-set-key (kbd "C-c v") 'toggle-vim)
   (global-set-key (kbd "C-c c") 'insert-log)
-  (global-set-key (kbd "C-c j") 'ace-jump-buffer)
   (global-set-key (kbd "C-c t") 'dirtree)
 
   (global-set-key (kbd "C-x m l") 'magit-log)
   (global-set-key (kbd "C-x m m") 'magit-status)
   (global-set-key (kbd "C-x m b") 'magit-branch-manager)
-  (global-set-key (kbd "C-x m a") 'magit-blame-mode)
+  (global-set-key (kbd "C-x m a") 'magit-blame-popup)
 
-
-  (global-set-key (kbd "M-<UP>") 'tweakemacs-move-one-line-upward)
-  (global-set-key (kbd "M-<DOWN>") 'tweakemacs-move-one-line-downward)
+  (global-set-key (kbd "C-x <down>") 'tweakemacs-move-one-line-downward)
+  (global-set-key (kbd "C-x <up>") 'tweakemacs-move-one-line-upward)
   (global-set-key (kbd "M-=") 'duplicate-current-line-or-region)
 
   (global-set-key (kbd "C-x [") 'previous-user-buffer)
@@ -192,21 +190,25 @@
 
   (global-set-key (kbd "C-c w") 'copy-to-x-clipboard)
   (global-set-key (kbd "C-c y") 'paste-from-x-clipboard)
+  ;; (global-set-key (kbd "C-c p A") 'ag)
 
   (global-set-key (kbd "M-x") 'helm-M-x)
+
   (global-set-key (kbd "C-c x") 'helm-M-x)
-  ;; (global-set-key (kbd "C-c p A") 'ag)
   (global-set-key (kbd "C-c p a") 'helm-projectile-ag)
   (global-set-key (kbd "M-h") 'helm-mini)
-  (global-set-key (kbd "C-c C-c") 'helm-mini)
-  (global-set-key (kbd "C-c c") 'helm-mini)
+  ;; (global-set-key (kbd "C-c C-c") 'helm-mini)
+  (global-set-key (kbd "C-c h") 'helm-mini)
+  (global-set-key (kbd "C-c j") 'ace-jump-mode)
   (global-set-key (kbd "C-c o") 'helm-occur)
   (global-set-key (kbd "C-c i") 'helm-show-kill-ring)
+  (global-set-key (kbd "C-c b") 'ace-jump-buffer)
 
   ;; (global-set-key (kbd "C-c i") 'helm-buffers-list)
 
   ;; (global-set-key (kbd "C-c g") 'helm-google)
   (global-set-key (kbd "C-c g") 'ag)
+  (global-set-key (kbd "C-c f") 'helm-flycheck)
 
   (global-set-key (kbd "C-x C-f") 'helm-find-files)
   (global-set-key (kbd "M-/") 'helm-company)
