@@ -14,7 +14,9 @@
   (defvar-local package-archives-url
     '(("gnu" . "http://elpa.gnu.org/packages/")
       ("marmalade" . "http://marmalade-repo.org/packages/")
-      ("melpa" . "http://melpa.org/packages/")))
+      ;;      ("MELPA Stable" . "http://stable.melpa.org/packages/")
+      ("melpa" . "http://melpa.org/packages/")
+      ))
 
   (dolist (pa package-archives-url)
     (add-to-list 'package-archives pa))
@@ -39,7 +41,9 @@
 ;; List of packages needs to be installed at launch
 (install-packages '(expand-region
                     bracketed-paste
-                    minitest
+                    flycheck
+                    flycheck-haskell
+                    flycheck-elixir
                     yaml-mode
                     haskell-mode
                     info+
@@ -50,6 +54,7 @@
                     helm-projectile
                     helm-ag
                     helm-google
+                    helm-flycheck
                     magit
                     nginx-mode
                     key-chord
@@ -61,6 +66,7 @@
                     window-number
                     wn-mode
                     robe
+                    minitest
                     ruby-interpolation
                     ruby-end
                     ruby-hash-syntax
@@ -122,7 +128,9 @@
   (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
   (add-hook 'js2-mode-hook 'ac-js2-mode))
 
-(defun init-scala ())
+(defun init-scala ()
+  (interactive)
+  )
 
 (defun init-ruby ()
   (require 'robe)
@@ -149,19 +157,23 @@
   (global-set-key (kbd "C-a") 'toggle-beginning-line)
   ;;(global-set-key (kbd "TAB") 'tab-indent-or-complete)
   (global-set-key (kbd "RET") 'newline-and-indent)
-  (global-set-key (kbd "C-c l") 'list-packages)
-  (global-set-key (kbd "C-c i") 'indent-region)
+  (global-set-key (kbd "C-x l") 'list-packages)
+  (global-set-key (kbd "C-c TAB") 'indent-region)
   (global-set-key (kbd "C-c v") 'toggle-vim)
   (global-set-key (kbd "C-c c") 'insert-log)
   (global-set-key (kbd "C-c j") 'ace-jump-buffer)
   (global-set-key (kbd "C-c t") 'dirtree)
+
   (global-set-key (kbd "C-x m l") 'magit-log)
   (global-set-key (kbd "C-x m m") 'magit-status)
   (global-set-key (kbd "C-x m b") 'magit-branch-manager)
   (global-set-key (kbd "C-x m a") 'magit-blame-mode)
-  (global-set-key (kbd "C-x g") 'ag)
-  (global-set-key (kbd "C-x <up>") 'tweakemacs-move-one-line-upward)
-  (global-set-key (kbd "C-x <down>") 'tweakemacs-move-one-line-downward)
+
+
+  (global-set-key (kbd "M-<UP>") 'tweakemacs-move-one-line-upward)
+  (global-set-key (kbd "M-<DOWN>") 'tweakemacs-move-one-line-downward)
+  (global-set-key (kbd "M-=") 'duplicate-current-line-or-region)
+
   (global-set-key (kbd "C-x [") 'previous-user-buffer)
   (global-set-key (kbd "C-x ]") 'next-user-buffer)
   (global-set-key (kbd "C-x C-l") 'toggle-truncate-lines)
@@ -172,22 +184,30 @@
   (global-set-key (kbd "C-x @") 'toggle-window-split)
   (global-set-key (kbd "C-o") 'next-multiframe-window)
   (global-set-key (kbd "C-x b") 'ibuffer)
-  (global-set-key (kbd "M-i") 'ibuffer)
+  ;; (global-set-key (kbd "M-i") 'ibuffer)
   (global-set-key (kbd "M-o") 'previous-multiframe-window)
   (global-set-key (kbd "M-;") 'comment-or-uncomment-region-or-line)
-  (global-set-key (kbd "M-=") 'duplicate-current-line-or-region)
+
   (global-set-key (kbd "M-m") 'er/expand-region)
+
   (global-set-key (kbd "C-c w") 'copy-to-x-clipboard)
   (global-set-key (kbd "C-c y") 'paste-from-x-clipboard)
-  (global-set-key (kbd "M-i") 'helm-show-kill-ring)
+
   (global-set-key (kbd "M-x") 'helm-M-x)
   (global-set-key (kbd "C-c x") 'helm-M-x)
-  (global-set-key (kbd "C-c p A") 'ag)
+  ;; (global-set-key (kbd "C-c p A") 'ag)
   (global-set-key (kbd "C-c p a") 'helm-projectile-ag)
   (global-set-key (kbd "M-h") 'helm-mini)
   (global-set-key (kbd "C-c C-c") 'helm-mini)
   (global-set-key (kbd "C-c c") 'helm-mini)
-  (global-set-key (kbd "C-c g") 'helm-google)
+  (global-set-key (kbd "C-c o") 'helm-occur)
+  (global-set-key (kbd "C-c i") 'helm-show-kill-ring)
+
+  ;; (global-set-key (kbd "C-c i") 'helm-buffers-list)
+
+  ;; (global-set-key (kbd "C-c g") 'helm-google)
+  (global-set-key (kbd "C-c g") 'ag)
+
   (global-set-key (kbd "C-x C-f") 'helm-find-files)
   (global-set-key (kbd "M-/") 'helm-company)
 
@@ -317,6 +337,9 @@
 ;; init default settings
 (add-hook 'after-init-hook 'init-default)
 (defun init-default ()
+  (require 'bracketed-paste)
+  (require 'window-number)
+
   (init-web-mode)
   (init-undo)
   (init-helm-projectile)
@@ -334,17 +357,19 @@
   (init-hook)
 
   (setq css-indent-offset 2)
-  (global-set-key (kbd "C-x 1") 'zygospore-toggle-delete-other-windows)
-  (require 'bracketed-paste)
+
+  (global-flycheck-mode)
   (bracketed-paste-enable)
   (setenv "TERM" "xterm-256color")
-  (require 'window-number)
+
   (window-number-mode 1)
   (wn-mode)
+
   ;; enable mode
   (yas-minor-mode)
   (global-hi-lock-mode 1)
-                                        ; (global-flex-autopair-mode t)
+  (global-set-key (kbd "C-x 1") 'zygospore-toggle-delete-other-windows)
+
   (column-number-mode t)
   (show-paren-mode t))
 

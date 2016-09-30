@@ -940,6 +940,13 @@
 	<real>1</real>
 	<key>GlobalKeyMap</key>
 	<dict>
+		<key>0x20-0x20000</key>
+		<dict>
+			<key>Action</key>
+			<integer>13</integer>
+			<key>Text</key>
+			<string></string>
+		</dict>
 		<key>0x5b-0x80000</key>
 		<dict>
 			<key>Action</key>
@@ -1383,9 +1390,9 @@
 	<key>NSWindow Frame SUUpdateAlert</key>
 	<string>928 596 700 622 0 0 2560 1417 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>263 156 770 381 0 0 2560 1417 </string>
+	<string>263 216 796 473 0 0 2560 1417 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>2 21 2551 1396 0 0 2560 1417 </string>
+	<string>2 5 2551 1407 0 0 2560 1417 </string>
 	<key>NeverWarnAboutShortLivedSessions_4AFFAA1E-1199-4758-A7E4-C6797F9C4C59</key>
 	<true/>
 	<key>NeverWarnAboutShortLivedSessions_9648E848-945E-4709-B88F-49C77BF8E042</key>
@@ -5483,7 +5490,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2016-09-21T03:15:17Z</date>
+	<date>2016-09-25T14:32:36Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Secure Input</key>
