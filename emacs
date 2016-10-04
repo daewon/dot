@@ -202,12 +202,12 @@
   (global-set-key (kbd "C-c j") 'ace-jump-mode)
   (global-set-key (kbd "C-c o") 'helm-occur)
   (global-set-key (kbd "C-c i") 'helm-show-kill-ring)
-  (global-set-key (kbd "C-c b") 'ace-jump-buffer)
+  (global-set-key (kbd "C-c b") 'helm-buffers-list)
 
   ;; (global-set-key (kbd "C-c i") 'helm-buffers-list)
 
-  ;; (global-set-key (kbd "C-c g") 'helm-google)
-  (global-set-key (kbd "C-c g") 'ag)
+  (global-set-key (kbd "C-c C-c") 'helm-mini)
+  (global-set-key (kbd "C-c g") 'helm-ag)
   (global-set-key (kbd "C-c f") 'helm-flycheck)
 
   (global-set-key (kbd "C-x C-f") 'helm-find-files)
