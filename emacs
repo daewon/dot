@@ -181,8 +181,7 @@
   (global-set-key (kbd "C-x r a") 'string-insert-rectangle)
   (global-set-key (kbd "C-x @") 'toggle-window-split)
   (global-set-key (kbd "C-o") 'next-multiframe-window)
-  (global-set-key (kbd "C-x b") 'ibuffer)
-  ;; (global-set-key (kbd "M-i") 'ibuffer)
+    ;; (global-set-key (kbd "M-i") 'ibuffer)
   (global-set-key (kbd "M-o") 'previous-multiframe-window)
   (global-set-key (kbd "M-;") 'comment-or-uncomment-region-or-line)
 
@@ -202,7 +201,7 @@
   (global-set-key (kbd "C-c j") 'ace-jump-mode)
   (global-set-key (kbd "C-c o") 'helm-occur)
   (global-set-key (kbd "C-c i") 'helm-show-kill-ring)
-  (global-set-key (kbd "C-c b") 'helm-buffers-list)
+  (global-set-key (kbd "C-c b") 'ibuffer)
 
   ;; (global-set-key (kbd "C-c i") 'helm-buffers-list)
 
@@ -366,6 +365,8 @@
 
   (window-number-mode 1)
   (wn-mode)
+  (global-hl-line-mode t)
+  ;; (set-face-background hl-line-face "#121212")
 
   ;; enable mode
   (yas-minor-mode)
@@ -698,7 +699,7 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(hl-line ((t (:background "color-232" :foreground "brightwhite")))))
 
 (defun my-log-view-diff (beg end)
   "Overwrite the default log-view-diff, make use of
