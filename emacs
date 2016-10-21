@@ -39,7 +39,9 @@
         (package-install p)))))
 
 ;; List of packages needs to be installed at launch
-(install-packages '(expand-region
+(install-packages '(
+                    ztree
+                    expand-region
                     bracketed-paste
                     flycheck
                     flycheck-haskell
@@ -131,6 +133,9 @@
 
 (defun init-scala ()
   (interactive))
+
+(defun init-haskell ()
+  (add-hook 'haskell-mode-hook 'intero-mode))
 
 (defun init-ruby ()
   (require 'robe)
@@ -341,11 +346,14 @@
   (require 'bracketed-paste)
   (require 'window-number)
 
+  (global-flycheck-mode)
+
   (init-web-mode)
   (init-undo)
   (init-helm-projectile)
   (init-javascript)
   (init-ruby)
+
   (init-scala)
   (init-alias)
   (init-emacs-setting)
@@ -356,10 +364,10 @@
   (init-dirtree)
   (init-auto-complete)
   (init-hook)
+  (init-haskell)
 
   (setq css-indent-offset 2)
 
-  (global-flycheck-mode)
   (bracketed-paste-enable)
   (setenv "TERM" "xterm-256color")
 
@@ -374,7 +382,8 @@
   (global-set-key (kbd "C-x 1") 'zygospore-toggle-delete-other-windows)
 
   (column-number-mode t)
-  (show-paren-mode t))
+  (show-paren-mode t)
+  )
 
 (defun v-resize (key)
   "interactively resize the window"
@@ -699,7 +708,7 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(hl-line ((t (:background "color-232" :foreground "brightwhite")))))
+ '(hl-line ((t (:background "color-52")))))
 
 (defun my-log-view-diff (beg end)
   "Overwrite the default log-view-diff, make use of
