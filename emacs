@@ -48,6 +48,7 @@
                     flycheck-elixir
                     yaml-mode
                     haskell-mode
+                    intero
                     info+
                     undo-tree
                     projectile
