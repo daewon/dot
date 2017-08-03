@@ -11,12 +11,13 @@
   (require 'package)
   (package-initialize)
 
-  (defvar-local package-archives-url
+  (setq-local package-archives-url
     '(("gnu" . "http://elpa.gnu.org/packages/")
       ("marmalade" . "http://marmalade-repo.org/packages/")
-      ;;      ("MELPA Stable" . "http://stable.melpa.org/packages/")
-      ("melpa" . "http://melpa.org/packages/")
-      ))
+      ; ("melpa" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
+      ; ("melpa" . "http://melpa.milkbox.net/packages/")
+      ("melpa" . "https://melpa.org/packages/")
+   ))
 
   (dolist (pa package-archives-url)
     (add-to-list 'package-archives pa))
@@ -774,6 +775,6 @@ Subsequent calls expands the selection to larger semantic unit."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region)))
+    (graphql-mode dash-functional helm-dash xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region)))
  '(python-indent-offset 2))
 (put 'dired-find-alternate-file 'disabled nil)
