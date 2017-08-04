@@ -48,6 +48,7 @@
                     flycheck-haskell
                     flycheck-elixir
                     yaml-mode
+                    graphql-mode
                     haskell-mode
                     intero
                     info+
