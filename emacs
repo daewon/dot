@@ -1,10 +1,4 @@
-;; daewon's emacs setting file
-;; brew install emacs --HEAD --use-git-head --cocoa --with-gnutls
-
-;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39
-;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html
-
-(setq debug-on-error t)
+;; daewon's emacs setting file ;; brew install emacs --HEAD --use-git-head --cocoa --with-gnutls ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39 ;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html (setq debug-on-error t)
 ;; install packages
 (defun install-packages (packages-list)
   (require 'cl)
@@ -12,12 +6,12 @@
   (package-initialize)
 
   (setq-local package-archives-url
-    '(("gnu" . "http://elpa.gnu.org/packages/")
-      ("marmalade" . "http://marmalade-repo.org/packages/")
-      ("melpa" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
-      ; ("melpa" . "http://melpa.milkbox.net/packages/")
-      ;("melpa" . "https://melpa.org/packages/")
-   ))
+              '(("gnu" . "http://elpa.gnu.org/packages/")
+                ("marmalade" . "http://marmalade-repo.org/packages/")
+                                        ; ("melpa" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
+                ("melpa" . "http://melpa.milkbox.net/packages/")
+                                        ; ("melpa" . "https://melpa.org/packages/")
+                ))
 
   (dolist (pa package-archives-url)
     (add-to-list 'package-archives pa))
@@ -122,19 +116,34 @@
   (global-set-key (kbd "C--") 'undo-tree-undo)
   (global-set-key (kbd "M--") 'undo-tree-redo))
 
+(defun check-and-set-projectile-enabled ()
+  (interactive)
+
+  (if (bound-and-true-p projectile-mode)
+      (message "projectile-mode is on")
+    (progn
+      (message "projectile-mode is off"))
+    (global-unset-key (kbd "C-c p h"))
+    (global-set-key (kbd "C-c p h") 'helm-projectile)
+    (helm-projectile)
+    )
+  )
+
 (defun init-helm-projectile ()
-  (projectile-global-mode t)
+  ;; (projectile-global-mode t)
   (global-set-key (kbd "M-r") 'helm-for-files)
+  (global-set-key (kbd "C-c p h") 'check-and-set-projectile-enabled)
   (setq projectile-use-native-indexing t)
-  (setq projectile-require-project-root nil)
-  (setq projectile-completion-system 'ido))
+  (setq projectile-require-project-root t)
+  (setq projectile-completion-system 'helm)
+  )
 
 (defun init-javascript ()
   (setq js-indent-level 2)
   (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
-;  (define-key js2-mode-map (kbd "M-.") nil)
+                                        ;  (define-key js2-mode-map (kbd "M-.") nil)
   (add-hook 'js2-mode-hook (lambda ()
-             (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
+                             (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
   ;; (add-hook 'js2-mode-hook 'ac-js2-mode)
   )
 
@@ -193,7 +202,7 @@
   (global-set-key (kbd "C-x r a") 'string-insert-rectangle)
   (global-set-key (kbd "C-x @") 'toggle-window-split)
   (global-set-key (kbd "C-o") 'next-multiframe-window)
-    ;; (global-set-key (kbd "M-i") 'ibuffer)
+  ;; (global-set-key (kbd "M-i") 'ibuffer)
   (global-set-key (kbd "M-o") 'previous-multiframe-window)
   (global-set-key (kbd "M-;") 'comment-or-uncomment-region-or-line)
 
@@ -349,6 +358,7 @@
 
 ;; init default settings
 (add-hook 'after-init-hook 'init-default)
+
 (defun init-default ()
   (require 'bracketed-paste)
   (require 'window-number)
@@ -494,8 +504,8 @@
 
 (defun duplicate-current-line-or-region (arg)
   "Duplicates the current line or region ARG times.
-If there's no region, the current line will be duplicated. However, if
-there's a region, all lines that region covers will be duplicated."
+ If there's no region, the current line will be duplicated. However, if
+ there's a region, all lines that region covers will be duplicated."
   (interactive "p")
   (let (beg end (origin (point)))
     (if (and mark-active (> (point) (mark)))
@@ -599,7 +609,7 @@ there's a region, all lines that region covers will be duplicated."
   (goto-char (region-beginning)) (insert "\""))
 
 (defun semnav-up (arg)
-;;;  by Nikolaj Schumacher, 2008-10-20. Released under GPL.
+ ;;;  by Nikolaj Schumacher, 2008-10-20. Released under GPL.
   (interactive "p")
   (when (nth 3 (syntax-ppss))
     (if (> arg 0)
@@ -615,7 +625,7 @@ there's a region, all lines that region covers will be duplicated."
 ;;  by Nikolaj Schumacher, 2008-10-20. Released under GPL.
 (defun extend-selection (arg &optional incremental)
   "Select the current word.
-Subsequent calls expands the selection to larger semantic unit."
+ Subsequent calls expands the selection to larger semantic unit."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      (or (region-active-p)
                          (eq last-command this-command))))
@@ -719,7 +729,7 @@ Subsequent calls expands the selection to larger semantic unit."
 
 (defun my-log-view-diff (beg end)
   "Overwrite the default log-view-diff, make use of
-   log-view-get-marked --lgfang"
+    log-view-get-marked --lgfang"
 
   (interactive
    (if (log-view-get-marked) (log-view-get-marked)
