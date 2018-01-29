@@ -8,9 +8,9 @@
   (setq-local package-archives-url
               '(("gnu" . "http://elpa.gnu.org/packages/")
                 ("marmalade" . "http://marmalade-repo.org/packages/")
-                                        ; ("melpa" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
-                ("melpa" . "http://melpa.milkbox.net/packages/")
-                                        ; ("melpa" . "https://melpa.org/packages/")
+                ("melpa" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
+                ; ("melpa" . "http://melpa.milkbox.net/packages/")
+                ; ("melpa" . "https://melpa.org/packages/")
                 ))
 
   (dolist (pa package-archives-url)
@@ -47,7 +47,7 @@
                     graphql-mode
                     haskell-mode
                     intero
-                    info+
+                   ; info+
                     undo-tree
                     projectile
                     elm-mode
@@ -75,7 +75,7 @@
                     ensime
                     js2-mode
                     auto-complete
-                    ac-dabbrev
+                   ; ac-dabbrev
                     ac-js2
                     ac-helm
                     io-mode
