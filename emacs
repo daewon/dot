@@ -6,9 +6,11 @@
   (package-initialize)
 
   (setq-local package-archives-url
-              '(("melpa" . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/melpa/")
-                ("org"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/org/")
-                ("gnu"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/gnu/")))
+              '(
+                ("melpa" . "https://gitlab.com/d12frosted/elpa-mirror/raw/master/melpa/")
+                ("org"   . "https://gitlab.com/d12frosted/elpa-mirror/raw/master/org/")
+                ("gnu"   . "https://gitlab.com/d12frosted/elpa-mirror/raw/master/gnu/")
+                ("marmalade" . "https://marmalade-repo.org/packages/")))
 
   (dolist (pa package-archives-url)
     (add-to-list 'package-archives pa))
