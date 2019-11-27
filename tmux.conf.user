@@ -62,8 +62,8 @@ bind-key C-[ next-window
 bind-key C-p previous-window
 bind-key C-o select-pane -t :.-
 
-bind-key -n M-} next-window
-bind-key -n M-{ previous-window
+bind-key -n M-'}' next-window
+bind-key -n M-'{' previous-window
 
 bind-key k send-keys C-l \; clear-history
 

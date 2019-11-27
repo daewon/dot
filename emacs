@@ -7,10 +7,16 @@
 
   (setq-local package-archives-url
               '(
+                                        ;("melpa" . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/melpa/")
+                                        ;("org"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/org/")
+                                        ;("gnu"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/gnu/")
                 ("melpa" . "https://gitlab.com/d12frosted/elpa-mirror/raw/master/melpa/")
                 ("org"   . "https://gitlab.com/d12frosted/elpa-mirror/raw/master/org/")
                 ("gnu"   . "https://gitlab.com/d12frosted/elpa-mirror/raw/master/gnu/")
-                ("marmalade" . "https://marmalade-repo.org/packages/")))
+                                        ;("marmalade" . "https://marmalade-repo.org/packages/")
+                ))
+
+  (setq package-check-signature nil)
 
   (dolist (pa package-archives-url)
     (add-to-list 'package-archives pa))
@@ -35,7 +41,7 @@
 ;; List of packages needs to be installed at launch
 (install-packages '(
                     cargo
-
+                    use-package
                     lsp-mode
                     swiper-helm
                     rg
@@ -75,7 +81,7 @@
                     ruby-interpolation
                     ruby-end
                     ruby-hash-syntax
-                    ensime
+                    ;; ensime
                     js2-mode
                     auto-complete
                                         ; ac-dabbrev
@@ -85,10 +91,10 @@
                     ag
                     fsharp-mode
                     ;; flex-autopair
-                    ido
-                    flx-ido
-                    ido-vertical-mode
-                    ido-ubiquitous
+                    ;;ido
+                    ;;flx-ido
+                    ;;ido-vertical-mode
+                    ;;ido-ubiquitous
                     ibuffer
                     dirtree
                     haml-mode
@@ -107,6 +113,42 @@
                     markdown-mode
                     dockerfile-mode
                     rvm))
+
+;; lsp -mode
+(require 'use-package)
+
+;; Enable defer and ensure by default for use-package
+(setq use-package-always-defer t
+      use-package-always-ensure t)
+
+;; Enable scala-mode and sbt-mode
+(use-package scala-mode
+  :mode "\\.s\\(cala\\|bt\\)$")
+
+(use-package sbt-mode
+  :commands sbt-start sbt-command
+  :config
+  ;; WORKAROUND: https://github.com/ensime/emacs-sbt-mode/issues/31
+  ;; allows using SPACE when in the minibuffer
+  (substitute-key-definition
+   'minibuffer-complete-word
+   'self-insert-command
+   minibuffer-local-completion-map))
+
+;; Enable nice rendering of diagnostics like compile errors.
+(use-package flycheck
+  :init (global-flycheck-mode))
+
+(use-package lsp-mode
+  ;; Optional - enable lsp-mode automatically in scala files
+  :hook (scala-mode . lsp)
+  :config (setq lsp-prefer-flymake nil))
+
+(use-package lsp-ui)
+
+;; Add company-lsp backend for metals
+(use-package company-lsp)
+
 
 (defun init-web-mode ()
   (setq web-mode-markup-indent-offset 2)
@@ -342,15 +384,15 @@
   (beginning-of-line (or (and arg (1+ arg)) 2))
   (if (and arg (not (= 1 arg))) (message "%d lines copied" arg)))
 
-(defun init-ido ()
-  (require 'flx-ido)
-  (require 'ido)
-  (ido-mode 1)
-  (ido-everywhere 1)
-  (ido-vertical-mode)
-  (setq ido-enable-flex-matching t) ; fuzzy matching is a must have
-  (flx-ido-mode 1)
-  (setq ido-use-faces nil))
+;; (defun init-ido ()
+;;   (require 'flx-ido)
+;;   (require 'ido)
+;;   (ido-mode 1)
+;;   (ido-everywhere 1)
+;;   (ido-vertical-mode)
+;;   (setq ido-enable-flex-matching t) ; fuzzy matching is a must have
+;;   (flx-ido-mode 1)
+;;   (setq ido-use-faces nil))
 
 (defun init-auto-complete ()
   (global-company-mode t) ;; set company-mode
@@ -386,7 +428,7 @@
   (init-theme)
   (init-key-chord)
   (init-shortcut)
-  (init-ido)
+  ;; (init-ido)
   (init-dirtree)
   (init-auto-complete)
   (init-hook)
@@ -795,6 +837,6 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (flycheck-rust cargo lsp-sh lsp-mode lsp-ui helm-lsp lsp-scala f3 eruby-mode enh-ruby-mode swiper-helm wgrep-ag wgrep-helm flymake-haskell-multi ghc fzf groovy-mode graphql-mode dash-functional helm-dash xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ido-ubiquitous ido-vertical-mode flx-ido ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode ensime scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region)))
+    (scala-mode ammonite-term-repl rg flycheck-rust cargo lsp-sh lsp-mode lsp-ui helm-lsp f3 eruby-mode enh-ruby-mode swiper-helm wgrep-ag wgrep-helm flymake-haskell-multi ghc fzf groovy-mode graphql-mode dash-functional helm-dash xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region)))
  '(python-indent-offset 2))
 (put 'dired-find-alternate-file 'disabled nil)
