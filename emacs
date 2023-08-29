@@ -55,7 +55,7 @@
                     yaml-mode
                     graphql-mode
                     haskell-mode
-                    intero
+                    ;; intero
                                         ; info+
                     undo-tree
                     projectile
@@ -148,7 +148,7 @@
 (use-package lsp-ui)
 
 ;; Add company-lsp backend for metals
-(use-package company-lsp)
+;; (use-package company-lsp)
 
 
 (defun init-web-mode ()
@@ -286,7 +286,7 @@
   (global-set-key (kbd "C-c g") 'helm-ag)
   (global-set-key (kbd "C-c f") 'helm-flycheck)
 
-  (global-set-key (kbd "C-x C-f") 'helm-find-files)
+  ; (global-set-key (kbd "C-x C-f") 'helm-find-files)
   (global-set-key (kbd "M-/") 'helm-company)
 
   ;; (key-chord-define-global "fm" 'helm-mini)
@@ -344,7 +344,7 @@
   (setq indent-tabs-mode nil)
   (menu-bar-mode 0)
   (tool-bar-mode 0)
-  (global-linum-mode t)
+  ;(global-display-line-number-mode t)
   (setq standard-indent 2)
   (setq linum-format "%d ")
   (setenv "PATH" (concat (getenv "PATH")))

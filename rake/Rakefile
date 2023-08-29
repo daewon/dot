@@ -13,14 +13,14 @@ namespace :build do
   task :brew do
     puts "start update brew"
     system("brew update")
-    system("brew upgrade --all")
+    system("brew upgrade")
     puts "finish update brew"
   end
 
   desc "build emacs from git head"
   task emacs: [:brew] do
     system("brew uninstall emacs")
-    system("brew install emacs --HEAD --use-git-head --with-gnutls --without-x11")
+    system("brew install emacs --HEAD --without-x11")
     rm_rf "#{ENV['HOME']}/.emacs.d"
   end
   
