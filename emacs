@@ -160,6 +160,7 @@
 
 (defun init-undo ()
   (global-undo-tree-mode 1)
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
   (global-set-key (kbd "C-c /") 'undo-tree-visualize)
   (global-set-key (kbd "C--") 'undo-tree-undo)
   (global-set-key (kbd "M--") 'undo-tree-redo))
@@ -188,7 +189,7 @@
 
 (defun init-hcl-mode ()
   (add-to-list 'auto-mode-alist '("\\.tf$" . hcl-mode))
-)
+  )
 
 (defun init-javascript ()
   (setq js-indent-level 2)
@@ -286,7 +287,7 @@
   (global-set-key (kbd "C-c g") 'helm-ag)
   (global-set-key (kbd "C-c f") 'helm-flycheck)
 
-  ; (global-set-key (kbd "C-x C-f") 'helm-find-files)
+                                        ; (global-set-key (kbd "C-x C-f") 'helm-find-files)
   (global-set-key (kbd "M-/") 'helm-company)
 
   ;; (key-chord-define-global "fm" 'helm-mini)
@@ -312,7 +313,9 @@
   (when (eq system-type 'darwin)
     (setq mac-option-modifier 'alt)
     (setq mac-command-modifier 'meta)
+    (global-display-line-numbers-mode t)
     (global-set-key [kp-delete] 'delete-char))
+
 
   ;; start Emacs with
   (let ((ws (window-system)))
@@ -344,7 +347,7 @@
   (setq indent-tabs-mode nil)
   (menu-bar-mode 0)
   (tool-bar-mode 0)
-  ;(global-display-line-number-mode t)
+                                        ;(global-display-line-number-mode t)
   (setq standard-indent 2)
   (setq linum-format "%d ")
   (setenv "PATH" (concat (getenv "PATH")))
@@ -354,6 +357,7 @@
   (fset 'yes-or-no-p 'y-or-n-p) ;; yes-no -> y-n
   (setq make-backup-files t) ;; make backup file
   (global-prettify-symbols-mode 1) ;; make lambda -> λ
+  (setq make-backup-files nil)
   (setq inhibit-splash-screen t)) ;; start screen
 
 (defun init-theme ()
@@ -842,7 +846,6 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   (quote
-    (hcl-mode lsp-scala scala-mode ammonite-term-repl rg flycheck-rust cargo lsp-sh lsp-mode lsp-ui helm-lsp f3 eruby-mode enh-ruby-mode swiper-helm wgrep-ag wgrep-helm flymake-haskell-multi ghc fzf groovy-mode graphql-mode dash-functional helm-dash xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region)))
+   '(typescript-mode hcl-mode lsp-scala scala-mode ammonite-term-repl rg flycheck-rust cargo lsp-sh lsp-mode lsp-ui helm-lsp f3 eruby-mode enh-ruby-mode swiper-helm wgrep-ag wgrep-helm flymake-haskell-multi ghc fzf groovy-mode graphql-mode dash-functional helm-dash xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))
  '(python-indent-offset 2))
 (put 'dired-find-alternate-file 'disabled nil)
