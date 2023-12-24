@@ -1,19 +1,44 @@
+(require 'package)
+
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+
+;; Comment/uncomment this line to enable MELPA Stable if desired.  See `package-archive-priorities`
+;; and `package-pinned-packages`. Most users will not need or want to do this.
+;;(add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+
+(package-initialize)
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(typescript-mode hcl-mode lsp-scala scala-mode ammonite-term-repl rg flycheck-rust cargo lsp-sh lsp-mode lsp-ui helm-lsp f3 eruby-mode enh-ruby-mode swiper-helm wgrep-ag wgrep-helm flymake-haskell-multi ghc fzf groovy-mode graphql-mode dash-functional helm-dash xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))
+ '(python-indent-offset 2))
+
+
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(hl-line ((t (:background "color-52")))))
+(require 'helm)
+
+
 ;; daewon's emacs setting file ;; brew install emacs --HEAD --use-git-head --cocoa --with-gnutls ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39 ;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html (setq debug-on-error t)
 ;; install packages
 (defun install-packages (packages-list)
   (require 'cl)
   (require 'package)
-  (package-initialize)
 
   (setq-local package-archives-url
               '(
-                                        ;("melpa" . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/melpa/")
-                                        ;("org"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/org/")
-                                        ;("gnu"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/gnu/")
-                ("melpa" . "https://gitlab.com/d12frosted/elpa-mirror/raw/master/melpa/")
-                ("org"   . "https://gitlab.com/d12frosted/elpa-mirror/raw/master/org/")
-                ("gnu"   . "https://gitlab.com/d12frosted/elpa-mirror/raw/master/gnu/")
-                                        ;("marmalade" . "https://marmalade-repo.org/packages/")
+                                        ("melpa" . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/melpa/")
+                                        ("org"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/org/")
+                                        ("gnu"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/gnu/")
+                                        ; ("marmalade" . "https://marmalade-repo.org/packages/")
                 ))
 
   (setq package-check-signature nil)
@@ -781,12 +806,7 @@
 
 ;; (provide-theme 'magit-classic)
 
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(hl-line ((t (:background "color-52")))))
+
 
 (defun my-log-view-diff (beg end)
   "Overwrite the default log-view-diff, make use of
@@ -840,12 +860,5 @@
 (add-to-list 'auto-mode-alist '("\\.ebnf$" . ebnf-mode))
 
 ;; custom settings
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(typescript-mode hcl-mode lsp-scala scala-mode ammonite-term-repl rg flycheck-rust cargo lsp-sh lsp-mode lsp-ui helm-lsp f3 eruby-mode enh-ruby-mode swiper-helm wgrep-ag wgrep-helm flymake-haskell-multi ghc fzf groovy-mode graphql-mode dash-functional helm-dash xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))
- '(python-indent-offset 2))
+
 (put 'dired-find-alternate-file 'disabled nil)
