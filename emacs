@@ -14,7 +14,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(typescript-mode hcl-mode lsp-scala scala-mode ammonite-term-repl rg flycheck-rust cargo lsp-sh lsp-mode lsp-ui helm-lsp f3 eruby-mode enh-ruby-mode swiper-helm wgrep-ag wgrep-helm flymake-haskell-multi ghc fzf groovy-mode graphql-mode dash-functional helm-dash xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-ag helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))
+   '(typescript-mode hcl-mode lsp-scala scala-mode ammonite-term-repl rg flycheck-rust cargo lsp-sh lsp-mode lsp-ui helm-lsp f3 eruby-mode enh-ruby-mode swiper-helm wgrep-ag wgrep-helm flymake-haskell-multi ghc fzf groovy-mode graphql-mode dash-functional helm-dash xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))
  '(python-indent-offset 2))
 
 
@@ -24,10 +24,10 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(hl-line ((t (:background "color-52")))))
-(require 'helm)
 
 
 ;; daewon's emacs setting file ;; brew install emacs --HEAD --use-git-head --cocoa --with-gnutls ;; elisp refernece: http://www.emacswiki.org/emacs/ElispCookbook#toc39 ;; elisp in 15 minutes: http://bzg.fr/learn-emacs-lisp-in-15-minutes.html (setq debug-on-error t)
+
 ;; install packages
 (defun install-packages (packages-list)
   (require 'cl)
@@ -88,9 +88,9 @@
                     helm
                     helm-company
                     helm-projectile
-                    helm-ag
-                    helm-google
-                    helm-flycheck
+                    ;; helm-ag  ; Package is unavailable, commenting out
+                    ;; helm-google  ; Package is unavailable, commenting out
+                    ;; helm-flycheck  ; Package might be unavailable, commenting out
                     magit
                     nginx-mode
                     key-chord
@@ -138,10 +138,16 @@
                     column-enforce-mode
                     markdown-mode
                     dockerfile-mode
-                    rvm))
+                    rvm
+                    lsp-metals))
+(require 'helm)
 
 ;; lsp -mode
 (require 'use-package)
+
+;; Java 설정
+(setq lsp-java-home (or (getenv "JAVA_HOME") 
+                        "/usr/lib/jvm/default-java"))
 
 ;; Enable defer and ensure by default for use-package
 (setq use-package-always-defer t
@@ -228,9 +234,32 @@
 (add-hook 'sh-mode-hook #'lsp-sh-enable)
 
 (defun init-scala ()
-  (interactive)
-  (add-hook 'scala-mode-hook #'lsp)
-  )
+  (add-hook 'scala-mode-hook 
+            (lambda ()
+              ;; Scala mode에 LSP 활성화
+              (lsp-deferred)
+              ;; Metals 설정
+              (setq lsp-metals-server-args 
+                    (list (concat "-J-Dmetals.java-home=" (or (getenv "JAVA_HOME") 
+                                                              "/usr/lib/jvm/default-java")))))))
+  (add-hook 'sbt-mode-hook 'lsp)
+  
+  ;; Metals 설정
+  (with-eval-after-load 'lsp-metals
+    (setq lsp-metals-server-args 
+          (list (concat "-J-Dmetals.java-home=" (or (getenv "JAVA_HOME") 
+                                                    "/usr/lib/jvm/default-java"))))
+    ;; sbt 대신 mill 사용
+    (setq lsp-metals-sbt-script "mill")
+    ;; 빌드 툴을 sbt 대신 mill로 설정
+    (setq lsp-metals-build-tool "mill")
+    (setq lsp-metals-scalafmt-config-file ".scalafmt.conf")
+    (setq lsp-metals-gradle-script "gradlew")
+    (setq lsp-metals-maven-script "mvnw")
+    (setq lsp-metals-ammonite-script "amm")
+    ;; workspace/executeCommand 오류 방지를 위한 설정
+    (setq lsp-metals-executors-max-workers 4)
+    (setq lsp-metals-doctor-format "json"))
 
 (defun init-haskell ()
   (add-hook 'haskell-mode-hook 'intero-mode))
@@ -265,6 +294,16 @@
   (global-set-key (kbd "C-c v") 'toggle-vim)
   (global-set-key (kbd "C-c c") 'insert-log)
   (global-set-key (kbd "C-c t") 'dirtree)
+  ;; Scala/Metals specific keybindings
+  (global-set-key (kbd "C-c m d") 'lsp-metals-sandbox)
+  (global-set-key (kbd "C-c m e") 'lsp-metals-execute-scala-cli-command)
+  (global-set-key (kbd "C-c m g") 'lsp-metals-goto-super-method)
+  (global-set-key (kbd "C-c m h") 'lsp-metals-hover)
+  (global-set-key (kbd "C-c m r") 'lsp-metals-restart)
+  (global-set-key (kbd "C-c m s") 'lsp-metals-configure-sbt-script)
+  ;; mill 프로젝트용 설정 (mill-mode 패키지는 수동 설치 필요시)
+  (eval-after-load 'mill-mode
+    '(add-hook 'mill-mode-hook 'lsp))
 
   (global-set-key (kbd "C-x m l") 'magit-log)
   (global-set-key (kbd "C-x m m") 'magit-status)
@@ -309,8 +348,8 @@
   ;; (global-set-key (kbd "C-c i") 'helm-buffers-list)
 
   (global-set-key (kbd "C-c C-c") 'helm-mini)
-  (global-set-key (kbd "C-c g") 'helm-ag)
-  (global-set-key (kbd "C-c f") 'helm-flycheck)
+  ;; (global-set-key (kbd "C-c g") 'helm-ag)  ; Removed due to unavailable package
+  ;; (global-set-key (kbd "C-c f") 'helm-flycheck)  ; Removed due to unavailable package
 
                                         ; (global-set-key (kbd "C-x C-f") 'helm-find-files)
   (global-set-key (kbd "M-/") 'helm-company)
@@ -852,7 +891,7 @@
     ("\\[\\|\\]\\|{\\|}\\|(\\|)\\||\\|,\\|;" . font-lock-type-face)
     ("[^ \t\n]" . font-lock-function-name-face))
   '("\\.ebnf\\'")
-  `(,(lambda () (setq mode-name "EBNF")))
+  (list (lambda () (setq mode-name "EBNF")))
   "Major mode for EBNF metasyntax text highlighting.")
 
 (provide 'ebnf-mode)
