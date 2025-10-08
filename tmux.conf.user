@@ -14,7 +14,7 @@ set-option -g status-style "fg=colour136,bg=colour235"
 
 # 기본 창 제목 색상 설정
 set-window-option -g window-status-style "fg=colour244,bg=default"
-#set-window-option -g window-status-attr dim # 창 제목 흐리게 (주석 처리됨)
+set-window-option -g window-status-attr dim # 창 제목 흐리게 (주석 처리됨)
 
 # 명령/메시지 라인 색상
 
@@ -166,4 +166,3 @@ bind-key right resize-pane -R 10 # right 키로 패널 오른쪽으로 10칸 크
 bind '"' split-window -c "#{pane_current_path}" # " 키로 현재 경로에서 세로로 패널 분할
 bind % split-window -h -c "#{pane_current_path}" # % 키로 현재 경로에서 가로로 패널 분할
 bind c new-window -c "#{pane_current_path}" # c 키로 현재 경로에서 새 창 생성
-
