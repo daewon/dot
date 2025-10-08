@@ -1,1 +1,0 @@
-git log --graph --pretty="%x01%n | %C(bold yellow)%D%Creset%n | %Cred%h%Creset | %C(cyan)%an%Creset | %Cgreen%cr%Creset%n | %s%n | %C(dim normal)%b%n%x01" | column -s $'\001' -t

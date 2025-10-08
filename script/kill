@@ -1,1 +1,0 @@
-% kill `ps -ef | grep 특정ID | awk '{print $2}'` 
