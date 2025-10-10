@@ -13,8 +13,7 @@ unbind C-l
 set-option -g status-style "fg=colour136,bg=colour235"
 
 # 기본 창 제목 색상 설정
-set-window-option -g window-status-style "fg=colour244,bg=default"
-set-window-option -g window-status-attr dim # 창 제목 흐리게 (주석 처리됨)
+set-window-option -g window-status-style "fg=colour244,bg=default,dim"
 
 # 명령/메시지 라인 색상
 

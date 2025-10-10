@@ -14,7 +14,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(typescript-mode hcl-mode lsp-scala scala-mode ammonite-term-repl rg flycheck-rust cargo lsp-sh lsp-mode lsp-ui helm-lsp f3 eruby-mode enh-ruby-mode swiper-helm wgrep-ag wgrep-helm flymake-haskell-multi ghc fzf groovy-mode graphql-mode dash-functional helm-dash xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))
+   '(lsp-metals ## typescript-mode hcl-mode lsp-scala scala-mode ammonite-term-repl rg flycheck-rust cargo lsp-sh lsp-mode lsp-ui helm-lsp f3 eruby-mode enh-ruby-mode swiper-helm wgrep-ag wgrep-helm flymake-haskell-multi ghc fzf groovy-mode graphql-mode dash-functional helm-dash xref-js2 sass-mode rvm markdown-mode column-enforce-mode alchemist erlang less-css-mode rainbow-delimiters smex jade-mode zygospore slim-mode haml-mode dirtree ag io-mode ac-helm ac-js2 ac-dabbrev js2-mode scala-mode2 ruby-hash-syntax ruby-end ruby-interpolation robe wn-mode window-number web-mode evil ace-jump-buffer ace-jump-mode ac-etags key-chord nginx-mode magit helm-projectile helm projectile undo-tree info+ yaml-mode minitest bracketed-paste expand-region))
  '(python-indent-offset 2))
 
 
@@ -35,9 +35,9 @@
 
   (setq-local package-archives-url
               '(
-                                        ("melpa" . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/melpa/")
-                                        ("org"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/org/")
-                                        ("gnu"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/gnu/")
+                ("melpa" . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/melpa/")
+                ("org"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/org/")
+                ("gnu"   . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/gnu/")
                                         ; ("marmalade" . "https://marmalade-repo.org/packages/")
                 ))
 
@@ -146,7 +146,7 @@
 (require 'use-package)
 
 ;; Java 설정
-(setq lsp-java-home (or (getenv "JAVA_HOME") 
+(setq lsp-java-home (or (getenv "JAVA_HOME")
                         "/usr/lib/jvm/default-java"))
 
 ;; Enable defer and ensure by default for use-package
@@ -175,6 +175,13 @@
   ;; Optional - enable lsp-mode automatically in scala files
   :hook (scala-mode . lsp)
   :config (setq lsp-prefer-flymake nil))
+
+(setq gc-cons-threshold (* 100 1024 1024)) ;; 100MB
+(setq read-process-output-max (* 1024 1024)) ;; 1MB
+(setq lsp-json-parse-with-plists t)
+(setq lsp-use-plists t)
+(setq lsp-async-json-parse t)
+(setenv "LSP_USE_PLISTS" "true")
 
 (use-package lsp-ui)
 
@@ -234,32 +241,39 @@
 (add-hook 'sh-mode-hook #'lsp-sh-enable)
 
 (defun init-scala ()
-  (add-hook 'scala-mode-hook 
+  (add-hook 'scala-mode-hook
             (lambda ()
               ;; Scala mode에 LSP 활성화
               (lsp-deferred)
               ;; Metals 설정
-              (setq lsp-metals-server-args 
-                    (list (concat "-J-Dmetals.java-home=" (or (getenv "JAVA_HOME") 
+              (setq lsp-metals-server-args
+                    (list (concat "-J-Dmetals.java-home=" (or (getenv "JAVA_HOME")
                                                               "/usr/lib/jvm/default-java")))))))
-  (add-hook 'sbt-mode-hook 'lsp)
-  
-  ;; Metals 설정
-  (with-eval-after-load 'lsp-metals
-    (setq lsp-metals-server-args 
-          (list (concat "-J-Dmetals.java-home=" (or (getenv "JAVA_HOME") 
-                                                    "/usr/lib/jvm/default-java"))))
-    ;; sbt 대신 mill 사용
-    (setq lsp-metals-sbt-script "mill")
-    ;; 빌드 툴을 sbt 대신 mill로 설정
-    (setq lsp-metals-build-tool "mill")
-    (setq lsp-metals-scalafmt-config-file ".scalafmt.conf")
-    (setq lsp-metals-gradle-script "gradlew")
-    (setq lsp-metals-maven-script "mvnw")
-    (setq lsp-metals-ammonite-script "amm")
-    ;; workspace/executeCommand 오류 방지를 위한 설정
-    (setq lsp-metals-executors-max-workers 4)
-    (setq lsp-metals-doctor-format "json"))
+(add-hook 'sbt-mode-hook 'lsp)
+
+(with-eval-after-load 'lsp-mode
+  (add-to-list 'lsp-language-id-configuration '(scala-mode . "scala"))
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection "metals")
+                    :major-modes '(scala-mode)
+                    :remote? nil
+                    :server-id 'metals)))
+;; Metals 설정
+(with-eval-after-load 'lsp-metals
+  (setq lsp-metals-server-args
+        (list (concat "-J-Dmetals.java-home=" (or (getenv "JAVA_HOME")
+                                                  "/usr/lib/jvm/default-java"))))
+  ;; sbt 대신 mill 사용
+  (setq lsp-metals-sbt-script "mill")
+  ;; 빌드 툴을 sbt 대신 mill로 설정
+  (setq lsp-metals-build-tool "mill")
+  (setq lsp-metals-scalafmt-config-file ".scalafmt.conf")
+  (setq lsp-metals-gradle-script "gradlew")
+  (setq lsp-metals-maven-script "mvnw")
+  (setq lsp-metals-ammonite-script "amm")
+  ;; workspace/executeCommand 오류 방지를 위한 설정
+  (setq lsp-metals-executors-max-workers 4)
+  (setq lsp-metals-doctor-format "json"))
 
 (defun init-haskell ()
   (add-hook 'haskell-mode-hook 'intero-mode))
