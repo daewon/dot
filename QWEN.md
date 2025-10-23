@@ -1,1 +1,0 @@
-Please refer to agents.md for general AI agent guidelines.
