@@ -1,0 +1,13 @@
+
+[[language]]
+name = "scala"
+language-servers = [ "metals" ]
+scope = "source.scala"
+file-types = [ "scala", "sbt", "sc", "mill" ]
+roots = [ "build.sbt", "build.sc", "project.scala", "pom.xml", "build.gradle", "build.mill" ]
+comment-token = "//"
+indent = { tab-width = 2, unit = "  " }
+
+[language-server.metals]
+command = "metals"
+args = [ ]

@@ -1,0 +1,4 @@
+# Ignore common build and cache directories
+out/
+.metals/
+.bsp/

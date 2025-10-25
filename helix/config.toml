@@ -1,0 +1,7 @@
+theme = "adwaita-dark"
+
+[keys.normal]
+D = "kill_to_line_end"
+"$" = "goto_line_end"
+"#" = "goto_first_nonwhitespace"
+G = "goto_word"
