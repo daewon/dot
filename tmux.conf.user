@@ -157,6 +157,8 @@ bind-key -n "C-Right" select-window -t :+ # Ctrl+Right로 다음 창으로 이�
 bind-key -n "C-Up"   select-pane -t :.- # Ctrl+Up으로 이전 패널로 이동
 bind-key -n "C-Down" select-pane -t :.+ # Ctrl+Down으로 다음 패널로 이동
 
+bind g display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" lazygit
+
 bind-key up resize-pane -U 15 # up 키로 패널 위로 15줄 크기 조정
 bind-key down resize-pane -D 15 # down 키로 패널 아래로 15줄 크기 조정
 bind-key left resize-pane -L 10 # left 키로 패널 왼쪽으로 10칸 크기 조정
