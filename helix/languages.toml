@@ -11,3 +11,69 @@ indent = { tab-width = 2, unit = "  " }
 [language-server.metals]
 command = "metals"
 args = [ ]
+
+[[language]]
+name = "json"
+language-servers = [ "vscode-language-server-extracted" ]
+file-types = [ "json" ]
+indent = { tab-width = 2, unit = "  " }
+
+[language.formatter]
+command = "prettier"
+args = [
+  "--parser",
+  "json",
+]
+
+[language-server.vscode-language-server-extracted]
+command = "vscode-json-language-server"
+args = [ "--stdio" ]
+
+# YAML 언어 설정
+# 필요한 패키지 설치:
+# npm install -g prettier
+# npm install -g yaml-language-server
+[[language]]
+name = "yaml"
+language-servers = [ "yaml-language-server" ]
+file-types = [ "yaml", "yml" ]
+indent = { tab-width = 2, unit = "  " }
+
+[language.formatter]
+command = "prettier"
+args = [
+  "--parser",
+  "yaml",
+]
+
+[language-server.yaml-language-server]
+command = "yaml-language-server"
+args = [ "--stdio" ]
+
+# Python 언어 설정
+# 필요한 패키지 설치:
+# pip install black
+# pip install python-lsp-server[all]
+[[language]]
+name = "python"
+language-servers = [ "pylsp" ]
+file-types = [ "py" ]
+indent = { tab-width = 4, unit = "    " }
+
+[language.formatter]
+command = "uv"
+args = [ "run", "black", "-" ]
+
+[language-server.pylsp]
+command = "uv"
+args = [ "run", "pylsp" ]
+
+[[language]]
+name = "markdown"
+language-servers = [ "marksman" ]
+file-types = [ "md", "markdown" ]
+indent = { tab-width = 2, unit = "  " }
+
+[language-server.marksman]
+command = "marksman"
+args = [ "server" ]
