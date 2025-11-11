@@ -4,4 +4,3 @@ theme = "adwaita-dark"
 D = "kill_to_line_end"
 "$" = "goto_line_end"
 "#" = "goto_first_nonwhitespace"
-
