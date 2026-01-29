@@ -1,6 +1,9 @@
-theme = "adwaita-dark"
+theme = "darcula-solid"
 
 [keys.normal]
 D = "kill_to_line_end"
 "$" = "goto_line_end"
-"#" = "goto_first_nonwhitespace"
+"^" = "goto_first_nonwhitespace"
+
+[editor]
+default-yank-register = "+"
