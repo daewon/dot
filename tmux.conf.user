@@ -7,6 +7,10 @@ unbind C-h
 unbind C-j
 unbind C-k
 unbind C-l
+unbind C-[
+unbind C-]
+unbind [
+unbind-key -T prefix [
 
 #### COLOUR (Solarized 256)
 # 기본 상태바 색상 설정
@@ -94,6 +98,7 @@ set -g status-interval 5
 # Screen과 유사한 바인딩
 # C-b는 Emacs에서 사용하므로 적합하지 않습니다.
 set-option -g prefix C-] # 접두사 키를 Ctrl-]로 설정
+# set-option -g prefix C-[ # 접두사 키를 Ctrl-]로 설정
 
 bind-key C-] last-window # Ctrl-]로 마지막 창으로 이동
 bind-key C-[ next-window # Ctrl-[로 다음 창으로 이동
@@ -157,7 +162,9 @@ bind-key -n "C-Right" select-window -t :+ # Ctrl+Right로 다음 창으로 이�
 bind-key -n "C-Up"   select-pane -t :.- # Ctrl+Up으로 이전 패널로 이동
 bind-key -n "C-Down" select-pane -t :.+ # Ctrl+Down으로 다음 패널로 이동
 
-bind g display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" lazygit
+bind h display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" tmux new-session hx .
+bind g display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" tmux new-session lazygit
+bind y display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" tmux new-session "YAZI_CONFIG_HOME=/home/daewon/.config/yazi /home/daewon/.cargo/bin/yazi"
 
 bind-key up resize-pane -U 15 # up 키로 패널 위로 15줄 크기 조정
 bind-key down resize-pane -D 15 # down 키로 패널 아래로 15줄 크기 조정
@@ -169,3 +176,4 @@ bind % split-window -h -c "#{pane_current_path}" # % 키로 현재 경로에서 
 bind c new-window -c "#{pane_current_path}" # c 키로 현재 경로에서 새 창 생성
 
 bind-key j run-shell '~/.tmux/plugins/tmux/custom/popup.sh'
+

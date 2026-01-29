@@ -1,17 +1,16 @@
 
+# Markdown 언어 설정
 [[language]]
-name = "scala"
-language-servers = [ "metals" ]
-scope = "source.scala"
-file-types = [ "scala", "sbt", "sc", "mill" ]
-roots = [ "build.sbt", "build.sc", "project.scala", "pom.xml", "build.gradle", "build.mill" ]
-comment-token = "//"
+name = "markdown"
+language-servers = [ "marksman" ]
+file-types = [ "md", "markdown" ]
 indent = { tab-width = 2, unit = "  " }
 
-[language-server.metals]
-command = "metals"
-args = [ ]
+[language-server.marksman]
+command = "marksman"
+args = [ "server" ]
 
+# JSON 언어 설정
 [[language]]
 name = "json"
 language-servers = [ "vscode-language-server-extracted" ]
@@ -28,6 +27,54 @@ args = [
 [language-server.vscode-language-server-extracted]
 command = "vscode-json-language-server"
 args = [ "--stdio" ]
+
+# Python 언어 설정
+# 필요한 패키지 설치:
+# pip install black
+# pip install python-lsp-server[all]
+[[language]]
+name = "python"
+language-servers = [ "pylsp" ]
+file-types = [ "py" ]
+indent = { tab-width = 4, unit = "    " }
+
+[language.formatter]
+command = "uv"
+args = [ "run", "black", "-" ]
+
+[language-server.pylsp]
+command = "uv"
+args = [ "run", "pylsp" ]
+
+# Scala 언어 설정
+[[language]]
+name = "scala"
+language-servers = [ "metals" ]
+scope = "source.scala"
+file-types = [ "scala", "sbt", "sc", "mill" ]
+roots = [ "build.sbt", "build.sc", "project.scala", "pom.xml", "build.gradle", "build.mill" ]
+comment-token = "//"
+indent = { tab-width = 2, unit = "  " }
+
+[language-server.metals]
+command = "metals"
+args = [ ]
+
+# TypeScript 언어 설정
+# 필요한 패키지 설치:
+# npm install -g typescript-language-server typescript
+[[language]]
+name = "typescript"
+scope = "source.ts"
+injection-regex = "^(ts|tsx|typescript)$"
+file-types = ["ts", "tsx"]
+roots = ["package.json", "tsconfig.json"]
+auto-format = true
+language-servers = ["typescript-language-server"]
+
+[language-server.typescript-language-server]
+command = "typescript-language-server"
+args = ["--stdio"]
 
 # YAML 언어 설정
 # 필요한 패키지 설치:
@@ -50,30 +97,7 @@ args = [
 command = "yaml-language-server"
 args = [ "--stdio" ]
 
-# Python 언어 설정
-# 필요한 패키지 설치:
-# pip install black
-# pip install python-lsp-server[all]
-[[language]]
-name = "python"
-language-servers = [ "pylsp" ]
-file-types = [ "py" ]
-indent = { tab-width = 4, unit = "    " }
-
-[language.formatter]
-command = "uv"
-args = [ "run", "black", "-" ]
-
-[language-server.pylsp]
-command = "uv"
-args = [ "run", "pylsp" ]
-
-[[language]]
-name = "markdown"
-language-servers = [ "marksman" ]
-file-types = [ "md", "markdown" ]
-indent = { tab-width = 2, unit = "  " }
-
-[language-server.marksman]
-command = "marksman"
-args = [ "server" ]
+# Tree-sitter 파서 설정
+[[grammar]]
+name = "tsx"
+source = { git = "https://github.com/tree-sitter/tree-sitter-typescript", rev = "master" }
