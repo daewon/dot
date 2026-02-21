@@ -1,2 +1,4 @@
 # Helix
 helix/runtime/
+.dmux/
+.dmux-hooks/

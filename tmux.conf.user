@@ -1,8 +1,50 @@
-# https://gist.github.com/andreyvit/2921703
-# 백그라운드 창에서 벨이 울리면 벨을 울립니다.
+# Core behavior
 set -g bell-action any
+set -g detach-on-destroy off
+set -g prefix C-]
+set -g status-interval 5
+set -g history-limit 100000
+set -sg escape-time 0
 
-# 기본 키 바인딩 해제 (Ctrl-h, Ctrl-j, Ctrl-k, Ctrl-l)
+# Window/pane behavior
+set -g base-index 1
+setw -g pane-base-index 1
+setw -g aggressive-resize on
+setw -g automatic-rename on
+setw -g mode-keys vi
+setw -g monitor-activity on
+set -g visual-activity on
+set -g focus-events on
+
+# Terminal capability
+set -g default-terminal "tmux-256color"
+set -as terminal-features ",xterm-256color:RGB"
+set -g terminal-overrides 'xterm-256color*:smcup@:rmcup@'
+set -g set-clipboard on
+
+# OSC 52 passthrough (supported tmux versions only)
+if-shell "tmux show-options -gqv allow-passthrough >/dev/null 2>&1" {
+    set -g allow-passthrough on
+}
+
+# Statusline style
+set -g status-style "fg=colour136,bg=colour235"
+setw -g window-status-style "fg=colour244,bg=default,dim"
+set -g status-left-length 52
+set -g status-right-length 451
+set -g status-fg white
+set -g status-bg colour234
+set -g status-left '#[fg=colour235,bg=colour252,bold] ❐ #P #[fg=colour252,bg=colour238,nobold]⮀#[fg=colour245,bg=colour238,bold] #(whoami) #[fg=colour238,bg=colour234,nobold]⮀'
+set -g status-right '#[fg=colour245,bg=colour238,bold] %H:%M %d-%b-%y #(hostname)'
+set -g window-status-format "#[fg=colour235,bg=colour252,bold] #I #W "
+set -g window-status-current-format "#[fg=colour234,bg=colour39]⮀#[fg=black,bg=colour39,noreverse,bold] #I: #W #[fg=colour39,bg=colour234,nobold]⮀"
+
+# UI colors
+set -g display-panes-active-colour colour33
+set -g display-panes-colour colour166
+setw -g clock-mode-colour colour64
+
+# Unbind defaults we do not use
 unbind C-h
 unbind C-j
 unbind C-k
@@ -11,169 +53,97 @@ unbind C-[
 unbind C-]
 unbind [
 unbind-key -T prefix [
+unbind-key -T prefix n
+unbind-key -T prefix p
+unbind-key -T prefix N
 
-#### COLOUR (Solarized 256)
-# 기본 상태바 색상 설정
-set-option -g status-style "fg=colour136,bg=colour235"
+# Copy mode (vi)
+bind-key -T copy-mode-vi r send -X rectangle-toggle
+bind-key -T copy-mode-vi v send -X begin-selection
+bind-key -T copy-mode-vi V send -X select-line
 
-# 기본 창 제목 색상 설정
-set-window-option -g window-status-style "fg=colour244,bg=default,dim"
-
-# 명령/메시지 라인 색상
-
-# 패널 번호 표시
-set-option -g display-panes-active-colour colour33 #blue (활성 패널 번호 색상)
-set-option -g display-panes-colour colour166 #orange (비활성 패널 번호 색상)
-
-# 시계
-set-window-option -g clock-mode-colour colour64 #green (시계 모드 색상)
-
-# 터미널 색상 설정
-set -g default-terminal "xterm-256color"
-
-# 기본 명령 설정 (주석 처리됨)
-# set-option -g default-command "reattach-to-user-namespace -l $SHELL -l"
-# set-option -g default-command "reattach-to-user-namespace -l zsh"
-
-# 창 자동 이름 변경 활성화
-set-window-option -g automatic-rename on
-
-# 다른 TMUX 세션 내에서 TMUX 세션으로 명령을 보내기 위해 C-a a <command>를 사용할 수 있도록 합니다.
-
-# 활동 모니터링
-setw -g monitor-activity on # 활동 모니터링 활성화
-set -g visual-activity on # 시각적 활동 알림 활성화
-
-# 첫 번째 창 인덱스를 1로 설정 (0이 아닌)하여 키보드 레이아웃에 더 가깝게 매핑합니다.
-set -g base-index 1 # 창 인덱스를 1부터 시작
-setw -g pane-base-index 1 # 패널 인덱스를 1부터 시작
-
-# 색상 스키마 (vim-powerline 스타일)
-set -g status-left-length 52 # 상태바 왼쪽 길이
-set -g status-right-length 451 # 상태바 오른쪽 길이
-set -g status-fg white # 상태바 전경색
-set -g status-bg colour234 # 상태바 배경색
-#set -g pane-border-fg colour245 # 패널 테두리 전경색 (주석 처리됨)
-
-# 상태바 왼쪽 내용 설정 (현재 패널 번호, 사용자 이름)
-set -g status-left '#[fg=colour235,bg=colour252,bold] ❐ #P #[fg=colour252,bg=colour238,nobold]⮀#[fg=colour245,bg=colour238,bold] #(whoami) #[fg=colour238,bg=colour234,nobold]⮀'
-
-# 상태바 오른쪽 내용 설정 (시간, 날짜, 호스트 이름)
-set -g status-right '#[fg=colour245,bg=colour238,bold] %H:%M %d-%b-%y #(hostname)'
-
-# 창 상태 형식 설정 (창 번호, 창 이름)
-set -g window-status-format "#[fg=colour235,bg=colour252,bold] #I #W "
-
-# 현재 창 상태 형식 설정 (활성 창 강조)
-set -g window-status-current-format "#[fg=colour234,bg=colour39]⮀#[fg=black,bg=colour39,noreverse,bold] #I: #W #[fg=colour39,bg=colour234,nobold]⮀"
-
-# OS X pbpaste 및 pbcopy 패치 (tmux 하에서)
-
-# Vim처럼 선택을 시작하기 위해 'v' 설정
-bind-key -Tcopy-mode-vi 'r' send -X rectangle-toggle # 사각형 선택 토글
-bind-key -Tcopy-mode-vi 'v' send -X begin-selection # 선택 시작
-bind-key -Tcopy-mode-vi 'V' send -X select-line # 라인 선택
-
-# macOS (reattach-to-user-namespace)
-if-shell "test -n \"$(uname | grep Darwin)\"" {
-    bind-key -Tcopy-mode-vi 'Y' send -X copy-pipe-and-cancel "reattach-to-user-namespace pbcopy" # 선택 복사 후 종료
-    bind-key -Tcopy-mode-vi 'y' send -X copy-pipe "reattach-to-user-namespace pbcopy" # 선택 복사
-    unbind -Tcopy-mode-vi Enter # Enter 키 바인딩 해제
-    bind-key -Tcopy-mode-vi Enter send -X copy-pipe-and-cancel "reattach-to-user-namespace pbcopy" # Enter 키로 선택 복사 후 종료
-    bind-key -Tcopy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel "reattach-to-user-namespace pbcopy" # 마우스 드래그로 선택 복사 후 종료
+# Clipboard: macOS
+if-shell "uname | grep -q Darwin" {
+    bind-key -T copy-mode-vi Y send -X copy-pipe-and-cancel "reattach-to-user-namespace pbcopy"
+    bind-key -T copy-mode-vi y send -X copy-pipe "reattach-to-user-namespace pbcopy"
+    unbind -T copy-mode-vi Enter
+    bind-key -T copy-mode-vi Enter send -X copy-pipe-and-cancel "reattach-to-user-namespace pbcopy"
+    bind-key -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel "reattach-to-user-namespace pbcopy"
 }
 
-# WSL (clip.exe)
-if-shell "test -n \"$(uname | grep -i microsoft)\"" {
-    bind-key -Tcopy-mode-vi 'Y' send -X copy-pipe-and-cancel "clip.exe" # 선택 복사 후 종료
-    bind-key -Tcopy-mode-vi 'y' send -X copy-pipe "clip.exe" # 선택 복사
-    unbind -Tcopy-mode-vi Enter # Enter 키 바인딩 해제
-    bind-key -Tcopy-mode-vi Enter send -X copy-pipe-and-cancel "clip.exe" # Enter 키로 선택 복사 후 종료
-    bind-key -Tcopy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel "clip.exe" # 마우스 드래그로 선택 복사 후 종료
+# Clipboard: WSL
+if-shell "uname | grep -qi microsoft" {
+    bind-key -T copy-mode-vi Y send -X copy-pipe-and-cancel "clip.exe"
+    bind-key -T copy-mode-vi y send -X copy-pipe "clip.exe"
+    unbind -T copy-mode-vi Enter
+    bind-key -T copy-mode-vi Enter send -X copy-pipe-and-cancel "clip.exe"
+    bind-key -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel "clip.exe"
 }
 
-# 상태바 업데이트 간격 설정 (5초)
-set -g status-interval 5
+# Prefix navigation
+bind-key C-] last-window
+bind-key C-[ next-window
+bind-key C-o select-pane -t :.-
 
-# Screen과 유사한 바인딩
-# C-b는 Emacs에서 사용하므로 적합하지 않습니다.
-set-option -g prefix C-] # 접두사 키를 Ctrl-]로 설정
-# set-option -g prefix C-[ # 접두사 키를 Ctrl-]로 설정
+# Non-prefix navigation
+bind-key -n M-'}' next-window
+bind-key -n M-'{' previous-window
+bind-key -n C-Left select-window -t :-
+bind-key -n C-Right select-window -t :+
+bind-key -n C-Up select-pane -t :.-
+bind-key -n C-Down select-pane -t :.+
 
-bind-key C-] last-window # Ctrl-]로 마지막 창으로 이동
-bind-key C-[ next-window # Ctrl-[로 다음 창으로 이동
-bind-key C-p previous-window # Ctrl-p로 이전 창으로 이동
-bind-key C-o select-pane -t :.- # Ctrl-o로 이전 패널로 이동
+# Pane direct select (Meta+1..9)
+bind-key -n M-1 select-pane -t 1
+bind-key -n M-2 select-pane -t 2
+bind-key -n M-3 select-pane -t 3
+bind-key -n M-4 select-pane -t 4
+bind-key -n M-5 select-pane -t 5
+bind-key -n M-6 select-pane -t 6
+bind-key -n M-7 select-pane -t 7
+bind-key -n M-8 select-pane -t 8
+bind-key -n M-9 select-pane -t 9
+bind-key -n M-0 copy-mode
 
-# 이 바인딩은 접두사 키 없이 창 탐색을 허용합니다.
-bind-key -n M-'}' next-window # Alt+}로 다음 창으로 이동
-bind-key -n M-'{' previous-window # Alt+{로 이전 창으로 이동
-
-bind-key k send-keys C-l \; clear-history # k 키로 화면 지우고 히스토리 지우기
-
-bind-key -n M-1 select-pane -t 1 # Alt+1로 1번 패널 선택
-bind-key -n M-2 select-pane -t 2 # Alt+2로 2번 패널 선택
-bind-key -n M-3 select-pane -t 3 # Alt+3로 3번 패널 선택
-bind-key -n M-4 select-pane -t 4 # Alt+4로 4번 패널 선택
-# bind-key -n F7 select-pane -t 7 # F7 키로 7번 패널 선택 (주석 처리됨)
-
-# 입력 브로드캐스트
-bind-key i set-window-option synchronize-panes on # i 키로 패널 동기화 활성화
-bind-key u set-window-option synchronize-panes off # u 키로 패널 동기화 비활성화
-
-bind-key -n M-0 copy-mode # Alt+0으로 copy-mode 진입
-
-# Linux (Escape key for copy-mode)
-if-shell "test -n \"$(uname | grep Linux)\"" {
-    bind-key Escape copy-mode # Escape 키로 copy-mode 진입 (Linux 전용)
+# Linux: quick copy-mode enter
+if-shell "uname | grep -q Linux" {
+    bind-key Escape copy-mode
 }
 
-bind m set -g mouse \; display-message "Mouse: #{?mouse,On,Off}" # m 키로 마우스 토글 및 상태 표시
+# Session/window/pane controls
+bind-key k send-keys C-l \; clear-history
+bind-key i set-window-option synchronize-panes on
+bind-key u set-window-option synchronize-panes off
+bind-key -r up resize-pane -U 15
+bind-key -r down resize-pane -D 15
+bind-key -r left resize-pane -L 10
+bind-key -r right resize-pane -R 10
 
-# 설정 다시 로드
-bind r source-file ~/.tmux.conf \; display-message "Config reloaded..." # r 키로 설정 파일 다시 로드
+bind '"' split-window -c "#{pane_current_path}"
+bind % split-window -h -c "#{pane_current_path}"
+bind c new-window -c "#{pane_current_path}"
+bind n command-prompt -p "new session name" "new-session -s '%%' -c '#{pane_current_path}'"
 
-# vi 모드에 대한 이스케이프 시간 없음
-set -sg escape-time 0 # 이스케이프 시간 0으로 설정 (vi 모드 반응성 향상)
-
-setw -g aggressive-resize on # 공격적인 창 크기 조정 활성화
-
-# 더 큰 히스토리
-set -g history-limit 100000 # 히스토리 제한 100000줄로 설정
-
-# 자동 창 이름 변경 (주석 처리됨)
-# set-window-option -g automatic-rename
-
-# 스크롤
-set -g terminal-overrides 'xterm-256color*:smcup@:rmcup@' # 터미널 오버라이드 설정 (스크롤 관련)
-
-# copy 모드에서 vim 키 바인딩 사용
-# setw -g mode-keys emacs (주석 처리됨)
-setw -g mode-keys vi # copy 모드에서 vi 키 바인딩 사용
-
-bind-key          S choose-window "join-pane -v -s \"%%\"" # S 키로 창 선택 후 세로로 패널 결합
-bind-key          V choose-window "join-pane -h -s \"%%\"" # V 키로 창 선택 후 가로로 패널 결합
-
-# Ctrl-Left/Right로 창 순환 (접두사 없음)
-bind-key -n "C-Left"  select-window -t :- # Ctrl+Left로 이전 창으로 이동
-bind-key -n "C-Right" select-window -t :+ # Ctrl+Right로 다음 창으로 이동
-
-# Ctrl-Up/Down으로 패널 순환 (접두사 없음)
-bind-key -n "C-Up"   select-pane -t :.- # Ctrl+Up으로 이전 패널로 이동
-bind-key -n "C-Down" select-pane -t :.+ # Ctrl+Down으로 다음 패널로 이동
-
+# Popup shortcuts
 bind h display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" tmux new-session hx .
 bind g display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" tmux new-session lazygit
 bind y display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" tmux new-session "YAZI_CONFIG_HOME=/home/daewon/.config/yazi /home/daewon/.cargo/bin/yazi"
-
-bind-key up resize-pane -U 15 # up 키로 패널 위로 15줄 크기 조정
-bind-key down resize-pane -D 15 # down 키로 패널 아래로 15줄 크기 조정
-bind-key left resize-pane -L 10 # left 키로 패널 왼쪽으로 10칸 크기 조정
-bind-key right resize-pane -R 10 # right 키로 패널 오른쪽으로 10칸 크기 조정
-
-bind '"' split-window -c "#{pane_current_path}" # " 키로 현재 경로에서 세로로 패널 분할
-bind % split-window -h -c "#{pane_current_path}" # % 키로 현재 경로에서 가로로 패널 분할
-bind c new-window -c "#{pane_current_path}" # c 키로 현재 경로에서 새 창 생성
-
 bind-key j run-shell '~/.tmux/plugins/tmux/custom/popup.sh'
 
+# Utility
+bind-key m set -g mouse \; display-message "Mouse: #{?mouse,On,Off}"
+bind-key r source-file ~/.tmux.conf \; display-message "Config reloaded..."
+bind-key S choose-window "join-pane -v -s \"%%\""
+bind-key V choose-window "join-pane -h -s \"%%\""
+
+# Plugins (TPM)
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+set -g @plugin 'tmux-plugins/tmux-yank'
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @continuum-restore 'on'
+
+if-shell "[ -x ~/.tmux/plugins/tpm/tpm ]" {
+    run '~/.tmux/plugins/tpm/tpm'
+}
