@@ -32,6 +32,7 @@ hx --health yaml
 - `uv`: Python 도구 설치/실행 속도 빠르고, 전역 환경 오염이 적음
 - `zprezto + zsh`: 셸 시작 파일 역할 분리로 충돌 감소
 - `tmux + dmux`: 장시간 작업, 세션 복구, 멀티 repo 작업에 유리
+- `tmux popup + lazygit`: 현재 작업 경로에서 Git 작업을 빠르게 처리 가능
 
 ## 1) 런타임 설치 (mise)
 ```bash
@@ -40,7 +41,7 @@ mise install
 mise current
 ```
 
-`mise.toml`에 정의된 버전(`node`, `python`, `helix`, `tmux`)이 활성화되면 정상입니다.
+`mise.toml`에 정의된 버전(`node`, `python`, `helix`, `tmux`, `lazygit`)이 활성화되면 정상입니다.
 
 ## 2) zprezto + zsh 시작 파일 원칙
 zprezto 환경에서 가장 흔한 문제는 초기화 중복입니다. 아래처럼 역할을 고정하면 안정적입니다.
@@ -83,6 +84,11 @@ uv tool install ruff
   - `tmux-plugins/tmux-yank`
   - `tmux-plugins/tmux-resurrect`
   - `tmux-plugins/tmux-continuum`
+- 중요: TPM/플러그인은 자동 설치되지 않으며, 최초 1회 수동 설치가 필요함
+- 팝업 단축키:
+  - `prefix + h`: Helix 팝업
+  - `prefix + g`: lazygit 팝업
+  - `prefix + y`: yazi 팝업
 
 TPM 최초 1회:
 ```bash
@@ -117,6 +123,8 @@ dmux 실행 권장 방식:
   - `black`
   - `ruff`
   - `prettier`
+  - `lazygit`
+  - `yazi` (팝업 단축키 `prefix + y` 사용 시)
 - `~/.config/helix`가 이 저장소의 `helix`를 가리킴
 - `tmux show -g set-clipboard` 결과가 `on`
 
@@ -132,3 +140,6 @@ dmux 실행 권장 방식:
 - tmux 클립보드가 안 됨:
   - 로컬 터미널의 OSC52 지원 여부 확인
   - tmux 내부에서 `tmux show -g set-clipboard` 결과 확인
+- `prefix + g` 눌렀는데 바로 닫힘:
+  - `command -v lazygit` 확인
+  - 없으면 `mise install` 다시 실행
