@@ -125,9 +125,9 @@ bind c new-window -c "#{pane_current_path}"
 bind n command-prompt -p "new session name" "new-session -s '%%' -c '#{pane_current_path}'"
 
 # Popup shortcuts
-bind h display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" tmux new-session hx .
-bind g display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" tmux new-session lazygit
-bind y display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" tmux new-session "YAZI_CONFIG_HOME=/home/daewon/.config/yazi /home/daewon/.cargo/bin/yazi"
+bind h display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" "hx ."
+bind g display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" "lazygit"
+bind y display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" "YAZI_CONFIG_HOME=$HOME/.config/yazi yazi"
 bind-key j run-shell '~/.tmux/plugins/tmux/custom/popup.sh'
 
 # Utility
