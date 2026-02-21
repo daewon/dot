@@ -22,6 +22,11 @@ if (( $+functions[prompt] )); then
   prompt skwp
 fi
 
+# Enable fzf keybindings/completion in interactive TTY shells.
+if [[ -o interactive ]] && [[ -t 1 ]] && command -v fzf >/dev/null 2>&1; then
+  eval "$(fzf --zsh)"
+fi
+
 # History policy: large, append immediately, shared across sessions.
 HISTFILE="${ZDOTDIR:-$HOME}/.zsh_history"
 HISTSIZE=1000000

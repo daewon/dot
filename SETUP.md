@@ -1,29 +1,124 @@
-# Dotfiles Setup (zprezto + mise + uv)
+# Dotfiles Setup (zprezto + zsh + mise)
+
+## 지원 범위
+- 공식 검증/지원 대상: Linux (Ubuntu/Debian 계열)
+- 이 문서 기준 최신 검증일: 2026-02-21
+- macOS는 아직 실검증 대상이 아니며, 아래 사전 준비가 필요합니다.
+  - Homebrew 설치 (`brew` 사용 가능 상태)
+  - `git`, `mise`, `zsh` 사전 설치
+  - 기본 셸 변경 시 `chsh` 권한/정책 확인
+  - Homebrew `zsh` 사용 시 필요하면 `/etc/shells` 등록 후 `chsh` 적용
 
 ## 빠른 시작 (권장 순서)
 저장소 루트(`/path/to/dot`)에서 아래 순서대로 실행하면 기본 환경이 올라옵니다.
 
+원클릭 실행(단계별 진행 로그 출력):
 ```bash
+./setup.sh
+```
+
+옵션:
+- `./setup.sh --dry-run`: 실제 변경 없이 실행 계획/체크
+- `INSTALL_OPTIONAL_TOOLS=0 ./setup.sh`: 선택 도구(markdown/ts/yazi/dmux) 스킵
+- `INSTALL_TMUX_PLUGINS=0 ./setup.sh`: TPM 플러그인 설치 스킵
+- `SET_DEFAULT_SHELL=1 ./setup.sh`: 마지막에 기본 셸 zsh 전환 시도
+
+정리(삭제) 실행:
+```bash
+./cleanup.sh
+```
+
+정리 옵션:
+- `./cleanup.sh --dry-run`: 실제 변경 없이 삭제 계획/체크
+- `REMOVE_GLOBAL_TOOLS=1 ./cleanup.sh`: setup가 추가한 global mise 도구 엔트리 제거 (기본값은 유지=0)
+- `FORCE_REMOVE_ZSHRC=1 ./cleanup.sh`: setup 관리 파일이 아니어도 `~/.zshrc` 강제 삭제
+- 기본 동작은 setup가 만든 symlink/clone만 정리하고, 비관리 파일은 경고 후 유지
+
+멱등성 검증(권장):
+```bash
+./verify.sh
+```
+
+검증 옵션:
+- `SETUP_ONLY_LOOPS=5 ./verify.sh`: 최소 프로파일 setup 반복 횟수 조정
+- `CYCLE_LOOPS=5 ./verify.sh`: cleanup→setup 사이클 반복 횟수 조정
+- `RUN_DEFAULT_SETUP=0 ./verify.sh`: 기본 프로파일 setup 검증 스킵
+
+수동 실행:
+```bash
+# 참고: 아래는 이해를 위한 수동 예시입니다.
+# 완전한 멱등성(관리 대상 판별, include 중복 정규화, 백업 최소화)은 setup.sh 기준입니다.
+
 # 1) toolchain 설치
 mise trust
 mise install
 
-# 2) Helix용 언어 도구 설치
-npm i -g pyright vscode-langservers-extracted yaml-language-server prettier
-uv tool install black
-uv tool install ruff
+# 2) Helix/LSP/formatter 도구 설치 (mise, global)
+# uv/fzf는 1)에서 mise.toml 기준으로 설치됨
+mise use -g black@latest ruff@latest \
+  npm:pyright@latest npm:vscode-langservers-extracted@latest \
+  npm:yaml-language-server@latest npm:prettier@latest
 
-# 3) dotfiles 연결
+# 3) (선택) Markdown/TypeScript/yazi/dmux
+mise use -g marksman@latest yazi@latest \
+  npm:typescript-language-server@latest npm:typescript@latest npm:dmux@latest
+
+# 4) zsh + zprezto 준비 (최초 1회)
+# zsh는 mise registry 대상이 아니라 OS 패키지로 설치
+if ! command -v zsh >/dev/null 2>&1; then
+  if command -v apt >/dev/null 2>&1; then
+    sudo apt install -y zsh
+  elif command -v brew >/dev/null 2>&1; then
+    brew install zsh
+  else
+    echo "install zsh manually" >&2
+    exit 1
+  fi
+fi
+[ -d "$HOME/.zprezto" ] || git clone --recursive https://github.com/sorin-ionescu/prezto.git "$HOME/.zprezto"
+
+# prezto runcom 연결 (zshrc는 아래에서 wrapper로 직접 생성)
+for rc in zlogin zlogout zprofile zshenv zpreztorc; do
+  if [ -e "$HOME/.$rc" ] || [ -L "$HOME/.$rc" ]; then
+    mv "$HOME/.$rc" "$HOME/.$rc.bak.$(date +%Y%m%d-%H%M%S)"
+  fi
+  ln -sfn "$HOME/.zprezto/runcoms/$rc" "$HOME/.$rc"
+done
+
+# ~/.zshrc: prezto + dot shared 모두 로드
+if [ -e "$HOME/.zshrc" ] || [ -L "$HOME/.zshrc" ]; then
+  mv "$HOME/.zshrc" "$HOME/.zshrc.bak.$(date +%Y%m%d-%H%M%S)"
+fi
+cat > "$HOME/.zshrc" <<'EOF'
+# dot-setup managed zshrc (safe for cleanup.sh)
+[ -s "$HOME/.zprezto/init.zsh" ] && source "$HOME/.zprezto/init.zsh"
+[ -f "$HOME/.zsh.shared.zsh" ] && source "$HOME/.zsh.shared.zsh"
+EOF
+
+# 5) dotfiles 연결
 REPO_ROOT="$(pwd)"
+mkdir -p "$HOME/.config"
+for p in "$HOME/.config/helix" "$HOME/.tmux.conf" "$HOME/.zsh.shared.zsh"; do
+  if [ -e "$p" ] || [ -L "$p" ]; then
+    mv "$p" "$p.bak.$(date +%Y%m%d-%H%M%S)"
+  fi
+done
 ln -sfn "$REPO_ROOT/helix" "$HOME/.config/helix"
 ln -sfn "$REPO_ROOT/tmux.conf.user" "$HOME/.tmux.conf"
 ln -sfn "$REPO_ROOT/zsh.shared.zsh" "$HOME/.zsh.shared.zsh"
 
-# 4) zsh/git 공용 설정 연결
-grep -F 'source "$HOME/.zsh.shared.zsh"' "$HOME/.zshrc" >/dev/null \
-  || printf '\n# dot shared zsh presets\n[ -f "$HOME/.zsh.shared.zsh" ] && source "$HOME/.zsh.shared.zsh"\n' >> "$HOME/.zshrc"
-git config --global --get-all include.path | grep -Fx "$REPO_ROOT/gitconfig.shared" >/dev/null \
-  || git config --global --add include.path "$REPO_ROOT/gitconfig.shared"
+# 6) git 공용 설정 연결
+INCLUDE_COUNT="$(git config --global --get-all include.path | grep -Fx "$REPO_ROOT/gitconfig.shared" | wc -l | tr -d '[:space:]')"
+if [ "${INCLUDE_COUNT:-0}" = "0" ]; then
+  git config --global --add include.path "$REPO_ROOT/gitconfig.shared"
+elif [ "${INCLUDE_COUNT:-0}" != "1" ]; then
+  git config --global --unset-all include.path "$REPO_ROOT/gitconfig.shared"
+  git config --global --add include.path "$REPO_ROOT/gitconfig.shared"
+fi
+
+# 7) 기본 셸 전환 (원하면)
+# PAM 정책에 따라 비밀번호 입력이 필요할 수 있음
+chsh -s "$(command -v zsh)" "$USER"
 ```
 
 적용 확인:
@@ -38,6 +133,7 @@ hx --health yaml
 - `mise`: 프로젝트 기준 버전 고정(사람마다 다른 로컬 버전 문제 최소화)
 - `uv`: Python 도구 설치/실행 속도 빠르고, 전역 환경 오염이 적음
 - `zprezto + zsh`: 셸 시작 파일 역할 분리로 충돌 감소
+- `fzf`: 파일/히스토리 탐색 속도 개선 (zsh에서 키바인딩 자동 로드)
 - `tmux + dmux`: 장시간 작업, 세션 복구, 멀티 repo 작업에 유리
 - `tmux popup + lazygit`: 현재 작업 경로에서 Git 작업을 빠르게 처리 가능
 
@@ -48,9 +144,19 @@ mise install
 mise current
 ```
 
-`mise.toml`에 정의된 버전(`node`, `python`, `helix`, `tmux`, `lazygit`)이 활성화되면 정상입니다.
+`mise.toml`에 정의된 버전(`node`, `python`, `helix`, `tmux`, `lazygit`, `uv`, `fzf`)이 활성화되면 정상입니다.
 
 ## 2) zprezto + zsh 시작 파일 원칙
+전제:
+- zprezto는 zsh 설정 프레임워크이며, `zsh` 바이너리 자체를 설치하지 않습니다.
+- `zsh`는 OS 패키지로 설치합니다.
+  - Ubuntu/Debian: `sudo apt install -y zsh`
+  - macOS(Homebrew): `brew install zsh`
+- zsh 설치 후 zprezto를 설치합니다.
+  - `git clone --recursive https://github.com/sorin-ionescu/prezto.git ~/.zprezto`
+- runcom은 `zlogin zlogout zprofile zshenv zpreztorc`를 symlink로 연결하고,
+  `~/.zshrc`는 아래 wrapper 형태로 두는 것을 권장합니다.
+
 zprezto 환경에서 가장 흔한 문제는 초기화 중복입니다. 아래처럼 역할을 고정하면 안정적입니다.
 
 - `~/.zshenv`: 최소 설정만 (`ZDOTDIR` 정도)
@@ -59,6 +165,7 @@ zprezto 환경에서 가장 흔한 문제는 초기화 중복입니다. 아래�
 
 `~/.zshrc` 예시:
 ```bash
+[ -s "$HOME/.zprezto/init.zsh" ] && source "$HOME/.zprezto/init.zsh"
 if [ -f "$HOME/.zsh.shared.zsh" ]; then
   source "$HOME/.zsh.shared.zsh"
 fi
@@ -69,6 +176,7 @@ fi
 - 자주 쓰는 alias(`lg`, `ta`, `fd`, git 관련)
 - `prompt skwp` 기본 적용
 - `mise activate zsh --quiet` 및 PATH 초기화
+- `fzf --zsh` 자동 로드(설치 시)
 - `~/.zsh.local` 자동 로드(개인/민감값 분리)
 
 주의:
@@ -84,16 +192,23 @@ git config --global --get-all include.path | grep -Fx "$REPO_ROOT/gitconfig.shar
   || git config --global --add include.path "$REPO_ROOT/gitconfig.shared"
 ```
 
-## 3) Helix 도구 설치 (mise + uv 기준)
-Node 기반 LSP/formatter:
+## 3) Helix 도구 설치 (mise 기준)
+필수(Python/JSON/YAML):
 ```bash
-npm i -g pyright vscode-langservers-extracted yaml-language-server prettier
+mise use -g black@latest ruff@latest \
+  npm:pyright@latest npm:vscode-langservers-extracted@latest \
+  npm:yaml-language-server@latest npm:prettier@latest
 ```
 
-Python 도구(uv):
+선택(Markdown/TypeScript):
 ```bash
-uv tool install black
-uv tool install ruff
+mise use -g marksman@latest \
+  npm:typescript-language-server@latest npm:typescript@latest
+```
+
+선택(tmux popup 확장):
+```bash
+mise use -g yazi@latest npm:dmux@latest
 ```
 
 ## 4) tmux / dmux 운영 가이드
@@ -106,7 +221,8 @@ uv tool install ruff
   - `tmux-plugins/tmux-yank`
   - `tmux-plugins/tmux-resurrect`
   - `tmux-plugins/tmux-continuum`
-- 중요: TPM/플러그인은 자동 설치되지 않으며, 최초 1회 수동 설치가 필요함
+- `setup.sh` 기본값(`INSTALL_TMUX_PLUGINS=1`)에서는 TPM 플러그인까지 자동 설치됨
+- 자동 설치를 끄면(`INSTALL_TMUX_PLUGINS=0`) 아래 수동 설치 절차 사용
 - 팝업 단축키:
   - `prefix + h`: Helix 팝업
   - `prefix + g`: lazygit 팝업
@@ -123,7 +239,7 @@ tmux 안에서 플러그인 설치:
 
 dmux 설치:
 ```bash
-npm i -g dmux
+mise use -g npm:dmux@latest
 ```
 
 dmux 실행 권장 방식:
@@ -141,6 +257,7 @@ dmux 실행 권장 방식:
 ## 6) 검증 체크리스트
 - `mise current`에 필요한 버전이 정확히 표시됨
 - `command -v` 결과에 아래 바이너리가 보임:
+  - `zsh`
   - `pyright-langserver`
   - `vscode-json-language-server`
   - `yaml-language-server`
@@ -148,8 +265,15 @@ dmux 실행 권장 방식:
   - `ruff`
   - `prettier`
   - `lazygit`
-  - `yazi` (팝업 단축키 `prefix + y` 사용 시)
+  - `uv`
+  - `fzf`
+- (선택) Markdown/TypeScript 사용 시:
+  - `marksman`
+  - `typescript-language-server`
+- `yazi` (팝업 단축키 `prefix + y` 사용 시)
+- `dmux` (dmux 워크플로우 사용 시)
 - `~/.config/helix`가 이 저장소의 `helix`를 가리킴
+  - `readlink -f ~/.config/helix`
 - `tmux show -g set-clipboard` 결과가 `on`
 - `git co` / `git l`가 정상 동작
 
@@ -157,9 +281,18 @@ dmux 실행 권장 방식:
 - `command not found`:
   - 새 셸을 열거나 `exec zsh`
   - `~/.zshrc`에서 `source "$HOME/.zsh.shared.zsh"` 로드 확인
-- `uv tool` 바이너리가 안 보임:
-  - `~/.local/bin`이 `PATH`에 있는지 확인
-  - 필요 시 `uv tool update-shell`
+- `mise current`에 `python ... (missing)` 표시:
+  - `mise install` 재실행
+  - `mise current`로 누락 해소 확인
+- `mise use -g ...` 후 바이너리가 안 보임:
+  - 새 셸 실행 후 `command -v <binary>` 재확인
+  - `mise current`/`mise doctor`로 활성화 상태 점검
+- zprezto 설치 후 설정이 적용되지 않음:
+  - 로그인 셸 확인: `getent passwd "$USER" | cut -d: -f7`
+  - 필요 시 `chsh -s "$(command -v zsh)" "$USER"` 후 재로그인
+- `chsh`에서 `PAM: Authentication failure` 발생:
+  - 인터랙티브 터미널에서 다시 실행(비밀번호 입력 필요)
+  - 서버/정책 환경이면 관리자 권한으로 변경: `sudo usermod -s "$(command -v zsh)" "$USER"`
 - Helix에서만 도구 누락:
   - `hx --health <language>`로 누락 바이너리 확인
 - tmux 클립보드가 안 됨:
