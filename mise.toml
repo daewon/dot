@@ -1,0 +1,5 @@
+[tools]
+node = "22"
+python = "3.12"
+helix = "25.07.1"
+tmux = "3.6a"

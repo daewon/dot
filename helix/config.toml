@@ -7,3 +7,9 @@ D = "kill_to_line_end"
 
 [editor]
 default-yank-register = "+"
+
+[editor.lsp]
+display-inlay-hints = true
+
+[editor.file-picker]
+hidden = false

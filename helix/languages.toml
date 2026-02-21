@@ -11,9 +11,10 @@ command = "marksman"
 args = [ "server" ]
 
 # JSON 언어 설정
+# JSON LSP 설치: `npm i -g vscode-langservers-extracted`
 [[language]]
 name = "json"
-language-servers = [ "vscode-language-server-extracted" ]
+language-servers = [ "vscode-json" ]
 file-types = [ "json" ]
 indent = { tab-width = 2, unit = "  " }
 
@@ -24,27 +25,41 @@ args = [
   "json",
 ]
 
-[language-server.vscode-language-server-extracted]
+[language-server.vscode-json]
 command = "vscode-json-language-server"
 args = [ "--stdio" ]
 
 # Python 언어 설정
-# 필요한 패키지 설치:
-# pip install black
-# pip install python-lsp-server[all]
+# Python 도구 설치:
+# - pyright-langserver: `npm i -g pyright`
+# - ruff: `uv tool install ruff`
+# - black: `uv tool install black`
 [[language]]
 name = "python"
-language-servers = [ "pylsp" ]
-file-types = [ "py" ]
+language-servers = [ "pyright", "ruff" ]
+file-types = [ "py", "pyi", "pyw" ]
+shebangs = [ "python", "python3" ]
 indent = { tab-width = 4, unit = "    " }
 
 [language.formatter]
-command = "uv"
-args = [ "run", "black", "-" ]
+command = "black"
+args = [ "-" ]
 
-[language-server.pylsp]
-command = "uv"
-args = [ "run", "pylsp" ]
+[language-server.pyright]
+command = "pyright-langserver"
+args = [ "--stdio" ]
+
+[language-server.pyright.config]
+[language-server.pyright.config.python]
+[language-server.pyright.config.python.analysis]
+autoImportCompletions = true
+typeCheckingMode = "basic"
+autoSearchPaths = true
+extraPaths = []
+
+[language-server.ruff]
+command = "ruff"
+args = [ "server" ]
 
 # Scala 언어 설정
 [[language]]
@@ -77,12 +92,10 @@ command = "typescript-language-server"
 args = ["--stdio"]
 
 # YAML 언어 설정
-# 필요한 패키지 설치:
-# npm install -g prettier
-# npm install -g yaml-language-server
+# YAML LSP 설치: `npm i -g yaml-language-server`
 [[language]]
 name = "yaml"
-language-servers = [ "yaml-language-server" ]
+language-servers = [ "yaml-ls" ]
 file-types = [ "yaml", "yml" ]
 indent = { tab-width = 2, unit = "  " }
 
@@ -93,11 +106,6 @@ args = [
   "yaml",
 ]
 
-[language-server.yaml-language-server]
+[language-server.yaml-ls]
 command = "yaml-language-server"
 args = [ "--stdio" ]
-
-# Tree-sitter 파서 설정
-[[grammar]]
-name = "tsx"
-source = { git = "https://github.com/tree-sitter/tree-sitter-typescript", rev = "master" }
