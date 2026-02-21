@@ -13,6 +13,8 @@
 - `helix/config.toml`, `helix/languages.toml`: Helix 설정
 - `mise.toml`: 도구 버전 선언
 - `SETUP.md`: 실제 온보딩/설치 문서
+- `zsh.shared.zsh`: zsh 공용 alias/history/prompt 설정
+- `gitconfig.shared`: git 공용 alias 설정
 - `emacs`: Emacs 설정 파일 (디렉터리 아님)
 - `gemini.md`, `qwen.md`: `agents.md`로 연결된 심볼릭 링크(환경에 따라 없을 수 있음)
 
@@ -48,6 +50,7 @@ ls -la
 - tmux 작업이면: `tmux.conf.user` 우선 확인
 - Helix 작업이면: `helix/config.toml`, `helix/languages.toml` 우선 확인
 - 도구/버전 작업이면: `mise.toml`, `SETUP.md` 동시 확인
+- shell/git alias 작업이면: `zsh.shared.zsh`, `gitconfig.shared`, `SETUP.md` 동시 확인
 
 ## 3) 변경 원칙
 - 최소 변경: 요청 범위 밖 수정 금지
@@ -64,7 +67,9 @@ ls -la
 - 클립보드/터미널 옵션 변경 시 호환성 옵션(버전 가드)을 유지합니다.
 - 적용 후 최소 검증:
 ```bash
-tmux -L codexcheck -f "$PWD/tmux.conf.user" start-server \; show-options -g set-clipboard \; show-options -gqv @plugin \; kill-server
+TMUX_SOCK="codexcheck-$RANDOM"
+tmux -L "$TMUX_SOCK" -f "$PWD/tmux.conf.user" start-server \; show-options -g set-clipboard \; show-options -gqv @plugin
+tmux -L "$TMUX_SOCK" kill-server >/dev/null 2>&1 || true
 ```
 
 ### 4.2 Helix (`helix/*`)

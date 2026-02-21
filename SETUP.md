@@ -17,6 +17,13 @@ uv tool install ruff
 REPO_ROOT="$(pwd)"
 ln -sfn "$REPO_ROOT/helix" "$HOME/.config/helix"
 ln -sfn "$REPO_ROOT/tmux.conf.user" "$HOME/.tmux.conf"
+ln -sfn "$REPO_ROOT/zsh.shared.zsh" "$HOME/.zsh.shared.zsh"
+
+# 4) zsh/git 공용 설정 연결
+grep -F 'source "$HOME/.zsh.shared.zsh"' "$HOME/.zshrc" >/dev/null \
+  || printf '\n# dot shared zsh presets\n[ -f "$HOME/.zsh.shared.zsh" ] && source "$HOME/.zsh.shared.zsh"\n' >> "$HOME/.zshrc"
+git config --global --get-all include.path | grep -Fx "$REPO_ROOT/gitconfig.shared" >/dev/null \
+  || git config --global --add include.path "$REPO_ROOT/gitconfig.shared"
 ```
 
 적용 확인:
@@ -48,19 +55,34 @@ zprezto 환경에서 가장 흔한 문제는 초기화 중복입니다. 아래�
 
 - `~/.zshenv`: 최소 설정만 (`ZDOTDIR` 정도)
 - `~/.zprofile`: 로그인 셸 전용 설정만
-- `~/.zshrc`: interactive 설정 전담 (`mise activate zsh` 1회만)
+- `~/.zshrc`: interactive 설정 전담 (`$HOME/.zsh.shared.zsh` source 권장)
 
 `~/.zshrc` 예시:
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
-if command -v mise >/dev/null 2>&1; then
-  eval "$(mise activate zsh)"
+if [ -f "$HOME/.zsh.shared.zsh" ]; then
+  source "$HOME/.zsh.shared.zsh"
 fi
 ```
 
+`zsh.shared.zsh` 포함 내용:
+- 대용량 history(`HISTSIZE`, `SAVEHIST`) + 즉시 저장/공유 옵션
+- 자주 쓰는 alias(`lg`, `ta`, `fd`, git 관련)
+- `prompt skwp` 기본 적용
+- `mise activate zsh --quiet` 및 PATH 초기화
+- `~/.zsh.local` 자동 로드(개인/민감값 분리)
+
 주의:
-- `mise activate zsh`를 `~/.zshenv`/`~/.zprofile`에 중복 선언하지 않기
+- `mise activate zsh --quiet`를 `~/.zshenv`/`~/.zprofile`에 중복 선언하지 않기
 - `PATH`는 한 파일(`~/.zshrc`)에서 관리해 순서 꼬임 방지
+- `~/.zsh.local`은 개인 파일로 관리하고 이 저장소에는 커밋하지 않기
+
+### Git alias 공유
+`git co`, `git l` 같은 alias를 환경 간 동일하게 쓰려면:
+```bash
+REPO_ROOT="$(pwd)"
+git config --global --get-all include.path | grep -Fx "$REPO_ROOT/gitconfig.shared" >/dev/null \
+  || git config --global --add include.path "$REPO_ROOT/gitconfig.shared"
+```
 
 ## 3) Helix 도구 설치 (mise + uv 기준)
 Node 기반 LSP/formatter:
@@ -113,6 +135,8 @@ dmux 실행 권장 방식:
 - Helix 에디터 설정: `helix/config.toml`
 - tmux 설정: `tmux.conf.user`
 - mise 버전 정의: `mise.toml`
+- zsh 공용 설정: `zsh.shared.zsh`
+- git 공용 alias: `gitconfig.shared`
 
 ## 6) 검증 체크리스트
 - `mise current`에 필요한 버전이 정확히 표시됨
@@ -127,11 +151,12 @@ dmux 실행 권장 방식:
   - `yazi` (팝업 단축키 `prefix + y` 사용 시)
 - `~/.config/helix`가 이 저장소의 `helix`를 가리킴
 - `tmux show -g set-clipboard` 결과가 `on`
+- `git co` / `git l`가 정상 동작
 
 ## 7) 트러블슈팅
 - `command not found`:
   - 새 셸을 열거나 `exec zsh`
-  - `~/.zshrc`에서 `mise activate zsh` 로드 확인
+  - `~/.zshrc`에서 `source "$HOME/.zsh.shared.zsh"` 로드 확인
 - `uv tool` 바이너리가 안 보임:
   - `~/.local/bin`이 `PATH`에 있는지 확인
   - 필요 시 `uv tool update-shell`
@@ -140,6 +165,6 @@ dmux 실행 권장 방식:
 - tmux 클립보드가 안 됨:
   - 로컬 터미널의 OSC52 지원 여부 확인
   - tmux 내부에서 `tmux show -g set-clipboard` 결과 확인
-- `prefix + g` 눌렀는데 바로 닫힘:
-  - `command -v lazygit` 확인
-  - 없으면 `mise install` 다시 실행
+- `prefix + h/g/y` 눌렀는데 바로 닫히거나 메시지가 뜸:
+  - `command -v hx`, `command -v lazygit`, `command -v yazi` 확인
+  - 누락된 도구가 있으면 `mise install` 또는 해당 도구를 설치
