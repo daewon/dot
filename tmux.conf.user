@@ -128,7 +128,6 @@ bind n command-prompt -p "new session name" "new-session -s '%%' -c '#{pane_curr
 bind h display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" "hx ."
 bind g display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" "lazygit"
 bind y display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" "YAZI_CONFIG_HOME=$HOME/.config/yazi yazi"
-bind-key j run-shell '~/.tmux/plugins/tmux/custom/popup.sh'
 
 # Utility
 bind-key m set -g mouse \; display-message "Mouse: #{?mouse,On,Off}"
