@@ -1,5 +1,5 @@
 # Helix
-helix/runtime/
+config/helix/runtime/
 .dmux/
 .dmux-hooks/
-lazygit/.current_theme
+config/lazygit/.current_theme

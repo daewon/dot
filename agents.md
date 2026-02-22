@@ -9,20 +9,22 @@
 - 사용자가 요청하지 않은 대규모 리팩터링/스타일 변경은 하지 않습니다.
 
 ## 1) 현재 레포 구조 (현실 기준)
-- `tmux.conf.user`: tmux 핵심 설정
-- `helix/config.toml`, `helix/languages.toml`: Helix 설정
-- `lazygit/config.yml`, `lazygit/themes/*`: LazyGit 설정/테마
+- `config/tmux.conf.user`: tmux 핵심 설정
+- `config/helix/config.toml`, `config/helix/languages.toml`: Helix 설정
+- `config/lazygit/config.yml`, `config/lazygit/themes/*`: LazyGit 설정/테마
 - `mise.toml`: 도구 버전 선언
-- `toolset.sh`: setup/cleanup/verify 공통 도구 목록 단일 소스
-- `scriptlib.sh`: setup/cleanup/verify 공통 셸 유틸 함수
+- `scripts/lib/toolset.sh`: setup/cleanup/verify 공통 도구 목록 단일 소스
+- `scripts/lib/scriptlib.sh`: setup/cleanup/verify 공통 셸 유틸 함수
 - `docs/architecture.md`: 설치/복원/멱등성 아키텍처 문서
 - `SETUP.md`: 실제 온보딩/설치 문서
-- `zsh.shared.zsh`: zsh 공용 alias/history/prompt 설정
-- `gitconfig.shared`: git 공용 alias 설정
-- `setup.sh`, `cleanup.sh`, `verify.sh`: 설치/정리/멱등성 검증 진입점
-- `difft-external.sh`, `difft-pager.sh`: `git dft*` wrapper 구현
-- `lazygit-theme.sh`: LazyGit 테마 순환/적용 스크립트
-- `emacs`: Emacs 설정 파일 (디렉터리 아님)
+- `config/zsh.shared.zsh`: zsh 공용 alias/history/prompt 설정
+- `config/zpreztorc`: prezto 모듈 설정 (`git` 모듈 포함)
+- `config/gitconfig.shared`: git 공용 alias 설정
+- `setup.sh`, `cleanup.sh`, `verify.sh`: 설치/정리/멱등성 검증 진입점(래퍼)
+- `scripts/setup.sh`, `scripts/cleanup.sh`, `scripts/verify.sh`: 실제 구현
+- `scripts/difft-external.sh`, `scripts/difft-pager.sh`: `git dft*` wrapper 구현
+- `scripts/lazygit-theme.sh`: LazyGit 테마 순환/적용 스크립트
+- `config/emacs`: Emacs 설정 파일 (디렉터리 아님)
 - `gemini.md`, `qwen.md`: `agents.md`로 연결된 심볼릭 링크(환경에 따라 없을 수 있음)
 
 주의:
@@ -54,11 +56,11 @@ ls -la
 ```
 
 4. 변경 대상별 빠른 점검
-- tmux 작업이면: `tmux.conf.user` 우선 확인
-- Helix 작업이면: `helix/config.toml`, `helix/languages.toml` 우선 확인
+- tmux 작업이면: `config/tmux.conf.user` 우선 확인
+- Helix 작업이면: `config/helix/config.toml`, `config/helix/languages.toml` 우선 확인
 - 도구/버전 작업이면: `mise.toml`, `SETUP.md` 동시 확인
-- shell/git alias 작업이면: `zsh.shared.zsh`, `gitconfig.shared`, `difft-*.sh`, `SETUP.md` 동시 확인
-- lazygit 테마 작업이면: `lazygit/config.yml`, `lazygit/themes/*`, `lazygit-theme.sh`, `SETUP.md` 동시 확인
+- shell/git alias 작업이면: `config/zsh.shared.zsh`, `config/gitconfig.shared`, `scripts/difft-*.sh`, `SETUP.md` 동시 확인
+- lazygit 테마 작업이면: `config/lazygit/config.yml`, `config/lazygit/themes/*`, `scripts/lazygit-theme.sh`, `SETUP.md` 동시 확인
 
 ## 3) 변경 원칙
 - 최소 변경: 요청 범위 밖 수정 금지
@@ -69,18 +71,18 @@ ls -la
 
 ## 4) 영역별 실무 규칙
 
-### 4.1 tmux (`tmux.conf.user`)
+### 4.1 tmux (`config/tmux.conf.user`)
 - 키 바인딩 변경 시 기존 충돌 여부를 먼저 확인합니다.
 - popup 관련 바인딩(`h`, `g`, `y`)은 실제 도구 존재 여부와 같이 설명합니다.
 - 클립보드/터미널 옵션 변경 시 호환성 옵션(버전 가드)을 유지합니다.
 - 적용 후 최소 검증:
 ```bash
 TMUX_SOCK="codexcheck-$RANDOM"
-tmux -L "$TMUX_SOCK" -f "$PWD/tmux.conf.user" start-server \; show-options -g set-clipboard \; show-options -gqv @plugin
+tmux -L "$TMUX_SOCK" -f "$PWD/config/tmux.conf.user" start-server \; show-options -g set-clipboard \; show-options -gqv @plugin
 tmux -L "$TMUX_SOCK" kill-server >/dev/null 2>&1 || true
 ```
 
-### 4.2 Helix (`helix/*`)
+### 4.2 Helix (`config/helix/*`)
 - 언어 서버/formatter 변경 시 실제 설치 경로와 도구명을 맞춥니다.
 - 변경 후 최소 검증:
 ```bash
@@ -91,14 +93,14 @@ hx --health yaml
 
 ### 4.3 mise/설치 문서 (`mise.toml`, `SETUP.md`)
 - 도구 추가/버전 변경 시 `mise.toml`과 `SETUP.md`를 함께 수정합니다.
-- setup/cleanup/verify에서 쓰는 도구 목록은 `toolset.sh`를 기준으로 유지합니다.
+- setup/cleanup/verify에서 쓰는 도구 목록은 `scripts/lib/toolset.sh`를 기준으로 유지합니다.
 - 설치/복원 구조 변경 시 `docs/architecture.md`도 같이 갱신합니다.
 - "latest" 사용 시 재현성 저하를 문서에 명시합니다.
 - 설치/실행 명령은 복붙 가능한 형태로 유지합니다.
 - 경로 원칙: 레포 절대경로 하드코딩 대신 `REPO_ROOT` + symlink(`~/.local/bin/dot-*`) 구조를 유지합니다.
 - `.dmux/`, `.dmux-hooks/` 같은 실행 중 생성 디렉터리는 설정 소스가 아니므로 수정/커밋 대상으로 취급하지 않습니다.
 
-### 4.4 Emacs (`emacs`)
+### 4.4 Emacs (`config/emacs`)
 - 현재는 단일 파일 기반 설정입니다.
 - Emacs 관련 변경은 기존 스타일과 로딩 영향(성능/초기화 순서)을 고려합니다.
 
@@ -106,8 +108,9 @@ hx --health yaml
 ```bash
 git status --short
 git diff -- <수정한 파일>
-bash -n setup.sh cleanup.sh verify.sh difft-external.sh difft-pager.sh lazygit-theme.sh
-mise x shellcheck@latest -- shellcheck setup.sh cleanup.sh verify.sh toolset.sh scriptlib.sh difft-external.sh difft-pager.sh lazygit-theme.sh
+bash -n setup.sh cleanup.sh verify.sh
+bash -n scripts/setup.sh scripts/cleanup.sh scripts/verify.sh scripts/difft-external.sh scripts/difft-pager.sh scripts/lazygit-theme.sh
+mise x shellcheck@latest -- shellcheck setup.sh cleanup.sh verify.sh scripts/setup.sh scripts/cleanup.sh scripts/verify.sh scripts/lib/toolset.sh scripts/lib/scriptlib.sh scripts/difft-external.sh scripts/difft-pager.sh scripts/lazygit-theme.sh
 ```
 
 보고 시 포함:

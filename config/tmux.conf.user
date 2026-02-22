@@ -128,10 +128,20 @@ if-shell "uname | grep -q Linux" {
 bind-key k send-keys C-l \; clear-history
 bind-key i set-window-option synchronize-panes on
 bind-key u set-window-option synchronize-panes off
-bind-key -r up resize-pane -U 15
-bind-key -r down resize-pane -D 15
-bind-key -r left resize-pane -L 10
-bind-key -r right resize-pane -R 10
+# Layout controls: forward/reverse cycle + quick even rebalance.
+unbind-key Space
+bind-key -r Space next-layout
+bind-key -r BSpace select-layout -p
+bind-key = select-layout -E
+# Pane resize: arrows for fine steps, Shift+H/J/K/L for coarse steps.
+bind-key -r Up resize-pane -U 5
+bind-key -r Down resize-pane -D 5
+bind-key -r Left resize-pane -L 5
+bind-key -r Right resize-pane -R 5
+bind-key -r H resize-pane -L 12
+bind-key -r J resize-pane -D 12
+bind-key -r K resize-pane -U 12
+bind-key -r L resize-pane -R 12
 
 bind '"' split-window -c "#{pane_current_path}"
 bind % split-window -h -c "#{pane_current_path}"
@@ -160,6 +170,8 @@ if-shell "command -v yazi >/dev/null 2>&1" {
 # Utility
 bind-key m set -g mouse \; display-message "Mouse: #{?mouse,On,Off}"
 bind-key r source-file ~/.tmux.conf \; display-message "Config reloaded..."
+# Join selected window into current window as a pane (prefix + j).
+bind-key j choose-window "join-pane -h -s \"%%\""
 bind-key S choose-window "join-pane -v -s \"%%\""
 bind-key V choose-window "join-pane -h -s \"%%\""
 
@@ -170,6 +182,7 @@ set -g @plugin 'tmux-plugins/tmux-yank'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
 set -g @continuum-restore 'on'
+set -g @continuum-save-interval '5'
 
 if-shell "[ -x ~/.tmux/plugins/tpm/tpm ]" {
     run '~/.tmux/plugins/tpm/tpm'

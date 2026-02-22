@@ -13,24 +13,24 @@ resolve_script_path() {
 }
 
 SCRIPT_PATH="$(resolve_script_path "${BASH_SOURCE[0]}")"
-REPO_ROOT="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-THEMES_DIR="$REPO_ROOT/lazygit/themes"
-TARGET_CONFIG="$REPO_ROOT/lazygit/config.yml"
-STATE_FILE="$REPO_ROOT/lazygit/.current_theme"
+REPO_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
+THEMES_DIR="$REPO_ROOT/config/lazygit/themes"
+TARGET_CONFIG="$REPO_ROOT/config/lazygit/config.yml"
+STATE_FILE="$REPO_ROOT/config/lazygit/.current_theme"
 
 usage() {
   cat <<'EOF'
 Usage:
-  ./lazygit-theme.sh list
-  ./lazygit-theme.sh set <theme-name>
-  ./lazygit-theme.sh next
-  ./lazygit-theme.sh prev
-  ./lazygit-theme.sh current
+  dot-lazygit-theme list
+  dot-lazygit-theme set <theme-name>
+  dot-lazygit-theme next
+  dot-lazygit-theme prev
+  dot-lazygit-theme current
 
 Examples:
-  ./lazygit-theme.sh list
-  ./lazygit-theme.sh set dracula
-  ./lazygit-theme.sh next
+  dot-lazygit-theme list
+  dot-lazygit-theme set dracula
+  dot-lazygit-theme next
 EOF
 }
 

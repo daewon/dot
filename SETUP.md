@@ -25,9 +25,9 @@
 - `SET_DEFAULT_SHELL=1 ./setup.sh`: 마지막에 기본 셸 zsh 전환 시도
 
 도구 목록 단일 소스:
-- `toolset.sh`의 배열(`DOT_REQUIRED_MISE_TOOLS`, `DOT_OPTIONAL_MISE_TOOLS`, `DOT_REQUIRED_CLI_COMMANDS`)
-- `setup.sh`/`cleanup.sh`/`verify.sh`는 위 배열을 공통으로 참조
-- 공통 셸 유틸(`dot_require_cmd`, `dot_resolve_path`, `dot_is_link_target`)은 `scriptlib.sh`에서 공유
+- `scripts/lib/toolset.sh`의 배열(`DOT_REQUIRED_MISE_TOOLS`, `DOT_OPTIONAL_MISE_TOOLS`, `DOT_REQUIRED_CLI_COMMANDS`)
+- `scripts/setup.sh`/`scripts/cleanup.sh`/`scripts/verify.sh`는 위 배열을 공통으로 참조
+- 공통 셸 유틸(`dot_require_cmd`, `dot_resolve_path`, `dot_is_link_target`)은 `scripts/lib/scriptlib.sh`에서 공유
 - 아키텍처 상세: `docs/architecture.md`
 
 정리(삭제) 실행:
@@ -84,8 +84,8 @@ if ! command -v zsh >/dev/null 2>&1; then
 fi
 [ -d "$HOME/.zprezto" ] || git clone --recursive https://github.com/sorin-ionescu/prezto.git "$HOME/.zprezto"
 
-# prezto runcom 연결 (zshrc는 아래에서 wrapper로 직접 생성)
-for rc in zlogin zlogout zprofile zshenv zpreztorc; do
+# prezto runcom 연결 (zpreztorc는 아래에서 dot 관리 파일로 연결)
+for rc in zlogin zlogout zprofile zshenv; do
   if [ -e "$HOME/.$rc" ] || [ -L "$HOME/.$rc" ]; then
     mv "$HOME/.$rc" "$HOME/.$rc.bak.$(date +%Y%m%d-%H%M%S)"
   fi
@@ -106,26 +106,27 @@ EOF
 REPO_ROOT="$(pwd)"
 mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.local/bin"
-for p in "$HOME/.config/helix" "$HOME/.config/lazygit" "$HOME/.tmux.conf" "$HOME/.zsh.shared.zsh"; do
+for p in "$HOME/.config/helix" "$HOME/.config/lazygit" "$HOME/.tmux.conf" "$HOME/.zsh.shared.zsh" "$HOME/.zpreztorc"; do
   if [ -e "$p" ] || [ -L "$p" ]; then
     mv "$p" "$p.bak.$(date +%Y%m%d-%H%M%S)"
   fi
 done
-ln -sfn "$REPO_ROOT/helix" "$HOME/.config/helix"
-ln -sfn "$REPO_ROOT/lazygit" "$HOME/.config/lazygit"
-ln -sfn "$REPO_ROOT/tmux.conf.user" "$HOME/.tmux.conf"
-ln -sfn "$REPO_ROOT/zsh.shared.zsh" "$HOME/.zsh.shared.zsh"
-ln -sfn "$REPO_ROOT/difft-external.sh" "$HOME/.local/bin/dot-difft"
-ln -sfn "$REPO_ROOT/difft-pager.sh" "$HOME/.local/bin/dot-difft-pager"
-ln -sfn "$REPO_ROOT/lazygit-theme.sh" "$HOME/.local/bin/dot-lazygit-theme"
+ln -sfn "$REPO_ROOT/config/helix" "$HOME/.config/helix"
+ln -sfn "$REPO_ROOT/config/lazygit" "$HOME/.config/lazygit"
+ln -sfn "$REPO_ROOT/config/tmux.conf.user" "$HOME/.tmux.conf"
+ln -sfn "$REPO_ROOT/config/zsh.shared.zsh" "$HOME/.zsh.shared.zsh"
+ln -sfn "$REPO_ROOT/config/zpreztorc" "$HOME/.zpreztorc"
+ln -sfn "$REPO_ROOT/scripts/difft-external.sh" "$HOME/.local/bin/dot-difft"
+ln -sfn "$REPO_ROOT/scripts/difft-pager.sh" "$HOME/.local/bin/dot-difft-pager"
+ln -sfn "$REPO_ROOT/scripts/lazygit-theme.sh" "$HOME/.local/bin/dot-lazygit-theme"
 
 # 6) git 공용 설정 연결
-INCLUDE_COUNT="$(git config --global --get-all include.path | grep -Fx "$REPO_ROOT/gitconfig.shared" | wc -l | tr -d '[:space:]')"
+INCLUDE_COUNT="$(git config --global --get-all include.path | grep -Fx "$REPO_ROOT/config/gitconfig.shared" | wc -l | tr -d '[:space:]')"
 if [ "${INCLUDE_COUNT:-0}" = "0" ]; then
-  git config --global --add include.path "$REPO_ROOT/gitconfig.shared"
+  git config --global --add include.path "$REPO_ROOT/config/gitconfig.shared"
 elif [ "${INCLUDE_COUNT:-0}" != "1" ]; then
-  git config --global --unset-all include.path "$REPO_ROOT/gitconfig.shared"
-  git config --global --add include.path "$REPO_ROOT/gitconfig.shared"
+  git config --global --unset-all include.path "$REPO_ROOT/config/gitconfig.shared"
+  git config --global --add include.path "$REPO_ROOT/config/gitconfig.shared"
 fi
 
 # 7) 기본 셸 전환 (원하면)
@@ -166,8 +167,10 @@ mise current
   - macOS(Homebrew): `brew install zsh`
 - zsh 설치 후 zprezto를 설치합니다.
   - `git clone --recursive https://github.com/sorin-ionescu/prezto.git ~/.zprezto`
-- runcom은 `zlogin zlogout zprofile zshenv zpreztorc`를 symlink로 연결하고,
+- runcom은 `zlogin zlogout zprofile zshenv`를 symlink로 연결하고,
+  `~/.zpreztorc`는 이 저장소의 `config/zpreztorc`로 연결한 뒤,
   `~/.zshrc`는 아래 wrapper 형태로 두는 것을 권장합니다.
+- `config/zpreztorc`는 prezto `git` 모듈을 포함해 git alias/completion을 활성화합니다.
 
 zprezto 환경에서 가장 흔한 문제는 초기화 중복입니다. 아래처럼 역할을 고정하면 안정적입니다.
 
@@ -183,7 +186,7 @@ if [ -f "$HOME/.zsh.shared.zsh" ]; then
 fi
 ```
 
-`zsh.shared.zsh` 포함 내용:
+`config/zsh.shared.zsh` 포함 내용:
 - 대용량 history(`HISTSIZE`, `SAVEHIST`) + 즉시 저장/공유 옵션
 - 자주 쓰는 alias(`lg`, `ta`, `fd`, git 관련)
 - `prompt skwp` 기본 적용
@@ -200,8 +203,8 @@ fi
 `git co`, `git l` 같은 alias를 환경 간 동일하게 쓰려면:
 ```bash
 REPO_ROOT="$(pwd)"
-git config --global --get-all include.path | grep -Fx "$REPO_ROOT/gitconfig.shared" >/dev/null \
-  || git config --global --add include.path "$REPO_ROOT/gitconfig.shared"
+git config --global --get-all include.path | grep -Fx "$REPO_ROOT/config/gitconfig.shared" >/dev/null \
+  || git config --global --add include.path "$REPO_ROOT/config/gitconfig.shared"
 ```
 
 ## 3) Helix 도구 설치 (mise 기준)
@@ -224,7 +227,7 @@ mise use -g yazi@latest difftastic@latest npm:dmux@latest
 ```
 
 ## 4) tmux / dmux 운영 가이드
-`tmux.conf.user`에는 아래 실사용 설정이 포함되어 있습니다.
+`config/tmux.conf.user`에는 아래 실사용 설정이 포함되어 있습니다.
 
 - `set -g set-clipboard on`: tmux copy 결과를 시스템 클립보드와 연동
 - `allow-passthrough on`(지원 버전만): OSC52 전달로 SSH/원격 환경 복사 성공률 개선
@@ -267,8 +270,8 @@ git dfts HEAD~1    # commit patch
 git dftw           # wrap 모드(긴 줄 줄바꿈)
 ```
 구조 diff는 아래 wrapper를 통해 실행됩니다.
-- `dot-difft` -> `difft-external.sh`
-- `dot-difft-pager` -> `difft-pager.sh`
+- `dot-difft` -> `scripts/difft-external.sh`
+- `dot-difft-pager` -> `scripts/difft-pager.sh`
 - wrapper는 setup 시 `~/.local/bin`에 symlink로 배치됩니다.
 - `difft`가 PATH에 없어도 `mise which difft` fallback으로 실행되도록 구성되어 있습니다.
 
@@ -291,16 +294,17 @@ cd ~/repo-b && dmux
 ```
 
 ## 5) 설정 파일 위치
-- Helix 언어 설정: `helix/languages.toml`
-- Helix 에디터 설정: `helix/config.toml`
-- LazyGit 설정: `lazygit/config.yml`
-- LazyGit 테마 관리 스크립트: `lazygit-theme.sh` (`dot-lazygit-theme`로 실행)
-- tmux 설정: `tmux.conf.user`
+- Helix 언어 설정: `config/helix/languages.toml`
+- Helix 에디터 설정: `config/helix/config.toml`
+- LazyGit 설정: `config/lazygit/config.yml`
+- LazyGit 테마 관리 스크립트: `scripts/lazygit-theme.sh` (`dot-lazygit-theme`로 실행)
+- tmux 설정: `config/tmux.conf.user`
 - mise 버전 정의: `mise.toml`
-- 공용 도구 목록: `toolset.sh`
-- zsh 공용 설정: `zsh.shared.zsh`
-- git 공용 alias: `gitconfig.shared`
-- difftastic wrapper: `difft-external.sh`, `difft-pager.sh`
+- 공용 도구 목록: `scripts/lib/toolset.sh`
+- zsh 공용 설정: `config/zsh.shared.zsh`
+- prezto 모듈 설정: `config/zpreztorc`
+- git 공용 alias: `config/gitconfig.shared`
+- difftastic wrapper: `scripts/difft-external.sh`, `scripts/difft-pager.sh`
 - 아키텍처 문서: `docs/architecture.md`
 
 ## 6) 검증 체크리스트
@@ -328,15 +332,15 @@ cd ~/repo-b && dmux
 - `yazi` (팝업 단축키 `prefix + y` 사용 시)
 - `dmux` (dmux 워크플로우 사용 시)
 - `difft` (`git dft` alias 사용 시)
-- `~/.config/helix`가 이 저장소의 `helix`를 가리킴
+- `~/.config/helix`가 이 저장소의 `config/helix`를 가리킴
   - `readlink -f ~/.config/helix`
-- `~/.config/lazygit`가 이 저장소의 `lazygit`를 가리킴
+- `~/.config/lazygit`가 이 저장소의 `config/lazygit`를 가리킴
   - `readlink -f ~/.config/lazygit`
-- `~/.local/bin/dot-difft`가 이 저장소의 `difft-external.sh`를 가리킴
+- `~/.local/bin/dot-difft`가 이 저장소의 `scripts/difft-external.sh`를 가리킴
   - `readlink -f ~/.local/bin/dot-difft`
-- `~/.local/bin/dot-difft-pager`가 이 저장소의 `difft-pager.sh`를 가리킴
+- `~/.local/bin/dot-difft-pager`가 이 저장소의 `scripts/difft-pager.sh`를 가리킴
   - `readlink -f ~/.local/bin/dot-difft-pager`
-- `~/.local/bin/dot-lazygit-theme`가 이 저장소의 `lazygit-theme.sh`를 가리킴
+- `~/.local/bin/dot-lazygit-theme`가 이 저장소의 `scripts/lazygit-theme.sh`를 가리킴
   - `readlink -f ~/.local/bin/dot-lazygit-theme`
 - setup manifest 파일이 생성됨
   - `${XDG_STATE_HOME:-$HOME/.local/state}/dot/setup-manifest.v1.tsv`

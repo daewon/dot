@@ -12,7 +12,7 @@ typeset -g __DOT_ZSH_SHARED_LOADED=1
 typeset -gU path
 path=("$HOME/.local/bin" "$HOME/bin" $path)
 export PATH
-typeset -g DOT_REPO_ROOT="${${(%):-%N}:A:h}"
+typeset -g DOT_REPO_ROOT="${${(%):-%N}:A:h:h}"
 
 # Parent process sometimes sets no-color flags (e.g., NO_COLOR=1).
 # Unset them so interactive terminal apps (Helix, etc.) keep ANSI colors.
@@ -43,8 +43,8 @@ fi
 
 # History policy: large, append immediately, shared across sessions.
 HISTFILE="${ZDOTDIR:-$HOME}/.zsh_history"
-HISTSIZE=1000000
-SAVEHIST=1000000
+HISTSIZE=10000000
+SAVEHIST=10000000
 unsetopt APPEND_HISTORY
 setopt INC_APPEND_HISTORY_TIME
 setopt SHARE_HISTORY
@@ -74,8 +74,8 @@ function lazygit() {
 alias lg='lazygit'
 if command -v dot-lazygit-theme >/dev/null 2>&1; then
   alias lgt='dot-lazygit-theme'
-elif [[ -n "${DOT_REPO_ROOT:-}" ]] && [[ -x "$DOT_REPO_ROOT/lazygit-theme.sh" ]]; then
-  alias lgt="$DOT_REPO_ROOT/lazygit-theme.sh"
+elif [[ -n "${DOT_REPO_ROOT:-}" ]] && [[ -x "$DOT_REPO_ROOT/scripts/lazygit-theme.sh" ]]; then
+  alias lgt="$DOT_REPO_ROOT/scripts/lazygit-theme.sh"
 fi
 if command -v fdfind >/dev/null 2>&1; then
   alias fd='fdfind'
@@ -104,6 +104,11 @@ alias glog='git log --oneline --graph --decorate --all'
 # Handy helpers.
 alias ..='cd ..'
 alias ...='cd ../..'
+if ls --color=auto -d . >/dev/null 2>&1; then
+  alias ls='ls --group-directories-first --color=auto -F'
+elif ls -G -d . >/dev/null 2>&1; then
+  alias ls='ls -G -F'
+fi
 alias l='ls -alF'
 alias la='ls -A'
 alias ll='ls -alF'

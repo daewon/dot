@@ -7,23 +7,27 @@
 - Low-change-cost maintenance when adding or removing tools.
 
 ## Path Model
-- `setup.sh`, `cleanup.sh`, and `verify.sh` compute `REPO_ROOT` from the script location.
+- Root entrypoints (`setup.sh`, `cleanup.sh`, `verify.sh`) are thin wrappers that exec `scripts/*.sh`.
+- `scripts/setup.sh`, `scripts/cleanup.sh`, and `scripts/verify.sh` compute `REPO_ROOT` from their script location.
 - There is no hardcoded clone path inside scripts.
 - Recommended operator path is `~/dot`, but any absolute path works if scripts are run from this repo.
 - Runtime state is stored under `dot_state_dir()`:
   - `${XDG_STATE_HOME:-$HOME/.local/state}/dot`
 
 ## Core Components
-- `setup.sh`: install and link managed resources, then write setup manifest.
-- `cleanup.sh`: remove only setup-managed resources (manifest-first).
-- `verify.sh`: execute repeat loops and assert reproducibility invariants.
-- `toolset.sh`: single source of truth for required and optional tool lists.
-- `scriptlib.sh`: shared shell utilities (command checks, path resolution, symlink target checks).
+- `setup.sh`: operator entrypoint wrapper.
+- `cleanup.sh`: operator entrypoint wrapper.
+- `verify.sh`: operator entrypoint wrapper.
+- `scripts/setup.sh`: install and link managed resources, then write setup manifest.
+- `scripts/cleanup.sh`: remove only setup-managed resources (manifest-first).
+- `scripts/verify.sh`: execute repeat loops and assert reproducibility invariants.
+- `scripts/lib/toolset.sh`: single source of truth for required and optional tool lists.
+- `scripts/lib/scriptlib.sh`: shared shell utilities (command checks, path resolution, symlink target checks).
 - `mise.toml`: repo-level runtime/tool version declaration.
 
 ## Shared Data Contracts
 
-### Toolset Contract (`toolset.sh`)
+### Toolset Contract (`scripts/lib/toolset.sh`)
 - `DOT_REQUIRED_MISE_TOOLS`: always installed by setup.
 - `DOT_OPTIONAL_MISE_TOOLS`: installed when `INSTALL_OPTIONAL_TOOLS=1`.
 - `DOT_REQUIRED_CLI_COMMANDS`: commands that `verify.sh` must find.
@@ -105,15 +109,15 @@ State assertions include:
 ## Extension Guide
 
 ### Add a Tool
-1. Add tool id to `DOT_REQUIRED_MISE_TOOLS` or `DOT_OPTIONAL_MISE_TOOLS` in `toolset.sh`.
+1. Add tool id to `DOT_REQUIRED_MISE_TOOLS` or `DOT_OPTIONAL_MISE_TOOLS` in `scripts/lib/toolset.sh`.
 2. Add command name to `DOT_REQUIRED_CLI_COMMANDS` if runtime-required.
 3. Update `mise.toml` if repo-level runtime pinning is needed.
 4. Update `SETUP.md`.
 5. Run `./verify.sh`.
 
 ### Add a Managed File or Directory
-1. Implement create/link logic in `setup.sh`.
+1. Implement create/link logic in `scripts/setup.sh`.
 2. Record the resource with `manifest_add_entry`.
 3. Ensure cleanup supports the manifest entry kind.
-4. Add or update assertions in `verify.sh`.
+4. Add or update assertions in `scripts/verify.sh`.
 5. Run `./verify.sh`.
