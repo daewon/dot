@@ -69,3 +69,27 @@ dot_is_link_target() {
   fi
   return 1
 }
+
+dot_validate_bool_01() {
+  local name="$1"
+  local value="$2"
+  case "$value" in
+    0|1)
+      return 0
+      ;;
+    *)
+      printf '[error] %s must be 0 or 1 (got: %s)\n' "$name" "$value" >&2
+      return 1
+      ;;
+  esac
+}
+
+dot_validate_nonneg_int() {
+  local name="$1"
+  local value="$2"
+  if [[ "$value" =~ ^[0-9]+$ ]]; then
+    return 0
+  fi
+  printf '[error] %s must be a non-negative integer (got: %s)\n' "$name" "$value" >&2
+  return 1
+}

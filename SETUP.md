@@ -23,12 +23,14 @@
 - `INSTALL_OPTIONAL_TOOLS=0 ./setup.sh`: 선택 도구(markdown/ts/yazi/dmux/difftastic) 스킵
 - `INSTALL_TMUX_PLUGINS=0 ./setup.sh`: TPM 플러그인 설치 스킵
 - `SET_DEFAULT_SHELL=1 ./setup.sh`: 마지막에 기본 셸 zsh 전환 시도
+- 불리언 env flag는 `0|1`만 허용(다른 값은 즉시 실패)
 
 도구 목록 단일 소스:
-- `scripts/lib/toolset.sh`의 배열(`DOT_REQUIRED_MISE_TOOLS`, `DOT_OPTIONAL_MISE_TOOLS`, `DOT_REQUIRED_CLI_COMMANDS`)
+- `scripts/lib/toolset.sh`의 배열(`DOT_REQUIRED_MISE_TOOLS`, `DOT_OPTIONAL_MISE_TOOLS`, `DOT_REQUIRED_CLI_COMMANDS`, `DOT_OPTIONAL_CLI_COMMANDS`)
 - `scripts/setup.sh`/`scripts/cleanup.sh`/`scripts/verify.sh`는 위 배열을 공통으로 참조
 - 공통 셸 유틸(`dot_require_cmd`, `dot_resolve_path`, `dot_is_link_target`)은 `scripts/lib/scriptlib.sh`에서 공유
 - 아키텍처 상세: `docs/architecture.md`
+- 재현성 원칙: `latest` 대신 pin 버전을 기본값으로 사용
 
 정리(삭제) 실행:
 ```bash
@@ -40,16 +42,21 @@
 - `REMOVE_GLOBAL_TOOLS=1 ./cleanup.sh`: setup가 추가한 global mise 도구 엔트리 제거 (기본값은 유지=0)
 - `FORCE_REMOVE_ZSHRC=1 ./cleanup.sh`: setup 관리 파일이 아니어도 `~/.zshrc` 강제 삭제
 - 기본 동작은 setup가 만든 symlink/clone만 정리하고, 비관리 파일은 경고 후 유지
+- manifest가 현재 계약(`version=1`)과 다르면 manifest 모드를 건너뛰고 static fallback 정리로 동작
+- manifest의 알 수 없는 entry kind는 계약 위반으로 간주하고(삭제 전에) cleanup을 실패 처리
 
 멱등성 검증(권장):
 ```bash
-./verify.sh
+./verify.sh --profile full
 ```
 
 검증 옵션:
+- `./verify.sh --profile fast|full|stress`: 검증 강도 프로파일 선택
 - `SETUP_ONLY_LOOPS=5 ./verify.sh`: 최소 프로파일 setup 반복 횟수 조정
 - `CYCLE_LOOPS=5 ./verify.sh`: cleanup→setup 사이클 반복 횟수 조정
 - `RUN_DEFAULT_SETUP=0 ./verify.sh`: 기본 프로파일 setup 검증 스킵
+- 루프 값은 0 이상의 정수만 허용, 불리언 env flag는 `0|1`만 허용
+- verify는 계약 가드레일 스모크(잘못된 flag/manifest 계약 위반 fail-fast, version mismatch fallback)도 함께 확인
 
 수동 실행:
 ```bash
@@ -62,13 +69,13 @@ mise install
 
 # 2) CLI/Helix/LSP/formatter 도구 설치 (mise, global)
 # uv는 1)에서 mise.toml 기준으로 설치됨
-mise use -g fzf@latest rg@latest fd@latest bat@latest jq@latest yq@latest shellcheck@latest black@latest ruff@latest \
-  npm:pyright@latest npm:vscode-langservers-extracted@latest \
-  npm:yaml-language-server@latest npm:prettier@latest
+mise use -g fzf@0.68.0 rg@15.1.0 fd@10.3.0 bat@0.26.1 jq@1.8.1 yq@4.52.4 shellcheck@0.11.0 black@26.1.0 ruff@0.15.2 \
+  npm:pyright@1.1.408 npm:vscode-langservers-extracted@4.10.0 \
+  npm:yaml-language-server@1.20.0 npm:prettier@3.8.1
 
 # 3) (선택) Markdown/TypeScript/yazi/dmux/difftastic
-mise use -g marksman@latest yazi@latest difftastic@latest \
-  npm:typescript-language-server@latest npm:typescript@latest npm:dmux@latest
+mise use -g marksman@2026-02-08 yazi@26.1.22 difftastic@0.67.0 \
+  npm:typescript-language-server@5.1.3 npm:typescript@5.9.3 npm:dmux@5.2.0
 
 # 4) zsh + zprezto 준비 (최초 1회)
 # zsh는 mise registry 대상이 아니라 OS 패키지로 설치
@@ -210,20 +217,20 @@ git config --global --get-all include.path | grep -Fx "$REPO_ROOT/config/gitconf
 ## 3) Helix 도구 설치 (mise 기준)
 필수(CLI/Python/JSON/YAML):
 ```bash
-mise use -g fzf@latest rg@latest fd@latest bat@latest jq@latest yq@latest shellcheck@latest black@latest ruff@latest \
-  npm:pyright@latest npm:vscode-langservers-extracted@latest \
-  npm:yaml-language-server@latest npm:prettier@latest
+mise use -g fzf@0.68.0 rg@15.1.0 fd@10.3.0 bat@0.26.1 jq@1.8.1 yq@4.52.4 shellcheck@0.11.0 black@26.1.0 ruff@0.15.2 \
+  npm:pyright@1.1.408 npm:vscode-langservers-extracted@4.10.0 \
+  npm:yaml-language-server@1.20.0 npm:prettier@3.8.1
 ```
 
 선택(Markdown/TypeScript):
 ```bash
-mise use -g marksman@latest \
-  npm:typescript-language-server@latest npm:typescript@latest
+mise use -g marksman@2026-02-08 \
+  npm:typescript-language-server@5.1.3 npm:typescript@5.9.3
 ```
 
 선택(tmux popup 확장 + 구조 diff):
 ```bash
-mise use -g yazi@latest difftastic@latest npm:dmux@latest
+mise use -g yazi@26.1.22 difftastic@0.67.0 npm:dmux@5.2.0
 ```
 
 ## 4) tmux / dmux 운영 가이드
@@ -236,12 +243,25 @@ mise use -g yazi@latest difftastic@latest npm:dmux@latest
   - `tmux-plugins/tmux-yank`
   - `tmux-plugins/tmux-resurrect`
   - `tmux-plugins/tmux-continuum`
+- `tmux-continuum` 동작값:
+  - `@continuum-restore on` (세션/창/pane 자동 복원)
+  - `@continuum-save-interval 5` (5분 간격 스냅샷 저장)
 - `setup.sh` 기본값(`INSTALL_TMUX_PLUGINS=1`)에서는 TPM 플러그인까지 자동 설치됨
 - 자동 설치를 끄면(`INSTALL_TMUX_PLUGINS=0`) 아래 수동 설치 절차 사용
 - 팝업 단축키:
   - `prefix + h`: Helix 팝업
   - `prefix + g`: lazygit 팝업
   - `prefix + y`: yazi 팝업
+- 창/레이아웃/결합 단축키:
+  - `prefix + j`: 다른 창을 선택해서 현재 창에 가로 pane으로 join
+  - `prefix + S`: 선택한 창을 세로 pane으로 join
+  - `prefix + V`: 선택한 창을 가로 pane으로 join
+  - `prefix + Space`: 다음 레이아웃 순환
+  - `prefix + Backspace`: 이전 레이아웃 순환
+  - `prefix + =`: 현재 pane들 균등 재배치
+- pane 크기 조절:
+  - `prefix + Arrow`: 5칸 단위 미세 조절(`-r` 반복 입력 가능)
+  - `prefix + Shift+H/J/K/L`: 12칸 단위 빠른 조절(`-r` 반복 입력 가능)
 
 TPM 최초 1회:
 ```bash
@@ -254,12 +274,12 @@ tmux 안에서 플러그인 설치:
 
 dmux 설치:
 ```bash
-mise use -g npm:dmux@latest
+mise use -g npm:dmux@5.2.0
 ```
 
 difftastic 설치:
 ```bash
-mise use -g difftastic@latest
+mise use -g difftastic@0.67.0
 ```
 
 git에서 구조 diff 사용:
@@ -329,6 +349,7 @@ cd ~/repo-b && dmux
 - (선택) Markdown/TypeScript 사용 시:
   - `marksman`
   - `typescript-language-server`
+  - `tsc`
 - `yazi` (팝업 단축키 `prefix + y` 사용 시)
 - `dmux` (dmux 워크플로우 사용 시)
 - `difft` (`git dft` alias 사용 시)
@@ -372,6 +393,6 @@ cd ~/repo-b && dmux
   - `command -v hx`, `command -v lazygit`, `command -v yazi` 확인
   - 누락된 도구가 있으면 `mise install` 또는 해당 도구를 설치
 - `git dft`에서 `external diff died` 또는 `difft: not found`:
-  - `mise use -g difftastic@latest` 실행
+  - `mise use -g difftastic@0.67.0` 실행
   - `command -v dot-difft` / `command -v dot-difft-pager` 확인
   - symlink 확인: `readlink -f ~/.local/bin/dot-difft`

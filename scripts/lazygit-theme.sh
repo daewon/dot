@@ -35,8 +35,11 @@ EOF
 }
 
 themes() {
-  find "$THEMES_DIR" -maxdepth 1 -type f -name '*.yml' -printf '%f\n' \
-    | sed 's/\.yml$//' | sort
+  local file=""
+  for file in "$THEMES_DIR"/*.yml; do
+    [ -e "$file" ] || continue
+    basename "$file" .yml
+  done | sort
 }
 
 detect_theme_from_config() {

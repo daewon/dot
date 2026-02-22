@@ -8,18 +8,21 @@ source "$REPO_ROOT/scripts/lib/toolset.sh"
 # shellcheck source=scripts/lib/scriptlib.sh
 source "$REPO_ROOT/scripts/lib/scriptlib.sh"
 
-TOTAL_STEPS=7
+TOTAL_STEPS=8
 STEP=0
 FAILED_STEP=0
 
-SETUP_ONLY_LOOPS="${SETUP_ONLY_LOOPS:-3}"
-CYCLE_LOOPS="${CYCLE_LOOPS:-3}"
-RUN_DEFAULT_SETUP="${RUN_DEFAULT_SETUP:-1}" # 1 or 0
-DEFAULT_SETUP_LOOPS="${DEFAULT_SETUP_LOOPS:-1}"
-RESTORE_AT_END="${RESTORE_AT_END:-1}"       # 1 or 0
+VERIFY_PROFILE="${VERIFY_PROFILE:-full}" # fast | full | stress
+SETUP_ONLY_LOOPS="${SETUP_ONLY_LOOPS:-}"
+CYCLE_LOOPS="${CYCLE_LOOPS:-}"
+RUN_DEFAULT_SETUP="${RUN_DEFAULT_SETUP:-}" # 1 or 0
+DEFAULT_SETUP_LOOPS="${DEFAULT_SETUP_LOOPS:-}"
+RESTORE_AT_END="${RESTORE_AT_END:-}" # 1 or 0
 
 LOG_DIR="${TMPDIR:-/tmp}/dot-verify-$(date +%Y%m%d-%H%M%S)"
 MANIFEST_FILE="$(dot_setup_manifest_file)"
+MANIFEST_VERSION="1"
+CONTRACT_TMP=""
 
 log() { printf '[verify] %s\n' "$*"; }
 step() {
@@ -35,20 +38,52 @@ usage() {
 Usage: ./verify.sh [options]
 
 Options:
-  --setup-only-loops N   Repeat setup(min profile) N times (default: 3)
-  --cycle-loops N        Repeat cleanup->setup cycle N times (default: 3)
+  --profile NAME         Verification profile: fast | full | stress (default: full)
+  --setup-only-loops N   Repeat setup(min profile) N times
+  --cycle-loops N        Repeat cleanup->setup cycle N times
   --skip-default-setup   Skip default-profile setup verification
-  --default-loops N      Repeat default-profile setup N times (default: 1)
+  --default-loops N      Repeat default-profile setup N times
   --no-restore           Skip final restore setup
   --help, -h             Show this help
 
 Environment flags (same meaning as options):
-  SETUP_ONLY_LOOPS=3
-  CYCLE_LOOPS=3
-  RUN_DEFAULT_SETUP=1
-  DEFAULT_SETUP_LOOPS=1
-  RESTORE_AT_END=1
+  VERIFY_PROFILE=full
+  SETUP_ONLY_LOOPS=<int>=profile default
+  CYCLE_LOOPS=<int>=profile default
+  RUN_DEFAULT_SETUP=0|1=profile default
+  DEFAULT_SETUP_LOOPS=<int>=profile default
+  RESTORE_AT_END=0|1=profile default
 EOF
+}
+
+apply_profile_defaults() {
+  case "$VERIFY_PROFILE" in
+    fast)
+      : "${SETUP_ONLY_LOOPS:=1}"
+      : "${CYCLE_LOOPS:=1}"
+      : "${RUN_DEFAULT_SETUP:=0}"
+      : "${DEFAULT_SETUP_LOOPS:=0}"
+      : "${RESTORE_AT_END:=1}"
+      ;;
+    full)
+      : "${SETUP_ONLY_LOOPS:=2}"
+      : "${CYCLE_LOOPS:=2}"
+      : "${RUN_DEFAULT_SETUP:=1}"
+      : "${DEFAULT_SETUP_LOOPS:=1}"
+      : "${RESTORE_AT_END:=1}"
+      ;;
+    stress)
+      : "${SETUP_ONLY_LOOPS:=4}"
+      : "${CYCLE_LOOPS:=4}"
+      : "${RUN_DEFAULT_SETUP:=1}"
+      : "${DEFAULT_SETUP_LOOPS:=2}"
+      : "${RESTORE_AT_END:=1}"
+      ;;
+    *)
+      err "invalid profile: $VERIFY_PROFILE (expected: fast|full|stress)"
+      exit 2
+      ;;
+  esac
 }
 
 on_error() {
@@ -57,6 +92,13 @@ on_error() {
   err "see logs in: $LOG_DIR"
 }
 trap on_error ERR
+
+cleanup_tmp_artifacts() {
+  if [ -n "${CONTRACT_TMP:-}" ] && [ -d "$CONTRACT_TMP" ]; then
+    rm -rf "$CONTRACT_TMP"
+  fi
+}
+trap cleanup_tmp_artifacts EXIT
 
 count_matches() {
   local pattern="$1"
@@ -98,6 +140,7 @@ count_backup_files() {
 }
 
 assert_setup_state() {
+  local include_optional="${1:-0}"
   local include_count=""
   local resolved_link=""
   local manifest_line=""
@@ -118,6 +161,8 @@ assert_setup_state() {
     [ "$resolved_link" = "$link_target" ] || { err "runcom symlink mismatch: $link_path -> $resolved_link (expected $link_target)"; return 1; }
   done < <(dot_print_prezto_runcom_symlink_entries "$HOME")
   [ -f "$MANIFEST_FILE" ] || { err "setup manifest missing: $MANIFEST_FILE"; return 1; }
+  manifest_line="version"$'\t'"$MANIFEST_VERSION"
+  grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest version mismatch"; return 1; }
   manifest_line="repo_root"$'\t'"$REPO_ROOT"
   grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest repo_root mismatch"; return 1; }
   while IFS=$'\t' read -r link_path link_target; do
@@ -139,8 +184,13 @@ assert_setup_state() {
   for cmd in "${DOT_REQUIRED_CLI_COMMANDS[@]}"; do
     tool_available "$cmd" || { err "command not found after setup: $cmd"; return 1; }
   done
+  if [ "$include_optional" = "1" ]; then
+    for cmd in "${DOT_OPTIONAL_CLI_COMMANDS[@]}"; do
+      tool_available "$cmd" || { err "optional command not found after default setup: $cmd"; return 1; }
+    done
+  fi
 
-  ok "state check passed (include=1, links aligned)"
+  ok "state check passed (include=1, links aligned, optional=${include_optional})"
 }
 
 run_with_log() {
@@ -161,6 +211,32 @@ run_with_log() {
   fi
 }
 
+run_expect_failure() {
+  local name="$1"
+  local expected_rc="$2"
+  local expected_pattern="$3"
+  shift 3
+  local logfile="$LOG_DIR/${name}.log"
+  local rc=0
+
+  if "$@" >"$logfile" 2>&1; then
+    rc=0
+  else
+    rc=$?
+  fi
+  if [ "$rc" != "$expected_rc" ]; then
+    err "${name}: expected rc=${expected_rc}, got rc=${rc} (log: $logfile)"
+    sed -n '1,160p' "$logfile" >&2 || true
+    return 1
+  fi
+  if [ -n "$expected_pattern" ] && ! grep -Fq "$expected_pattern" "$logfile"; then
+    err "${name}: expected pattern not found: $expected_pattern (log: $logfile)"
+    sed -n '1,160p' "$logfile" >&2 || true
+    return 1
+  fi
+  ok "${name}: expected failure observed (rc=${rc})"
+}
+
 run_setup_min() {
   run_with_log "$1" env INSTALL_OPTIONAL_TOOLS=0 INSTALL_TMUX_PLUGINS=0 SET_DEFAULT_SHELL=0 "$REPO_ROOT/setup.sh"
 }
@@ -175,6 +251,11 @@ run_cleanup() {
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
+    --profile)
+      [ "$#" -ge 2 ] || { err "missing value for --profile"; exit 2; }
+      VERIFY_PROFILE="$2"
+      shift
+      ;;
     --setup-only-loops)
       [ "$#" -ge 2 ] || { err "missing value for --setup-only-loops"; exit 2; }
       SETUP_ONLY_LOOPS="$2"
@@ -209,15 +290,16 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-for n in "$SETUP_ONLY_LOOPS" "$CYCLE_LOOPS" "$DEFAULT_SETUP_LOOPS"; do
-  if ! [[ "$n" =~ ^[0-9]+$ ]]; then
-    err "loop values must be non-negative integers"
-    exit 2
-  fi
+apply_profile_defaults
+for flag_name in RUN_DEFAULT_SETUP RESTORE_AT_END; do
+  dot_validate_bool_01 "$flag_name" "${!flag_name}" || exit 2
+done
+for flag_name in SETUP_ONLY_LOOPS CYCLE_LOOPS DEFAULT_SETUP_LOOPS; do
+  dot_validate_nonneg_int "$flag_name" "${!flag_name}" || exit 2
 done
 
 step "preflight"
-for cmd in bash git grep find wc seq; do
+for cmd in bash git grep find wc seq mktemp; do
   if ! dot_require_cmd "$cmd"; then
     err "required command not found: $cmd"
     exit 1
@@ -230,7 +312,7 @@ done
 mkdir -p "$LOG_DIR"
 ok "repo: $REPO_ROOT"
 ok "logs: $LOG_DIR"
-ok "config: setup_only=$SETUP_ONLY_LOOPS cycle=$CYCLE_LOOPS default=$RUN_DEFAULT_SETUP default_loops=$DEFAULT_SETUP_LOOPS restore=$RESTORE_AT_END"
+ok "config: profile=$VERIFY_PROFILE setup_only=$SETUP_ONLY_LOOPS cycle=$CYCLE_LOOPS default=$RUN_DEFAULT_SETUP default_loops=$DEFAULT_SETUP_LOOPS restore=$RESTORE_AT_END"
 
 step "syntax check"
 bash -n "$REPO_ROOT/setup.sh"
@@ -267,19 +349,59 @@ else
 fi
 ok "bash syntax valid"
 
+step "contract guardrails"
+CONTRACT_TMP="$(mktemp -d "${TMPDIR:-/tmp}/dot-verify-contract.XXXXXX")"
+mkdir -p "$CONTRACT_TMP/state-unknown/dot"
+cat >"$CONTRACT_TMP/state-unknown/dot/setup-manifest.v1.tsv" <<EOF
+version	1
+repo_root	$REPO_ROOT
+unknown_kind	/tmp/foo	bar
+EOF
+mkdir -p "$CONTRACT_TMP/state-version/dot"
+cat >"$CONTRACT_TMP/state-version/dot/setup-manifest.v1.tsv" <<EOF
+version	2
+repo_root	$REPO_ROOT
+EOF
+mkdir -p "$CONTRACT_TMP/state-malformed/dot"
+cat >"$CONTRACT_TMP/state-malformed/dot/setup-manifest.v1.tsv" <<EOF
+version	1
+repo_root	$REPO_ROOT
+symlink	/tmp/foo
+EOF
+run_expect_failure \
+  "setup-invalid-bool-flag" 2 "INSTALL_OPTIONAL_TOOLS must be 0 or 1" \
+  env INSTALL_OPTIONAL_TOOLS=2 "$REPO_ROOT/setup.sh" --dry-run
+run_expect_failure \
+  "cleanup-invalid-bool-flag" 2 "REMOVE_GLOBAL_TOOLS must be 0 or 1" \
+  env REMOVE_GLOBAL_TOOLS=2 "$REPO_ROOT/cleanup.sh" --dry-run
+run_expect_failure \
+  "cleanup-malformed-manifest-row" 1 "invalid setup manifest row" \
+  env XDG_STATE_HOME="$CONTRACT_TMP/state-malformed" "$REPO_ROOT/cleanup.sh" --dry-run
+run_expect_failure \
+  "cleanup-unknown-manifest-kind" 1 "unknown setup manifest entry" \
+  env XDG_STATE_HOME="$CONTRACT_TMP/state-unknown" "$REPO_ROOT/cleanup.sh" --dry-run
+run_with_log \
+  "cleanup-manifest-version-fallback" \
+  env XDG_STATE_HOME="$CONTRACT_TMP/state-version" "$REPO_ROOT/cleanup.sh" --dry-run
+grep -Fq "falling back to static cleanup targets" "$LOG_DIR/cleanup-manifest-version-fallback.log" \
+  || { err "cleanup-manifest-version-fallback: expected fallback message"; exit 1; }
+ok "cleanup-manifest-version-fallback: fallback path confirmed"
+cleanup_tmp_artifacts
+CONTRACT_TMP=""
+
 step "dry-run smoke"
 run_with_log "setup-dry-run" "$REPO_ROOT/setup.sh" --dry-run
 run_with_log "cleanup-dry-run" "$REPO_ROOT/cleanup.sh" --dry-run
 
 step "baseline setup(min profile)"
 run_setup_min "setup-baseline"
-assert_setup_state
+assert_setup_state 0
 
 step "setup-only idempotency"
 backup_before="$(count_backup_files)"
 for i in $(seq 1 "$SETUP_ONLY_LOOPS"); do
   run_setup_min "setup-only-${i}"
-  assert_setup_state
+  assert_setup_state 0
 done
 backup_after="$(count_backup_files)"
 if [ "$backup_before" = "$backup_after" ]; then
@@ -293,7 +415,7 @@ step "cleanup->setup cycle idempotency"
 for i in $(seq 1 "$CYCLE_LOOPS"); do
   run_cleanup "cycle-${i}-cleanup"
   run_setup_min "cycle-${i}-setup"
-  assert_setup_state
+  assert_setup_state 0
 done
 ok "cycle loops passed"
 
@@ -301,7 +423,7 @@ step "default profile setup check"
 if [ "$RUN_DEFAULT_SETUP" = "1" ]; then
   for i in $(seq 1 "$DEFAULT_SETUP_LOOPS"); do
     run_setup_default "setup-default-${i}"
-    assert_setup_state
+    assert_setup_state 1
   done
   ok "default profile setup passed"
 else
@@ -310,7 +432,7 @@ fi
 
 if [ "$RESTORE_AT_END" = "1" ]; then
   run_setup_min "final-restore"
-  assert_setup_state
+  assert_setup_state 0
   ok "final restore complete"
 else
   warn "final restore skipped by config"

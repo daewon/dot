@@ -31,6 +31,8 @@
 - `DOT_REQUIRED_MISE_TOOLS`: always installed by setup.
 - `DOT_OPTIONAL_MISE_TOOLS`: installed when `INSTALL_OPTIONAL_TOOLS=1`.
 - `DOT_REQUIRED_CLI_COMMANDS`: commands that `verify.sh` must find.
+- `DOT_OPTIONAL_CLI_COMMANDS`: optional-profile commands that `verify.sh` must find during default setup checks.
+- Version policy: use pinned tool versions (avoid `latest` in managed contracts).
 - `dot_print_repo_symlink_entries <repo_root>`: canonical managed repo symlink list.
 - `dot_print_prezto_runcom_symlink_entries [home_dir]`: canonical Prezto runcom symlink list.
 - `dot_print_managed_git_clones [home_dir]`: canonical managed clone list.
@@ -38,11 +40,11 @@
 Consumers:
 - `setup.sh` installs required/optional sets.
 - `cleanup.sh` removes matching global entries when `REMOVE_GLOBAL_TOOLS=1`.
-- `verify.sh` checks command availability from the same source list.
+- `verify.sh` checks required commands for minimal profile loops and required+optional commands for default-profile loops.
 
 ### Setup Manifest Contract
 Path:
-- `~/.local/state/dot/setup-manifest.v1.tsv`
+- `${XDG_STATE_HOME:-$HOME/.local/state}/dot/setup-manifest.v1.tsv`
 
 Header rows:
 - `version\t1`
@@ -57,20 +59,22 @@ Entry kinds:
 This manifest is the authoritative record of what setup manages.
 
 ## Setup Lifecycle
-1. Preflight checks (`git`, `mise`, shell helpers).
+1. Parse and validate runtime flags (`0|1` booleans), then preflight checks (`git`, `mise`, shell helpers).
 2. `mise trust` and `mise install` from `mise.toml`.
 3. Install required global tools, then optional tools.
 4. Ensure `zsh` exists and bootstrap Prezto.
 5. Link managed runcoms, write managed `~/.zshrc` wrapper.
 6. Link repo-managed dotfiles and helper wrappers.
 7. Normalize `git include.path` to exactly one entry.
-8. Bootstrap TPM and install tmux plugins (configurable).
+8. Ensure TPM path exists, bootstrap TPM, and install tmux plugins (configurable).
 9. Write setup manifest last, after managed state is converged.
 
 ## Cleanup Lifecycle
 1. Preflight checks.
 2. Manifest mode:
-  - if manifest exists and `repo_root` matches current `REPO_ROOT`, remove by manifest entries.
+  - if manifest exists and `version`/`repo_root` match current contract, validate manifest entry kinds first.
+  - only after validation passes, remove by manifest entries.
+  - unknown manifest entry kinds are treated as contract violations (fail-fast, before deletion).
 3. Fallback mode:
   - if manifest is missing/mismatched, remove by static managed-target rules.
 4. Remove `git include.path` entry.
@@ -84,19 +88,27 @@ Safety rules:
 
 ## Verify Lifecycle
 `verify.sh` is the reproducibility proof script:
-1. Syntax check for setup/cleanup/verify scripts.
-2. Static shell analysis via `shellcheck` when available.
-3. Dry-run smoke tests.
-4. Baseline setup and state assertions.
-5. Setup-only loops to detect backup growth regressions.
-6. Cleanup->setup loop cycles for idempotency.
-7. Optional default-profile loops.
-8. Final restore.
+1. Parse and validate loop/flag inputs (non-negative loop counts, `0|1` booleans).
+   - profile presets: `fast`, `full`, `stress` (overridable by explicit flags/env)
+2. Syntax check for setup/cleanup/verify scripts.
+3. Contract guardrail checks (invalid flags and manifest contract violations/fallback paths).
+4. Static shell analysis via `shellcheck` when available.
+5. Dry-run smoke tests.
+6. Baseline setup and state assertions.
+7. Setup-only loops to detect backup growth regressions.
+8. Cleanup->setup loop cycles for idempotency.
+9. Optional default-profile loops.
+10. Final restore.
+
+CI profile mapping:
+- PR/push: `actionlint` + `verify --profile fast`
+- schedule/manual: `actionlint` + `verify --profile full`
 
 State assertions include:
 - Canonical symlink targets.
 - Unique `git include.path` entry.
 - Required CLI command availability.
+- Optional CLI command availability in default-profile checks.
 - Manifest existence and required entries.
 
 ## Idempotency Guarantees

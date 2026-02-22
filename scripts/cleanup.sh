@@ -18,6 +18,7 @@ FORCE_REMOVE_ZSHRC="${FORCE_REMOVE_ZSHRC:-0}"   # 1 or 0
 MANIFEST_FILE="$(dot_setup_manifest_file)"
 MANIFEST_DIR="$(dirname "$MANIFEST_FILE")"
 MANIFEST_USED=0
+MANIFEST_VERSION="1"
 
 step() {
   STEP=$((STEP + 1))
@@ -129,7 +130,17 @@ remove_if_git_clone_origin() {
 
 manifest_repo_matches() {
   local manifest_repo=""
+  local manifest_version=""
   [ -f "$MANIFEST_FILE" ] || return 1
+  manifest_version="$(awk -F '\t' '$1=="version" { print $2; exit }' "$MANIFEST_FILE" 2>/dev/null || true)"
+  if [ -z "$manifest_version" ]; then
+    warn "setup manifest missing version header: $MANIFEST_FILE"
+    return 1
+  fi
+  if [ "$manifest_version" != "$MANIFEST_VERSION" ]; then
+    warn "setup manifest version mismatch (manifest=$manifest_version, expected=$MANIFEST_VERSION)"
+    return 1
+  fi
   manifest_repo="$(awk -F '\t' '$1=="repo_root" { print $2; exit }' "$MANIFEST_FILE" 2>/dev/null || true)"
   if [ -z "$manifest_repo" ]; then
     warn "setup manifest missing repo_root header: $MANIFEST_FILE"
@@ -140,6 +151,43 @@ manifest_repo_matches() {
     return 1
   fi
   return 0
+}
+
+manifest_validate_schema() {
+  local kind=""
+  local path=""
+  local meta=""
+  local extra=""
+  local line_no=0
+  while IFS=$'\t' read -r kind path meta extra; do
+    line_no=$((line_no + 1))
+    case "$kind" in
+      "")
+        ;;
+      version|repo_root)
+        if [ -z "$path" ] || [ -n "$meta" ] || [ -n "$extra" ]; then
+          err "invalid setup manifest row at line $line_no for '$kind'"
+          return 1
+        fi
+        ;;
+      symlink|managed_file_contains|git_clone_origin)
+        if [ -z "$path" ] || [ -z "$meta" ] || [ -n "$extra" ]; then
+          err "invalid setup manifest row at line $line_no for '$kind'"
+          return 1
+        fi
+        ;;
+      git_include_path)
+        if [ -z "$path" ] || [ -n "$meta" ] || [ -n "$extra" ]; then
+          err "invalid setup manifest row at line $line_no for '$kind'"
+          return 1
+        fi
+        ;;
+      *)
+        err "unknown setup manifest entry: $kind"
+        return 1
+        ;;
+    esac
+  done <"$MANIFEST_FILE"
 }
 
 remove_static_managed_artifacts() {
@@ -199,7 +247,8 @@ remove_from_manifest() {
         # Removed in a dedicated step for consistency with previous cleanup behavior.
         ;;
       *)
-        warn "unknown setup manifest entry: $kind"
+        err "unknown setup manifest entry: $kind"
+        return 1
         ;;
     esac
   done <"$MANIFEST_FILE"
@@ -238,6 +287,10 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
+for flag_name in DRY_RUN REMOVE_GLOBAL_TOOLS FORCE_REMOVE_ZSHRC; do
+  dot_validate_bool_01 "$flag_name" "${!flag_name}" || exit 2
+done
+
 step "preflight"
 if ! dot_require_cmd git; then
   err "required command not found: git"
@@ -254,6 +307,7 @@ fi
 
 step "remove zsh/tmux/dotfile artifacts"
 if manifest_repo_matches; then
+  manifest_validate_schema
   remove_from_manifest
   MANIFEST_USED=1
 else

@@ -26,7 +26,7 @@ fi
 
 difft_bin="$(resolve_difft_bin)"
 if [[ -z "${difft_bin:-}" ]]; then
-  echo "[error] difft not found. install with: mise use -g difftastic@latest" >&2
+  echo "[error] difft not found. install with: mise use -g difftastic@0.67.0" >&2
   exit 127
 fi
 

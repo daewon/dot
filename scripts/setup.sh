@@ -147,6 +147,10 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
+for flag_name in INSTALL_OPTIONAL_TOOLS INSTALL_TMUX_PLUGINS SET_DEFAULT_SHELL DRY_RUN; do
+  dot_validate_bool_01 "$flag_name" "${!flag_name}" || exit 2
+done
+
 step "preflight"
 if ! dot_require_cmd git; then
   err "required command not found: git"
@@ -294,6 +298,7 @@ else
 fi
 manifest_add_entry "git_include_path" "$REPO_ROOT/config/gitconfig.shared"
 if [ ! -x "$HOME/.tmux/plugins/tpm/tpm" ]; then
+  run mkdir -p "$HOME/.tmux/plugins"
   run git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
 fi
 while IFS=$'\t' read -r clone_path clone_origin; do

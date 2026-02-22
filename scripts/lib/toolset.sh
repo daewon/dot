@@ -3,28 +3,28 @@
 # shellcheck disable=SC2034
 
 DOT_REQUIRED_MISE_TOOLS=(
-  fzf@latest
-  rg@latest
-  fd@latest
-  bat@latest
-  jq@latest
-  yq@latest
-  shellcheck@latest
-  black@latest
-  ruff@latest
-  npm:pyright@latest
-  npm:vscode-langservers-extracted@latest
-  npm:yaml-language-server@latest
-  npm:prettier@latest
+  fzf@0.68.0
+  rg@15.1.0
+  fd@10.3.0
+  bat@0.26.1
+  jq@1.8.1
+  yq@4.52.4
+  shellcheck@0.11.0
+  black@26.1.0
+  ruff@0.15.2
+  npm:pyright@1.1.408
+  npm:vscode-langservers-extracted@4.10.0
+  npm:yaml-language-server@1.20.0
+  npm:prettier@3.8.1
 )
 
 DOT_OPTIONAL_MISE_TOOLS=(
-  marksman@latest
-  yazi@latest
-  difftastic@latest
-  npm:typescript-language-server@latest
-  npm:typescript@latest
-  npm:dmux@latest
+  marksman@2026-02-08
+  yazi@26.1.22
+  difftastic@0.67.0
+  npm:typescript-language-server@5.1.3
+  npm:typescript@5.9.3
+  npm:dmux@5.2.0
 )
 
 DOT_REQUIRED_CLI_COMMANDS=(
@@ -35,6 +35,15 @@ DOT_REQUIRED_CLI_COMMANDS=(
   jq
   yq
   shellcheck
+)
+
+DOT_OPTIONAL_CLI_COMMANDS=(
+  marksman
+  yazi
+  difft
+  typescript-language-server
+  tsc
+  dmux
 )
 
 DOT_PREZTO_RUNCOMS=(
