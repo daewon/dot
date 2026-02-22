@@ -338,6 +338,16 @@ if [ "$REMOVE_GLOBAL_TOOLS" = "1" ]; then
   for tool in "${DOT_REQUIRED_MISE_TOOLS[@]}" "${DOT_OPTIONAL_MISE_TOOLS[@]}"; do
     run mise use -g --remove "$(dot_strip_tool_version "$tool")" || true
   done
+  if [ -e "$HOME/.local/bin/metals" ] || [ -L "$HOME/.local/bin/metals" ]; then
+    run rm -f "$HOME/.local/bin/metals"
+    if [ "$DRY_RUN" = "1" ]; then
+      ok "would remove coursier-installed metals launcher"
+    else
+      ok "removed coursier-installed metals launcher"
+    fi
+  else
+    warn "metals launcher already absent: $HOME/.local/bin/metals"
+  fi
   if [ "$DRY_RUN" = "1" ]; then
     ok "would remove global mise tool entries added by setup"
   else
@@ -360,6 +370,7 @@ for p in \
   "$HOME/.local/bin/dot-difft" \
   "$HOME/.local/bin/dot-difft-pager" \
   "$HOME/.local/bin/dot-lazygit-theme" \
+  "$HOME/.local/bin/metals" \
   "$HOME/.zshrc" \
   "$MANIFEST_FILE"; do
   if [ -e "$p" ] || [ -L "$p" ]; then

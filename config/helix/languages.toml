@@ -28,21 +28,50 @@ args = [
 command = "vscode-json-language-server"
 args = [ "--stdio" ]
 
-# Python 언어 설정 (pyright/ruff/black은 setup.sh + mise 기준)
+# Python 언어 설정 (선택 도구: setup.sh + mise 기준)
 [[language]]
 name = "python"
-language-servers = [ "pyright", "ruff" ]
+language-servers = [ "pyright" ]
 file-types = [ "py", "pyi", "pyw" ]
 shebangs = [ "python", "python3" ]
 indent = { tab-width = 4, unit = "    " }
 
 [language.formatter]
-command = "black"
-args = [ "-" ]
+command = "sh"
+args = [
+  "-c",
+  '''
+root="$PWD"
+while true; do
+  if [ -x "$root/.venv/bin/ruff" ]; then
+    exec "$root/.venv/bin/ruff" format --stdin-filename "${HELIX_FILENAME:-stdin.py}" -
+  fi
+  [ "$root" = "/" ] && break
+  root="$(dirname "$root")"
+done
+cat
+''',
+]
 
 [language-server.pyright]
-command = "pyright-langserver"
-args = [ "--stdio" ]
+command = "sh"
+args = [
+  "-c",
+  '''
+root="$PWD"
+while true; do
+  if [ -x "$root/.venv/bin/pyright-langserver" ]; then
+    exec "$root/.venv/bin/pyright-langserver" --stdio
+  fi
+  if [ -x "$root/.venv/bin/basedpyright-langserver" ]; then
+    exec "$root/.venv/bin/basedpyright-langserver" --stdio
+  fi
+  [ "$root" = "/" ] && break
+  root="$(dirname "$root")"
+done
+exec pyright-langserver --stdio
+''',
+]
 
 [language-server.pyright.config]
 [language-server.pyright.config.python]
@@ -51,10 +80,6 @@ autoImportCompletions = true
 typeCheckingMode = "basic"
 autoSearchPaths = true
 extraPaths = []
-
-[language-server.ruff]
-command = "ruff"
-args = [ "server" ]
 
 # Scala 언어 설정
 [[language]]

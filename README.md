@@ -22,9 +22,19 @@
 - `cleanup.sh`: setup가 관리한 항목만 안전하게 제거
 - `verify.sh`: 멱등성/재현성 검증
 
+## SSOT 원칙
+- 이 저장소(`dot`)가 단일 기준(Single Source of Truth)입니다.
+- 시스템 전역 설정(`~/.config/mise/config.toml` 등)은 `setup.sh` 실행 결과로만 파생되어야 하며 수동 편집을 권장하지 않습니다.
+- 설치 정책의 기준은 `scripts/lib/toolset.sh`(required/optional), 로컬 기본 툴체인은 `mise.toml`입니다.
+
+주요 개발 도구:
+- Helix LSP: Markdown(`marksman`), JSON(`vscode-json-language-server`), YAML(`yaml-language-server`)
+- Python/Scala 체인(선택 설치): Python(`uv 로컬 .venv 우선 + global pyright fallback`), Scala(`java 21` + `mill` + `coursier(cs)` + `metals`)
+
 ## 자주 쓰는 옵션
 - `./setup.sh --dry-run`
-- `INSTALL_OPTIONAL_TOOLS=0 ./setup.sh`
+- `INSTALL_OPTIONAL_TOOLS=1 ./setup.sh`
+- `INSTALL_OPTIONAL_TOOLS=0` (default)
 - `INSTALL_TMUX_PLUGINS=0 ./setup.sh`
 - `SET_DEFAULT_SHELL=1 ./setup.sh`
 - `./cleanup.sh --dry-run`

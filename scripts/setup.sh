@@ -12,7 +12,7 @@ TOTAL_STEPS=11
 STEP=0
 FAILED_STEP=0
 
-INSTALL_OPTIONAL_TOOLS="${INSTALL_OPTIONAL_TOOLS:-1}" # 1 or 0
+INSTALL_OPTIONAL_TOOLS="${INSTALL_OPTIONAL_TOOLS:-0}" # 1 or 0
 SET_DEFAULT_SHELL="${SET_DEFAULT_SHELL:-0}"           # 1 or 0
 INSTALL_TMUX_PLUGINS="${INSTALL_TMUX_PLUGINS:-1}"     # 1 or 0
 DRY_RUN="${DRY_RUN:-0}"                               # 1 or 0
@@ -52,7 +52,7 @@ Options:
   --help, -h     Show this help
 
 Env flags:
-  INSTALL_OPTIONAL_TOOLS=0|1   Install optional tools (default: 1)
+  INSTALL_OPTIONAL_TOOLS=0|1   Install optional tools (default: 0)
   INSTALL_TMUX_PLUGINS=0|1     Install tmux plugins with TPM (default: 1)
   SET_DEFAULT_SHELL=0|1        Try switching login shell to zsh (default: 0)
 EOF
@@ -225,6 +225,12 @@ ok "required global tools installed"
 step "install optional tools"
 if [ "$INSTALL_OPTIONAL_TOOLS" = "1" ]; then
   run mise use -g "${DOT_OPTIONAL_MISE_TOOLS[@]}"
+  if dot_require_cmd cs; then
+    run cs install --install-dir "$HOME/.local/bin" metals
+    ok "metals installed via coursier"
+  else
+    warn "coursier (cs) not found; skipped metals install"
+  fi
   ok "optional global tools installed"
 else
   warn "skipped optional tools (INSTALL_OPTIONAL_TOOLS=0)"

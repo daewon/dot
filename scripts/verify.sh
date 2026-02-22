@@ -268,7 +268,7 @@ run_setup_min() {
 }
 
 run_setup_default() {
-  run_with_log "$1" env SET_DEFAULT_SHELL=0 "$REPO_ROOT/setup.sh"
+  run_with_log "$1" env INSTALL_OPTIONAL_TOOLS=1 SET_DEFAULT_SHELL=0 "$REPO_ROOT/setup.sh"
 }
 
 run_cleanup() {
