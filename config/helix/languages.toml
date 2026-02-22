@@ -10,8 +10,7 @@ indent = { tab-width = 2, unit = "  " }
 command = "marksman"
 args = [ "server" ]
 
-# JSON 언어 설정
-# JSON LSP 설치: `npm i -g vscode-langservers-extracted`
+# JSON 언어 설정 (도구 설치는 setup.sh + mise 기준)
 [[language]]
 name = "json"
 language-servers = [ "vscode-json" ]
@@ -29,11 +28,7 @@ args = [
 command = "vscode-json-language-server"
 args = [ "--stdio" ]
 
-# Python 언어 설정
-# Python 도구 설치:
-# - pyright-langserver: `npm i -g pyright`
-# - ruff: `uv tool install ruff`
-# - black: `uv tool install black`
+# Python 언어 설정 (pyright/ruff/black은 setup.sh + mise 기준)
 [[language]]
 name = "python"
 language-servers = [ "pyright", "ruff" ]
@@ -75,9 +70,7 @@ indent = { tab-width = 2, unit = "  " }
 command = "metals"
 args = [ ]
 
-# TypeScript 언어 설정
-# 필요한 패키지 설치:
-# npm install -g typescript-language-server typescript
+# TypeScript 언어 설정 (optional 도구: setup.sh + mise 기준)
 [[language]]
 name = "typescript"
 scope = "source.ts"
@@ -91,8 +84,7 @@ language-servers = ["typescript-language-server"]
 command = "typescript-language-server"
 args = ["--stdio"]
 
-# YAML 언어 설정
-# YAML LSP 설치: `npm i -g yaml-language-server`
+# YAML 언어 설정 (도구 설치는 setup.sh + mise 기준)
 [[language]]
 name = "yaml"
 language-servers = [ "yaml-ls" ]

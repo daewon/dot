@@ -19,6 +19,7 @@ DRY_RUN="${DRY_RUN:-0}"                               # 1 or 0
 MANIFEST_FILE="$(dot_setup_manifest_file)"
 MANIFEST_DIR="$(dirname "$MANIFEST_FILE")"
 MANIFEST_VERSION="1"
+TS="$(date +%Y%m%d-%H%M%S)"
 declare -a MANIFEST_ENTRIES=()
 
 log() {
@@ -113,20 +114,67 @@ backup_if_unmanaged_path() {
     if dot_is_link_target "$path" "$expected_target"; then
       return
     fi
+    backup_path "$path" "$ts"
+    return
+  fi
+  if [ -e "$path" ]; then
+    backup_path "$path" "$ts"
+  fi
+}
+
+backup_path() {
+  local path="$1"
+  local ts="${2:-$TS}"
+  if [ -e "$path" ] || [ -L "$path" ]; then
     run mv "$path" "${path}.bak.${ts}"
     if [ "$DRY_RUN" = "1" ]; then
       ok "would back up $path -> ${path}.bak.${ts}"
     else
       ok "backed up $path -> ${path}.bak.${ts}"
     fi
-    return
   fi
-  if [ -e "$path" ]; then
-    run mv "$path" "${path}.bak.${ts}"
-    if [ "$DRY_RUN" = "1" ]; then
-      ok "would back up $path -> ${path}.bak.${ts}"
+}
+
+ensure_managed_clone() {
+  local clone_path="$1"
+  local clone_url="$2"
+  local origin_snippet="$3"
+  local label="$4"
+  local recursive="$5"
+  local required_path="${6:-}"
+  local origin=""
+  local needs_clone=1
+
+  if [ -d "$clone_path/.git" ]; then
+    origin="$(git -C "$clone_path" remote get-url origin 2>/dev/null || true)"
+    if printf '%s' "$origin" | grep -Fq "$origin_snippet"; then
+      if [ -n "$required_path" ] && [ ! -e "$clone_path/$required_path" ]; then
+        warn "$label looks incomplete ($required_path missing); backing up before re-clone"
+        backup_path "$clone_path"
+      else
+        ok "$label already present"
+        needs_clone=0
+      fi
     else
-      ok "backed up $path -> ${path}.bak.${ts}"
+      warn "$label origin mismatch: ${origin:-unknown}; backing up before re-clone"
+      backup_path "$clone_path"
+    fi
+  elif [ -e "$clone_path" ] || [ -L "$clone_path" ]; then
+    warn "$label path exists but is not a managed clone; backing up before clone"
+    backup_path "$clone_path"
+  fi
+
+  if [ "$needs_clone" = "1" ]; then
+    run mkdir -p "$(dirname "$clone_path")"
+    if [ "$recursive" = "1" ]; then
+      run git clone --recursive "$clone_url" "$clone_path"
+    else
+      run git clone "$clone_url" "$clone_path"
+    fi
+    if [ "$DRY_RUN" = "1" ]; then
+      ok "would clone $label"
+    else
+      ok "$label cloned"
     fi
   fi
 }
@@ -200,30 +248,15 @@ else
 fi
 
 step "install prezto"
-if [ -d "$HOME/.zprezto" ]; then
-  if [ -s "$HOME/.zprezto/init.zsh" ] && [ -d "$HOME/.zprezto/runcoms" ]; then
-    ok "$HOME/.zprezto already exists"
-  else
-    warn "$HOME/.zprezto looks incomplete; recloning"
-    run rm -rf "$HOME/.zprezto"
-    run git clone --recursive https://github.com/sorin-ionescu/prezto.git "$HOME/.zprezto"
-    if [ "$DRY_RUN" = "1" ]; then
-      ok "would re-clone prezto"
-    else
-      ok "prezto re-cloned"
-    fi
-  fi
-else
-  run git clone --recursive https://github.com/sorin-ionescu/prezto.git "$HOME/.zprezto"
-  if [ "$DRY_RUN" = "1" ]; then
-    ok "would clone prezto"
-  else
-    ok "prezto cloned"
-  fi
-fi
+ensure_managed_clone \
+  "$HOME/.zprezto" \
+  "https://github.com/sorin-ionescu/prezto.git" \
+  "sorin-ionescu/prezto" \
+  "prezto" \
+  "1" \
+  "init.zsh"
 
 step "link prezto runcoms and write ~/.zshrc wrapper"
-TS="$(date +%Y%m%d-%H%M%S)"
 while IFS=$'\t' read -r runcom_link runcom_target; do
   backup_if_unmanaged_path "$runcom_link" "$runcom_target" "$TS"
   run ln -sfn "$runcom_target" "$runcom_link"
@@ -297,10 +330,13 @@ else
   fi
 fi
 manifest_add_entry "git_include_path" "$REPO_ROOT/config/gitconfig.shared"
-if [ ! -x "$HOME/.tmux/plugins/tpm/tpm" ]; then
-  run mkdir -p "$HOME/.tmux/plugins"
-  run git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
-fi
+ensure_managed_clone \
+  "$HOME/.tmux/plugins/tpm" \
+  "https://github.com/tmux-plugins/tpm" \
+  "tmux-plugins/tpm" \
+  "tmux tpm" \
+  "0" \
+  "tpm"
 while IFS=$'\t' read -r clone_path clone_origin; do
   manifest_add_entry "git_clone_origin" "$clone_path" "$clone_origin"
 done < <(dot_print_managed_git_clones "$HOME")

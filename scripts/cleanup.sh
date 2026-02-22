@@ -58,6 +58,21 @@ run() {
   fi
 }
 
+remove_existing_path_forced() {
+  local path="$1"
+  local label="${2:-$path}"
+  if [ -e "$path" ] || [ -L "$path" ]; then
+    run rm -rf "$path"
+    if [ "$DRY_RUN" = "1" ]; then
+      ok "would remove $label (forced)"
+    else
+      ok "removed $label (forced)"
+    fi
+  else
+    warn "already missing: $path"
+  fi
+}
+
 remove_if_link_target() {
   local path="$1"
   local expected_target="$2"
@@ -198,16 +213,7 @@ remove_static_managed_artifacts() {
     remove_if_link_target "$runcom_link" "$runcom_target" "$runcom_link"
   done < <(dot_print_prezto_runcom_symlink_entries "$HOME")
   if [ "$FORCE_REMOVE_ZSHRC" = "1" ]; then
-    if [ -e "$HOME/.zshrc" ] || [ -L "$HOME/.zshrc" ]; then
-      run rm -rf "$HOME/.zshrc"
-      if [ "$DRY_RUN" = "1" ]; then
-        ok "would remove ~/.zshrc (forced)"
-      else
-        ok "removed ~/.zshrc (forced)"
-      fi
-    else
-      warn "already missing: $HOME/.zshrc"
-    fi
+    remove_existing_path_forced "$HOME/.zshrc"
   else
     remove_if_managed_file_contains "$HOME/.zshrc" "dot-setup managed zshrc" "$HOME/.zshrc"
   fi
@@ -226,16 +232,7 @@ remove_from_manifest() {
         ;;
       managed_file_contains)
         if [ "$FORCE_REMOVE_ZSHRC" = "1" ] && [ "$path" = "$HOME/.zshrc" ]; then
-          if [ -e "$path" ] || [ -L "$path" ]; then
-            run rm -rf "$path"
-            if [ "$DRY_RUN" = "1" ]; then
-              ok "would remove $path (forced)"
-            else
-              ok "removed $path (forced)"
-            fi
-          else
-            warn "already missing: $path"
-          fi
+          remove_existing_path_forced "$path"
         else
           remove_if_managed_file_contains "$path" "$meta" "$path"
         fi

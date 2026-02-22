@@ -24,6 +24,32 @@ MANIFEST_FILE="$(dot_setup_manifest_file)"
 MANIFEST_VERSION="1"
 CONTRACT_TMP=""
 
+VERIFY_REQUIRED_CMDS=(
+  bash
+  git
+  grep
+  find
+  wc
+  seq
+  mktemp
+  sed
+  awk
+)
+
+VERIFY_LINT_TARGETS=(
+  setup.sh
+  cleanup.sh
+  verify.sh
+  scripts/setup.sh
+  scripts/cleanup.sh
+  scripts/verify.sh
+  scripts/lib/toolset.sh
+  scripts/lib/scriptlib.sh
+  scripts/difft-external.sh
+  scripts/difft-pager.sh
+  scripts/lazygit-theme.sh
+)
+
 log() { printf '[verify] %s\n' "$*"; }
 step() {
   STEP=$((STEP + 1))
@@ -299,31 +325,24 @@ for flag_name in SETUP_ONLY_LOOPS CYCLE_LOOPS DEFAULT_SETUP_LOOPS; do
 done
 
 step "preflight"
-for cmd in bash git grep find wc seq mktemp; do
+for cmd in "${VERIFY_REQUIRED_CMDS[@]}"; do
   if ! dot_require_cmd "$cmd"; then
     err "required command not found: $cmd"
     exit 1
   fi
 done
-[ -x "$REPO_ROOT/setup.sh" ] || { err "setup.sh is not executable"; exit 1; }
-[ -x "$REPO_ROOT/cleanup.sh" ] || { err "cleanup.sh is not executable"; exit 1; }
-[ -x "$REPO_ROOT/scripts/setup.sh" ] || { err "scripts/setup.sh is not executable"; exit 1; }
-[ -x "$REPO_ROOT/scripts/cleanup.sh" ] || { err "scripts/cleanup.sh is not executable"; exit 1; }
+for file in setup.sh cleanup.sh scripts/setup.sh scripts/cleanup.sh; do
+  [ -x "$REPO_ROOT/$file" ] || { err "$file is not executable"; exit 1; }
+done
 mkdir -p "$LOG_DIR"
 ok "repo: $REPO_ROOT"
 ok "logs: $LOG_DIR"
 ok "config: profile=$VERIFY_PROFILE setup_only=$SETUP_ONLY_LOOPS cycle=$CYCLE_LOOPS default=$RUN_DEFAULT_SETUP default_loops=$DEFAULT_SETUP_LOOPS restore=$RESTORE_AT_END"
 
 step "syntax check"
-bash -n "$REPO_ROOT/setup.sh"
-bash -n "$REPO_ROOT/cleanup.sh"
-bash -n "$REPO_ROOT/verify.sh"
-bash -n "$REPO_ROOT/scripts/setup.sh"
-bash -n "$REPO_ROOT/scripts/cleanup.sh"
-bash -n "$REPO_ROOT/scripts/verify.sh"
-bash -n "$REPO_ROOT/scripts/difft-external.sh"
-bash -n "$REPO_ROOT/scripts/difft-pager.sh"
-bash -n "$REPO_ROOT/scripts/lazygit-theme.sh"
+for file in "${VERIFY_LINT_TARGETS[@]}"; do
+  bash -n "$REPO_ROOT/$file"
+done
 SHELLCHECK_BIN=""
 if dot_require_cmd shellcheck; then
   SHELLCHECK_BIN="$(command -v shellcheck)"
@@ -331,18 +350,11 @@ elif dot_require_cmd mise; then
   SHELLCHECK_BIN="$(mise which shellcheck 2>/dev/null || true)"
 fi
 if [ -n "${SHELLCHECK_BIN:-}" ]; then
-  "$SHELLCHECK_BIN" \
-    "$REPO_ROOT/setup.sh" \
-    "$REPO_ROOT/cleanup.sh" \
-    "$REPO_ROOT/verify.sh" \
-    "$REPO_ROOT/scripts/setup.sh" \
-    "$REPO_ROOT/scripts/cleanup.sh" \
-    "$REPO_ROOT/scripts/verify.sh" \
-    "$REPO_ROOT/scripts/lib/toolset.sh" \
-    "$REPO_ROOT/scripts/lib/scriptlib.sh" \
-    "$REPO_ROOT/scripts/difft-external.sh" \
-    "$REPO_ROOT/scripts/difft-pager.sh" \
-    "$REPO_ROOT/scripts/lazygit-theme.sh"
+  SHELLCHECK_TARGETS=()
+  for file in "${VERIFY_LINT_TARGETS[@]}"; do
+    SHELLCHECK_TARGETS+=("$REPO_ROOT/$file")
+  done
+  "$SHELLCHECK_BIN" "${SHELLCHECK_TARGETS[@]}"
   ok "shellcheck passed"
 else
   warn "shellcheck not found; skipped static shell analysis"
