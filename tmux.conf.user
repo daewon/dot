@@ -17,10 +17,16 @@ set -g visual-activity on
 set -g focus-events on
 
 # Terminal capability
+# Use tmux terminfo so TUI apps (e.g. lazygit) get the expected capabilities.
 set -g default-terminal "tmux-256color"
 set -as terminal-features ",tmux-256color:RGB,xterm-256color:RGB"
 set -g terminal-overrides 'xterm-256color*:smcup@:rmcup@'
 set -g set-clipboard on
+set-environment -g COLORTERM truecolor
+# Ensure color-disabled env vars from parent shells do not leak into tmux apps.
+set-environment -gu NO_COLOR
+set-environment -gu ANSI_COLORS_DISABLED
+set-environment -gu NODE_DISABLE_COLORS
 
 # OSC 52 passthrough (supported tmux versions only)
 if-shell "tmux show-options -gqv allow-passthrough >/dev/null 2>&1" {
@@ -140,7 +146,7 @@ if-shell "command -v hx >/dev/null 2>&1" {
 }
 
 if-shell "command -v lazygit >/dev/null 2>&1" {
-    bind g display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" "lazygit"
+    bind g display-popup -E -xC -yC -w 90% -h 90% -d "#{pane_current_path}" "env -u NO_COLOR -u ANSI_COLORS_DISABLED -u NODE_DISABLE_COLORS COLORTERM=truecolor lazygit -ucf \"$HOME/.config/lazygit/config.yml\""
 } {
     bind g display-message "lazygit not found. run: mise install"
 }

@@ -1,16 +1,30 @@
 # Shared zsh presets for this dot repo.
 # Source this file from ~/.zshrc (interactive shell).
 
-# Prevent double-loading.
-if [[ -n "${DOT_ZSH_SHARED_LOADED:-}" ]]; then
+# Prevent double-loading in the current shell only.
+# Do not export this guard; exported guards leak to child shells.
+if [[ -n "${__DOT_ZSH_SHARED_LOADED:-}" ]]; then
   return
 fi
-export DOT_ZSH_SHARED_LOADED=1
+typeset -g __DOT_ZSH_SHARED_LOADED=1
 
 # Keep PATH additions centralized and deduplicated.
 typeset -gU path
 path=("$HOME/.local/bin" "$HOME/bin" $path)
 export PATH
+typeset -g DOT_REPO_ROOT="${${(%):-%N}:A:h}"
+
+# Parent process sometimes sets no-color flags (e.g., NO_COLOR=1).
+# Unset them so interactive terminal apps (Helix, etc.) keep ANSI colors.
+if [[ -o interactive ]]; then
+  unset NO_COLOR
+  unset ANSI_COLORS_DISABLED
+  unset NODE_DISABLE_COLORS
+  # Some TUIs only enable 24-bit colors when COLORTERM=truecolor is set.
+  if [[ -z "${COLORTERM:-}" ]] && [[ "$TERM" == *256color* ]]; then
+    export COLORTERM=truecolor
+  fi
+fi
 
 # Activate mise for interactive shells when available.
 if [[ -o interactive ]] && command -v mise >/dev/null 2>&1; then
@@ -45,7 +59,24 @@ setopt HIST_FCNTL_LOCK
 
 # Quality-of-life aliases.
 alias ta='tmux attach'
+function lazygit() {
+  local lazygit_bin="${commands[lazygit]:-}"
+  if [[ -z "$lazygit_bin" ]]; then
+    lazygit_bin="$(whence -p lazygit 2>/dev/null || true)"
+  fi
+  if [[ -z "$lazygit_bin" ]]; then
+    echo "lazygit not found in PATH" >&2
+    return 127
+  fi
+  env -u NO_COLOR -u ANSI_COLORS_DISABLED -u NODE_DISABLE_COLORS \
+    COLORTERM=truecolor "$lazygit_bin" -ucf "$HOME/.config/lazygit/config.yml" "$@"
+}
 alias lg='lazygit'
+if command -v dot-lazygit-theme >/dev/null 2>&1; then
+  alias lgt='dot-lazygit-theme'
+elif [[ -n "${DOT_REPO_ROOT:-}" ]] && [[ -x "$DOT_REPO_ROOT/lazygit-theme.sh" ]]; then
+  alias lgt="$DOT_REPO_ROOT/lazygit-theme.sh"
+fi
 if command -v fdfind >/dev/null 2>&1; then
   alias fd='fdfind'
 elif command -v fd >/dev/null 2>&1; then

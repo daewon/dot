@@ -11,10 +11,17 @@
 ## 1) 현재 레포 구조 (현실 기준)
 - `tmux.conf.user`: tmux 핵심 설정
 - `helix/config.toml`, `helix/languages.toml`: Helix 설정
+- `lazygit/config.yml`, `lazygit/themes/*`: LazyGit 설정/테마
 - `mise.toml`: 도구 버전 선언
+- `toolset.sh`: setup/cleanup/verify 공통 도구 목록 단일 소스
+- `scriptlib.sh`: setup/cleanup/verify 공통 셸 유틸 함수
+- `docs/architecture.md`: 설치/복원/멱등성 아키텍처 문서
 - `SETUP.md`: 실제 온보딩/설치 문서
 - `zsh.shared.zsh`: zsh 공용 alias/history/prompt 설정
 - `gitconfig.shared`: git 공용 alias 설정
+- `setup.sh`, `cleanup.sh`, `verify.sh`: 설치/정리/멱등성 검증 진입점
+- `difft-external.sh`, `difft-pager.sh`: `git dft*` wrapper 구현
+- `lazygit-theme.sh`: LazyGit 테마 순환/적용 스크립트
 - `emacs`: Emacs 설정 파일 (디렉터리 아님)
 - `gemini.md`, `qwen.md`: `agents.md`로 연결된 심볼릭 링크(환경에 따라 없을 수 있음)
 
@@ -50,7 +57,8 @@ ls -la
 - tmux 작업이면: `tmux.conf.user` 우선 확인
 - Helix 작업이면: `helix/config.toml`, `helix/languages.toml` 우선 확인
 - 도구/버전 작업이면: `mise.toml`, `SETUP.md` 동시 확인
-- shell/git alias 작업이면: `zsh.shared.zsh`, `gitconfig.shared`, `SETUP.md` 동시 확인
+- shell/git alias 작업이면: `zsh.shared.zsh`, `gitconfig.shared`, `difft-*.sh`, `SETUP.md` 동시 확인
+- lazygit 테마 작업이면: `lazygit/config.yml`, `lazygit/themes/*`, `lazygit-theme.sh`, `SETUP.md` 동시 확인
 
 ## 3) 변경 원칙
 - 최소 변경: 요청 범위 밖 수정 금지
@@ -83,8 +91,11 @@ hx --health yaml
 
 ### 4.3 mise/설치 문서 (`mise.toml`, `SETUP.md`)
 - 도구 추가/버전 변경 시 `mise.toml`과 `SETUP.md`를 함께 수정합니다.
+- setup/cleanup/verify에서 쓰는 도구 목록은 `toolset.sh`를 기준으로 유지합니다.
+- 설치/복원 구조 변경 시 `docs/architecture.md`도 같이 갱신합니다.
 - "latest" 사용 시 재현성 저하를 문서에 명시합니다.
 - 설치/실행 명령은 복붙 가능한 형태로 유지합니다.
+- 경로 원칙: 레포 절대경로 하드코딩 대신 `REPO_ROOT` + symlink(`~/.local/bin/dot-*`) 구조를 유지합니다.
 - `.dmux/`, `.dmux-hooks/` 같은 실행 중 생성 디렉터리는 설정 소스가 아니므로 수정/커밋 대상으로 취급하지 않습니다.
 
 ### 4.4 Emacs (`emacs`)
@@ -95,6 +106,8 @@ hx --health yaml
 ```bash
 git status --short
 git diff -- <수정한 파일>
+bash -n setup.sh cleanup.sh verify.sh difft-external.sh difft-pager.sh lazygit-theme.sh
+mise x shellcheck@latest -- shellcheck setup.sh cleanup.sh verify.sh toolset.sh scriptlib.sh difft-external.sh difft-pager.sh lazygit-theme.sh
 ```
 
 보고 시 포함:

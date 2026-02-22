@@ -1,4 +1,4 @@
-theme = "darcula-solid"
+theme = "ayu_evolve"
 
 [keys.normal]
 D = "kill_to_line_end"

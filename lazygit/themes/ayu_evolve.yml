@@ -1,0 +1,24 @@
+gui:
+  theme:
+    activeBorderColor:
+      - "#FF8F40" # orange
+      - bold
+    inactiveBorderColor:
+      - "#5C6773" # gray
+    searchingActiveBorderColor:
+      - "#E6B450" # yellow
+      - bold
+    optionsTextColor:
+      - "#59C2FF" # blue
+    selectedLineBgColor:
+      - "#1B2330" # clearer contrast than near-black
+    selectedRangeBgColor:
+      - "#2D3640" # dark_gray
+    cherryPickedCommitFgColor:
+      - "#AAD94C" # green
+    markedBaseCommitFgColor:
+      - "#FF8732" # vibrant_orange
+    unstagedChangesColor:
+      - "#F07178" # red
+    defaultFgColor:
+      - "#BFBDB6" # ayu foreground

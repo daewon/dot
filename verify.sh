@@ -3,6 +3,10 @@ set -Eeuo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$REPO_ROOT"
+# shellcheck source=./toolset.sh
+source "$REPO_ROOT/toolset.sh"
+# shellcheck source=./scriptlib.sh
+source "$REPO_ROOT/scriptlib.sh"
 
 TOTAL_STEPS=7
 STEP=0
@@ -15,6 +19,7 @@ DEFAULT_SETUP_LOOPS="${DEFAULT_SETUP_LOOPS:-1}"
 RESTORE_AT_END="${RESTORE_AT_END:-1}"       # 1 or 0
 
 LOG_DIR="${TMPDIR:-/tmp}/dot-verify-$(date +%Y%m%d-%H%M%S)"
+MANIFEST_FILE="$(dot_setup_manifest_file)"
 
 log() { printf '[verify] %s\n' "$*"; }
 step() {
@@ -53,35 +58,6 @@ on_error() {
 }
 trap on_error ERR
 
-require_cmd() {
-  local cmd="$1"
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    err "required command not found: $cmd"
-    exit 1
-  fi
-}
-
-resolve_path() {
-  local p="$1"
-  local out=""
-  if command -v readlink >/dev/null 2>&1 && readlink -f "$REPO_ROOT" >/dev/null 2>&1; then
-    out="$(readlink -f "$p" 2>/dev/null || true)"
-    printf '%s' "${out:-missing}"
-    return
-  fi
-  if command -v realpath >/dev/null 2>&1; then
-    out="$(realpath "$p" 2>/dev/null || true)"
-    printf '%s' "${out:-missing}"
-    return
-  fi
-  if command -v perl >/dev/null 2>&1; then
-    out="$(perl -MCwd=abs_path -e 'my $p=shift; my $r=abs_path($p); print defined($r) ? $r : "missing";' "$p" 2>/dev/null || true)"
-    printf '%s' "${out:-missing}"
-    return
-  fi
-  printf 'missing'
-}
-
 count_matches() {
   local pattern="$1"
   local file="$2"
@@ -92,9 +68,20 @@ count_matches() {
 
 count_git_include() {
   local c=""
-  c="$(git config --global --get-all include.path 2>/dev/null | grep -Fx "$REPO_ROOT/gitconfig.shared" | wc -l || true)"
+  c="$(git config --global --get-all include.path 2>/dev/null | grep -Fxc "$REPO_ROOT/gitconfig.shared" || true)"
   c="$(printf '%s' "$c" | tr -d '[:space:]')"
   printf '%s' "${c:-0}"
+}
+
+tool_available() {
+  local cmd="$1"
+  if command -v "$cmd" >/dev/null 2>&1; then
+    return 0
+  fi
+  if command -v mise >/dev/null 2>&1 && mise which "$cmd" >/dev/null 2>&1; then
+    return 0
+  fi
+  return 1
 }
 
 count_backup_files() {
@@ -102,7 +89,9 @@ count_backup_files() {
   c="$(find "$HOME" -maxdepth 3 \
     \( -name '.zshrc.bak.*' -o -name '.tmux.conf.bak.*' -o -name '.zsh.shared.zsh.bak.*' \
        -o -name '.zlogin.bak.*' -o -name '.zlogout.bak.*' -o -name '.zprofile.bak.*' \
-       -o -name '.zshenv.bak.*' -o -name '.zpreztorc.bak.*' -o -name 'helix.bak.*' \) \
+       -o -name '.zshenv.bak.*' -o -name '.zpreztorc.bak.*' -o -name 'helix.bak.*' \
+       -o -name 'lazygit.bak.*' -o -name 'dot-difft.bak.*' -o -name 'dot-difft-pager.bak.*' \
+       -o -name 'dot-lazygit-theme.bak.*' \) \
     2>/dev/null | wc -l || true)"
   c="$(printf '%s' "$c" | tr -d '[:space:]')"
   printf '%s' "${c:-0}"
@@ -110,19 +99,46 @@ count_backup_files() {
 
 assert_setup_state() {
   local include_count=""
-  local helix_link=""
-  local tmux_link=""
-  local zsh_link=""
+  local resolved_link=""
+  local manifest_line=""
+  local link_path=""
+  local link_target=""
+  local clone_path=""
+  local clone_origin=""
+  local cmd=""
 
   include_count="$(count_git_include)"
-  helix_link="$(resolve_path "$HOME/.config/helix")"
-  tmux_link="$(resolve_path "$HOME/.tmux.conf")"
-  zsh_link="$(resolve_path "$HOME/.zsh.shared.zsh")"
-
   [ "$include_count" = "1" ] || { err "git include.path count expected 1, got: $include_count"; return 1; }
-  [ "$helix_link" = "$REPO_ROOT/helix" ] || { err "helix link mismatch: $helix_link"; return 1; }
-  [ "$tmux_link" = "$REPO_ROOT/tmux.conf.user" ] || { err "tmux link mismatch: $tmux_link"; return 1; }
-  [ "$zsh_link" = "$REPO_ROOT/zsh.shared.zsh" ] || { err "zsh shared link mismatch: $zsh_link"; return 1; }
+  while IFS=$'\t' read -r link_path link_target; do
+    resolved_link="$(dot_resolve_path "$link_path")"
+    [ "$resolved_link" = "$link_target" ] || { err "symlink mismatch: $link_path -> $resolved_link (expected $link_target)"; return 1; }
+  done < <(dot_print_repo_symlink_entries "$REPO_ROOT")
+  while IFS=$'\t' read -r link_path link_target; do
+    resolved_link="$(dot_resolve_path "$link_path")"
+    [ "$resolved_link" = "$link_target" ] || { err "runcom symlink mismatch: $link_path -> $resolved_link (expected $link_target)"; return 1; }
+  done < <(dot_print_prezto_runcom_symlink_entries "$HOME")
+  [ -f "$MANIFEST_FILE" ] || { err "setup manifest missing: $MANIFEST_FILE"; return 1; }
+  manifest_line="repo_root"$'\t'"$REPO_ROOT"
+  grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest repo_root mismatch"; return 1; }
+  while IFS=$'\t' read -r link_path link_target; do
+    manifest_line="symlink"$'\t'"$link_path"$'\t'"$link_target"
+    grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest missing symlink entry: $link_path"; return 1; }
+  done < <(dot_print_repo_symlink_entries "$REPO_ROOT")
+  while IFS=$'\t' read -r link_path link_target; do
+    manifest_line="symlink"$'\t'"$link_path"$'\t'"$link_target"
+    grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest missing runcom entry: $link_path"; return 1; }
+  done < <(dot_print_prezto_runcom_symlink_entries "$HOME")
+  manifest_line="managed_file_contains"$'\t'"$HOME/.zshrc"$'\t'"dot-setup managed zshrc"
+  grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest missing zshrc marker entry"; return 1; }
+  while IFS=$'\t' read -r clone_path clone_origin; do
+    manifest_line="git_clone_origin"$'\t'"$clone_path"$'\t'"$clone_origin"
+    grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest missing clone entry: $clone_path"; return 1; }
+  done < <(dot_print_managed_git_clones "$HOME")
+  manifest_line="git_include_path"$'\t'"$REPO_ROOT/gitconfig.shared"
+  grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest missing git include entry"; return 1; }
+  for cmd in "${DOT_REQUIRED_CLI_COMMANDS[@]}"; do
+    tool_available "$cmd" || { err "command not found after setup: $cmd"; return 1; }
+  done
 
   ok "state check passed (include=1, links aligned)"
 }
@@ -201,11 +217,12 @@ for n in "$SETUP_ONLY_LOOPS" "$CYCLE_LOOPS" "$DEFAULT_SETUP_LOOPS"; do
 done
 
 step "preflight"
-require_cmd bash
-require_cmd git
-require_cmd grep
-require_cmd find
-require_cmd wc
+for cmd in bash git grep find wc seq; do
+  if ! dot_require_cmd "$cmd"; then
+    err "required command not found: $cmd"
+    exit 1
+  fi
+done
 [ -x "$REPO_ROOT/setup.sh" ] || { err "setup.sh is not executable"; exit 1; }
 [ -x "$REPO_ROOT/cleanup.sh" ] || { err "cleanup.sh is not executable"; exit 1; }
 mkdir -p "$LOG_DIR"
@@ -217,6 +234,26 @@ step "syntax check"
 bash -n "$REPO_ROOT/setup.sh"
 bash -n "$REPO_ROOT/cleanup.sh"
 bash -n "$REPO_ROOT/verify.sh"
+SHELLCHECK_BIN=""
+if dot_require_cmd shellcheck; then
+  SHELLCHECK_BIN="$(command -v shellcheck)"
+elif dot_require_cmd mise; then
+  SHELLCHECK_BIN="$(mise which shellcheck 2>/dev/null || true)"
+fi
+if [ -n "${SHELLCHECK_BIN:-}" ]; then
+  "$SHELLCHECK_BIN" \
+    "$REPO_ROOT/setup.sh" \
+    "$REPO_ROOT/cleanup.sh" \
+    "$REPO_ROOT/verify.sh" \
+    "$REPO_ROOT/toolset.sh" \
+    "$REPO_ROOT/scriptlib.sh" \
+    "$REPO_ROOT/difft-external.sh" \
+    "$REPO_ROOT/difft-pager.sh" \
+    "$REPO_ROOT/lazygit-theme.sh"
+  ok "shellcheck passed"
+else
+  warn "shellcheck not found; skipped static shell analysis"
+fi
 ok "bash syntax valid"
 
 step "dry-run smoke"
@@ -270,8 +307,13 @@ fi
 
 log "summary"
 printf '  include.path count: %s\n' "$(count_git_include)"
-printf '  helix link        : %s\n' "$(resolve_path "$HOME/.config/helix")"
-printf '  tmux link         : %s\n' "$(resolve_path "$HOME/.tmux.conf")"
-printf '  zsh shared link   : %s\n' "$(resolve_path "$HOME/.zsh.shared.zsh")"
+printf '  helix link        : %s\n' "$(dot_resolve_path "$HOME/.config/helix")"
+printf '  lazygit link      : %s\n' "$(dot_resolve_path "$HOME/.config/lazygit")"
+printf '  tmux link         : %s\n' "$(dot_resolve_path "$HOME/.tmux.conf")"
+printf '  zsh shared link   : %s\n' "$(dot_resolve_path "$HOME/.zsh.shared.zsh")"
+printf '  dot-difft link    : %s\n' "$(dot_resolve_path "$HOME/.local/bin/dot-difft")"
+printf '  dot-difft-pager   : %s\n' "$(dot_resolve_path "$HOME/.local/bin/dot-difft-pager")"
+printf '  dot-lazygit-theme : %s\n' "$(dot_resolve_path "$HOME/.local/bin/dot-lazygit-theme")"
+printf '  setup manifest    : %s\n' "$MANIFEST_FILE"
 printf '  logs              : %s\n' "$LOG_DIR"
 ok "verification completed"

@@ -1,0 +1,24 @@
+gui:
+  theme:
+    activeBorderColor:
+      - "#5BC8AF" # teal_2
+      - bold
+    inactiveBorderColor:
+      - "#4F4F4F"
+    searchingActiveBorderColor:
+      - "#F8E45C"
+      - bold
+    optionsTextColor:
+      - "#C061CB"
+    selectedLineBgColor:
+      - "#303030" # libadwaita_dark_alt
+    selectedRangeBgColor:
+      - "#3D3846" # dark_4
+    cherryPickedCommitFgColor:
+      - "#33D17A"
+    markedBaseCommitFgColor:
+      - "#FFA348"
+    unstagedChangesColor:
+      - "#ED333B" # red_2
+    defaultFgColor:
+      - "#DEDDDA"

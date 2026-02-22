@@ -4,3 +4,35 @@
   lg = log --oneline --graph --all
   last = log -1 HEAD
   st = status -sb
+  dft = -c diff.external=dot-difft -c pager.diff=true -c core.pager=dot-difft-pager diff
+  dftc = -c diff.external=dot-difft -c pager.diff=true -c core.pager=dot-difft-pager diff --cached
+  dfts = -c diff.external=dot-difft -c pager.show=true -c core.pager=dot-difft-pager show
+  dftw = -c diff.external=dot-difft -c pager.diff=true -c core.pager='dot-difft-pager --wrap' diff
+
+[color]
+  ui = auto
+
+[color "branch"]
+  current = "#ffb86c bold"
+  local = "#8be9fd"
+  remote = "#50fa7b"
+
+[color "diff"]
+  meta = "#6272a4"
+  frag = "#bd93f9 bold"
+  commit = "#ffb86c bold"
+  old = "#ff6b6b"
+  new = "#50fa7b"
+  whitespace = "#ff5555 reverse"
+
+[color "status"]
+  branch = "#bd93f9 bold"
+  added = "#50fa7b"
+  changed = "#ffb86c"
+  untracked = "#8be9fd"
+
+[difftool]
+  prompt = false
+
+[difftool "difftastic"]
+  cmd = dot-difft "$LOCAL" "$REMOTE"

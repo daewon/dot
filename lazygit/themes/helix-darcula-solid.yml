@@ -1,0 +1,24 @@
+gui:
+  theme:
+    activeBorderColor:
+      - "#6897bb" # lightblue (Helix darcula)
+      - bold
+    inactiveBorderColor:
+      - "#555555" # grey03 (darcula-solid)
+    searchingActiveBorderColor:
+      - "#eedd82" # yellow
+      - bold
+    optionsTextColor:
+      - "#9876aa" # purple
+    selectedLineBgColor:
+      - "#323232" # grey02 (darcula-solid)
+    selectedRangeBgColor:
+      - "#3a3a3a"
+    cherryPickedCommitFgColor:
+      - "#32cd32" # green
+    markedBaseCommitFgColor:
+      - "#eedd82" # yellow
+    unstagedChangesColor:
+      - "#ff6b68"
+    defaultFgColor:
+      - "#d8d8d8" # grey05

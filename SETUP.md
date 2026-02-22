@@ -10,7 +10,8 @@
   - Homebrew `zsh` 사용 시 필요하면 `/etc/shells` 등록 후 `chsh` 적용
 
 ## 빠른 시작 (권장 순서)
-저장소 루트(`/path/to/dot`)에서 아래 순서대로 실행하면 기본 환경이 올라옵니다.
+저장소 루트(`/path/to/dot`, 보통 `~/dot`)에서 아래 순서대로 실행하면 기본 환경이 올라옵니다.
+`setup.sh`는 실행 위치를 `REPO_ROOT`로 계산하므로 경로를 하드코딩하지 않습니다.
 
 원클릭 실행(단계별 진행 로그 출력):
 ```bash
@@ -19,9 +20,15 @@
 
 옵션:
 - `./setup.sh --dry-run`: 실제 변경 없이 실행 계획/체크
-- `INSTALL_OPTIONAL_TOOLS=0 ./setup.sh`: 선택 도구(markdown/ts/yazi/dmux) 스킵
+- `INSTALL_OPTIONAL_TOOLS=0 ./setup.sh`: 선택 도구(markdown/ts/yazi/dmux/difftastic) 스킵
 - `INSTALL_TMUX_PLUGINS=0 ./setup.sh`: TPM 플러그인 설치 스킵
 - `SET_DEFAULT_SHELL=1 ./setup.sh`: 마지막에 기본 셸 zsh 전환 시도
+
+도구 목록 단일 소스:
+- `toolset.sh`의 배열(`DOT_REQUIRED_MISE_TOOLS`, `DOT_OPTIONAL_MISE_TOOLS`, `DOT_REQUIRED_CLI_COMMANDS`)
+- `setup.sh`/`cleanup.sh`/`verify.sh`는 위 배열을 공통으로 참조
+- 공통 셸 유틸(`dot_require_cmd`, `dot_resolve_path`, `dot_is_link_target`)은 `scriptlib.sh`에서 공유
+- 아키텍처 상세: `docs/architecture.md`
 
 정리(삭제) 실행:
 ```bash
@@ -53,14 +60,14 @@
 mise trust
 mise install
 
-# 2) Helix/LSP/formatter 도구 설치 (mise, global)
-# uv/fzf는 1)에서 mise.toml 기준으로 설치됨
-mise use -g black@latest ruff@latest \
+# 2) CLI/Helix/LSP/formatter 도구 설치 (mise, global)
+# uv는 1)에서 mise.toml 기준으로 설치됨
+mise use -g fzf@latest rg@latest fd@latest bat@latest jq@latest yq@latest shellcheck@latest black@latest ruff@latest \
   npm:pyright@latest npm:vscode-langservers-extracted@latest \
   npm:yaml-language-server@latest npm:prettier@latest
 
-# 3) (선택) Markdown/TypeScript/yazi/dmux
-mise use -g marksman@latest yazi@latest \
+# 3) (선택) Markdown/TypeScript/yazi/dmux/difftastic
+mise use -g marksman@latest yazi@latest difftastic@latest \
   npm:typescript-language-server@latest npm:typescript@latest npm:dmux@latest
 
 # 4) zsh + zprezto 준비 (최초 1회)
@@ -98,14 +105,19 @@ EOF
 # 5) dotfiles 연결
 REPO_ROOT="$(pwd)"
 mkdir -p "$HOME/.config"
-for p in "$HOME/.config/helix" "$HOME/.tmux.conf" "$HOME/.zsh.shared.zsh"; do
+mkdir -p "$HOME/.local/bin"
+for p in "$HOME/.config/helix" "$HOME/.config/lazygit" "$HOME/.tmux.conf" "$HOME/.zsh.shared.zsh"; do
   if [ -e "$p" ] || [ -L "$p" ]; then
     mv "$p" "$p.bak.$(date +%Y%m%d-%H%M%S)"
   fi
 done
 ln -sfn "$REPO_ROOT/helix" "$HOME/.config/helix"
+ln -sfn "$REPO_ROOT/lazygit" "$HOME/.config/lazygit"
 ln -sfn "$REPO_ROOT/tmux.conf.user" "$HOME/.tmux.conf"
 ln -sfn "$REPO_ROOT/zsh.shared.zsh" "$HOME/.zsh.shared.zsh"
+ln -sfn "$REPO_ROOT/difft-external.sh" "$HOME/.local/bin/dot-difft"
+ln -sfn "$REPO_ROOT/difft-pager.sh" "$HOME/.local/bin/dot-difft-pager"
+ln -sfn "$REPO_ROOT/lazygit-theme.sh" "$HOME/.local/bin/dot-lazygit-theme"
 
 # 6) git 공용 설정 연결
 INCLUDE_COUNT="$(git config --global --get-all include.path | grep -Fx "$REPO_ROOT/gitconfig.shared" | wc -l | tr -d '[:space:]')"
@@ -144,7 +156,7 @@ mise install
 mise current
 ```
 
-`mise.toml`에 정의된 버전(`node`, `python`, `helix`, `tmux`, `lazygit`, `uv`, `fzf`)이 활성화되면 정상입니다.
+`mise.toml`에 정의된 버전(`node`, `python`, `helix`, `tmux`, `lazygit`, `uv`, `fzf`, `rg`, `fd`, `bat`, `jq`, `yq`, `shellcheck`)이 활성화되면 정상입니다.
 
 ## 2) zprezto + zsh 시작 파일 원칙
 전제:
@@ -193,9 +205,9 @@ git config --global --get-all include.path | grep -Fx "$REPO_ROOT/gitconfig.shar
 ```
 
 ## 3) Helix 도구 설치 (mise 기준)
-필수(Python/JSON/YAML):
+필수(CLI/Python/JSON/YAML):
 ```bash
-mise use -g black@latest ruff@latest \
+mise use -g fzf@latest rg@latest fd@latest bat@latest jq@latest yq@latest shellcheck@latest black@latest ruff@latest \
   npm:pyright@latest npm:vscode-langservers-extracted@latest \
   npm:yaml-language-server@latest npm:prettier@latest
 ```
@@ -206,9 +218,9 @@ mise use -g marksman@latest \
   npm:typescript-language-server@latest npm:typescript@latest
 ```
 
-선택(tmux popup 확장):
+선택(tmux popup 확장 + 구조 diff):
 ```bash
-mise use -g yazi@latest npm:dmux@latest
+mise use -g yazi@latest difftastic@latest npm:dmux@latest
 ```
 
 ## 4) tmux / dmux 운영 가이드
@@ -242,17 +254,54 @@ dmux 설치:
 mise use -g npm:dmux@latest
 ```
 
-dmux 실행 권장 방식:
-- 가장 안전: `tmux 밖`에서 `dmux` 실행 (프로젝트별 `dmux-*` 세션 분리)
+difftastic 설치:
+```bash
+mise use -g difftastic@latest
+```
+
+git에서 구조 diff 사용:
+```bash
+git dft            # working tree
+git dftc           # staged changes
+git dfts HEAD~1    # commit patch
+git dftw           # wrap 모드(긴 줄 줄바꿈)
+```
+구조 diff는 아래 wrapper를 통해 실행됩니다.
+- `dot-difft` -> `difft-external.sh`
+- `dot-difft-pager` -> `difft-pager.sh`
+- wrapper는 setup 시 `~/.local/bin`에 symlink로 배치됩니다.
+- `difft`가 PATH에 없어도 `mise which difft` fallback으로 실행되도록 구성되어 있습니다.
+
+dmux 실행 모드 정리:
+- 가장 안전: `tmux 밖`에서 `dmux` 실행
+  - dmux가 프로젝트별 `dmux-*` 세션을 자동 생성/attach
+- `tmux new -s <session>`로 먼저 들어간 뒤 `dmux` 실행도 가능
+  - 이 경우 `새 dmux 세션`을 만들지 않고 `현재 tmux 세션`에서 동작
 - 주의: 기존 non-dmux tmux 세션 안에서 실행하면 현재 레이아웃/워크플로우와 충돌 가능
+- 권장: 같은 프로젝트에서 dmux를 동시에 여러 인스턴스로 실행하지 않기 (`.dmux` 상태 파일 공유)
+
+여러 tmux 세션 + 프로젝트별 dmux 운영 예시:
+```bash
+tmux new -s proj-a
+cd ~/repo-a && dmux
+# detach: Ctrl+b d
+
+tmux new -s proj-b
+cd ~/repo-b && dmux
+```
 
 ## 5) 설정 파일 위치
 - Helix 언어 설정: `helix/languages.toml`
 - Helix 에디터 설정: `helix/config.toml`
+- LazyGit 설정: `lazygit/config.yml`
+- LazyGit 테마 관리 스크립트: `lazygit-theme.sh` (`dot-lazygit-theme`로 실행)
 - tmux 설정: `tmux.conf.user`
 - mise 버전 정의: `mise.toml`
+- 공용 도구 목록: `toolset.sh`
 - zsh 공용 설정: `zsh.shared.zsh`
 - git 공용 alias: `gitconfig.shared`
+- difftastic wrapper: `difft-external.sh`, `difft-pager.sh`
+- 아키텍처 문서: `docs/architecture.md`
 
 ## 6) 검증 체크리스트
 - `mise current`에 필요한 버전이 정확히 표시됨
@@ -263,17 +312,34 @@ dmux 실행 권장 방식:
   - `yaml-language-server`
   - `black`
   - `ruff`
-  - `prettier`
-  - `lazygit`
-  - `uv`
-  - `fzf`
+- `prettier`
+- `lazygit`
+- `uv`
+- `fzf`
+- `rg`
+- `fd`
+- `bat`
+- `jq`
+- `yq`
+- `shellcheck`
 - (선택) Markdown/TypeScript 사용 시:
   - `marksman`
   - `typescript-language-server`
 - `yazi` (팝업 단축키 `prefix + y` 사용 시)
 - `dmux` (dmux 워크플로우 사용 시)
+- `difft` (`git dft` alias 사용 시)
 - `~/.config/helix`가 이 저장소의 `helix`를 가리킴
   - `readlink -f ~/.config/helix`
+- `~/.config/lazygit`가 이 저장소의 `lazygit`를 가리킴
+  - `readlink -f ~/.config/lazygit`
+- `~/.local/bin/dot-difft`가 이 저장소의 `difft-external.sh`를 가리킴
+  - `readlink -f ~/.local/bin/dot-difft`
+- `~/.local/bin/dot-difft-pager`가 이 저장소의 `difft-pager.sh`를 가리킴
+  - `readlink -f ~/.local/bin/dot-difft-pager`
+- `~/.local/bin/dot-lazygit-theme`가 이 저장소의 `lazygit-theme.sh`를 가리킴
+  - `readlink -f ~/.local/bin/dot-lazygit-theme`
+- setup manifest 파일이 생성됨
+  - `${XDG_STATE_HOME:-$HOME/.local/state}/dot/setup-manifest.v1.tsv`
 - `tmux show -g set-clipboard` 결과가 `on`
 - `git co` / `git l`가 정상 동작
 
@@ -301,3 +367,7 @@ dmux 실행 권장 방식:
 - `prefix + h/g/y` 눌렀는데 바로 닫히거나 메시지가 뜸:
   - `command -v hx`, `command -v lazygit`, `command -v yazi` 확인
   - 누락된 도구가 있으면 `mise install` 또는 해당 도구를 설치
+- `git dft`에서 `external diff died` 또는 `difft: not found`:
+  - `mise use -g difftastic@latest` 실행
+  - `command -v dot-difft` / `command -v dot-difft-pager` 확인
+  - symlink 확인: `readlink -f ~/.local/bin/dot-difft`

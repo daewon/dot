@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+dot_require_cmd() {
+  local cmd="$1"
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    return 1
+  fi
+  return 0
+}
+
+dot_resolve_path() {
+  local path="$1"
+  local out=""
+  if dot_require_cmd readlink; then
+    out="$(readlink -f "$path" 2>/dev/null || true)"
+    if [ -n "$out" ]; then
+      printf '%s' "$out"
+      return
+    fi
+  fi
+  if dot_require_cmd realpath; then
+    out="$(realpath "$path" 2>/dev/null || true)"
+    if [ -n "$out" ]; then
+      printf '%s' "$out"
+      return
+    fi
+  fi
+  if dot_require_cmd perl; then
+    out="$(perl -MCwd=abs_path -e 'my $p=shift; my $r=abs_path($p); print defined($r) ? $r : "";' "$path" 2>/dev/null || true)"
+    if [ -n "$out" ]; then
+      printf '%s' "$out"
+      return
+    fi
+  fi
+  printf 'missing'
+}
+
+dot_current_login_shell() {
+  if dot_require_cmd getent; then
+    getent passwd "$USER" | cut -d: -f7
+    return
+  fi
+  if dot_require_cmd dscl; then
+    dscl . -read "/Users/$USER" UserShell 2>/dev/null | awk '{print $2}'
+    return
+  fi
+  printf '%s' "${SHELL:-unknown}"
+}
+
+dot_is_link_target() {
+  local link_path="$1"
+  local expected_target="$2"
+  local actual_target=""
+  local resolved_link=""
+  local resolved_expected=""
+
+  [ -L "$link_path" ] || return 1
+  actual_target="$(readlink "$link_path" 2>/dev/null || true)"
+  if [ "$actual_target" = "$expected_target" ]; then
+    return 0
+  fi
+
+  if [ -e "$expected_target" ]; then
+    resolved_link="$(dot_resolve_path "$link_path")"
+    resolved_expected="$(dot_resolve_path "$expected_target")"
+    if [ -n "$resolved_link" ] && [ "$resolved_link" = "$resolved_expected" ]; then
+      return 0
+    fi
+  fi
+  return 1
+}
