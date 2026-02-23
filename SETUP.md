@@ -116,6 +116,9 @@ git status --short
 
 ## 5) 문제 해결
 - `zsh` 없음: OS 패키지로 먼저 설치
+- 비대화형 환경(CI 등)에서 `zsh`/`vim` 자동 설치가 필요한 경우:
+  - `setup.sh`는 `sudo -n apt-get ...`(passwordless sudo)로 설치를 시도합니다.
+  - passwordless sudo가 불가하면 사전에 `zsh`/`vim`을 설치하거나 인터랙티브 셸에서 실행하세요.
 - `chsh` 실패: 시스템 정책/권한 확인 후 재시도
 - 일부 도구 미검출: `mise current`로 활성 버전 확인
 - `tmux` 설치가 소스 빌드로 빠지는 경우:

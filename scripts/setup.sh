@@ -105,6 +105,7 @@ install_system_package() {
   local apt_package="$1"
   local brew_package="${2:-$1}"
   local label="${3:-$1}"
+  local -a sudo_cmd=(sudo)
 
   if command -v apt-get >/dev/null 2>&1; then
     if [ "$(id -u)" -eq 0 ]; then
@@ -118,15 +119,19 @@ install_system_package() {
         err "$label install requires sudo but sudo is unavailable"
         return 1
       fi
-      if [ "$DRY_RUN" != "1" ] && ! dot_is_interactive_tty; then
-        err "$label install requires an interactive terminal for sudo password prompt"
-        return 1
+      if ! dot_is_interactive_tty; then
+        sudo_cmd=(sudo -n)
+        if [ "$DRY_RUN" != "1" ] && ! sudo -n true >/dev/null 2>&1; then
+          err "$label install needs passwordless sudo in non-interactive mode (sudo -n)"
+          err "install $label manually or re-run setup in an interactive terminal"
+          return 1
+        fi
       fi
       if [ "$APT_UPDATED" = "0" ]; then
-        run sudo apt-get update
+        run "${sudo_cmd[@]}" apt-get update
         APT_UPDATED=1
       fi
-      run sudo apt-get install -y "$apt_package"
+      run "${sudo_cmd[@]}" apt-get install -y "$apt_package"
     fi
     return 0
   fi
@@ -372,7 +377,7 @@ ensure_optional_vim_binary() {
   fi
 
   if ! install_system_package vim vim "vim"; then
-    err "vim not found and no supported package manager detected (apt-get/brew); install vim manually or run with INSTALL_OPTIONAL_TOOLS=0"
+    err "vim not found and automatic install failed; install vim manually or run with INSTALL_OPTIONAL_TOOLS=0"
     exit 1
   fi
   if [ "$DRY_RUN" = "1" ]; then
@@ -559,7 +564,7 @@ if command -v zsh >/dev/null 2>&1; then
   ok "zsh already installed: $(command -v zsh)"
 else
   if ! install_system_package zsh zsh "zsh"; then
-    err "zsh not found and no supported package manager detected (apt-get/brew); install zsh manually"
+    err "zsh not found and automatic install failed; install zsh manually"
     exit 1
   fi
   ok "zsh installed via package manager"
