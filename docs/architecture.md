@@ -37,7 +37,7 @@ setup:
 2. global 도구 설치(`mise use -g`, required/optional)
    - `tmux`는 `github:tmux/tmux-builds` prebuilt backend를 우선 사용(ARM 포함)
 3. (선택 도구 활성 시) `java 21`/`mill`/`pyright`/`typescript-language-server`/`typescript`/`dmux` 설치 후(기본 required `coursier(cs)` 사용) `metals` launcher를 구성하고, `vim` binary + `~/.vim_runtime` + plugin update를 적용
-4. zsh/prezto 준비
+4. zsh/prezto 준비(`HISTSIZE/SAVEHIST=1000000`, history 공유/중복 축소, `completion`/`command-not-found`/`git`/`history-substring-search`/`autosuggestions`/`syntax-highlighting` 활성)
 5. 관리 대상 symlink 연결
 6. git include 정규화
 7. manifest 기록
@@ -50,6 +50,7 @@ cleanup:
 
 verify:
 1. 스크립트 문법/정적 점검
+   - Prezto 모듈 선언(`~/.zpreztorc`)과 실제 clone(`~/.zprezto/modules`) 일치 여부 검증
 2. dry-run 스모크
 3. setup-only 반복 검증
 4. cleanup→setup 반복 검증

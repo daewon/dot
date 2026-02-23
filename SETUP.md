@@ -44,6 +44,8 @@ exec "$SHELL" -l
 - 필수(global) 도구에 Scala 런처 `coursier(cs)` 포함
 - 선택 도구 설치 시 Python LSP(`pyright`), Scala 도구 체인(`java 21`, `mill` + `metals` launcher), TypeScript 도구 체인(`typescript-language-server`, `tsc`), `dmux`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)를 설치
 - zprezto 준비 및 관리형 `~/.zshrc` 구성
+- zsh 공유 정책 적용: `HISTSIZE/SAVEHIST=1000000`, 즉시 append, 세션 간 history 공유, 중복 축소
+- Prezto 모듈(`completion`, `command-not-found`, `git`, `history-substring-search`, `autosuggestions`, `syntax-highlighting`) 활성
 - `config/*`와 helper 스크립트 symlink 연결
 - git `include.path` 정규화
 - 기존 managed clone(`~/.zprezto`, `~/.tmux/plugins/tpm`)이 비정상/비관리 상태면 백업 후 재구성

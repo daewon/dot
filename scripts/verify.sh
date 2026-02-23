@@ -165,6 +165,50 @@ count_backup_files() {
   printf '%s' "${c:-0}"
 }
 
+assert_prezto_modules_present() {
+  local zpreztorc_path="$HOME/.zpreztorc"
+  local prezto_modules_dir="$HOME/.zprezto/modules"
+  local module=""
+  local configured=()
+  local missing=()
+
+  [ -f "$zpreztorc_path" ] || { err "missing zpreztorc: $zpreztorc_path"; return 1; }
+  [ -d "$prezto_modules_dir" ] || { err "missing prezto modules dir: $prezto_modules_dir"; return 1; }
+
+  mapfile -t configured < <(
+    awk '
+      /^[[:space:]]*zstyle[[:space:]]+.*prezto:load.*[[:space:]]+pmodule/ { in_block=1 }
+      in_block {
+        while (match($0, /'\''[^'\'']+'\''/)) {
+          token = substr($0, RSTART + 1, RLENGTH - 2)
+          if (token != ":prezto:load") {
+            print token
+          }
+          $0 = substr($0, RSTART + RLENGTH)
+        }
+        if ($0 !~ /\\[[:space:]]*$/) {
+          exit
+        }
+      }
+    ' "$zpreztorc_path"
+  )
+  if [ "${#configured[@]}" -eq 0 ]; then
+    err "no prezto modules parsed from: $zpreztorc_path"
+    return 1
+  fi
+  for module in "${configured[@]}"; do
+    if [ ! -d "$prezto_modules_dir/$module" ]; then
+      missing+=("$module")
+    fi
+  done
+  if [ "${#missing[@]}" -gt 0 ]; then
+    err "prezto modules not found under $prezto_modules_dir: ${missing[*]}"
+    return 1
+  fi
+
+  ok "prezto module check passed (${#configured[@]} modules)"
+}
+
 assert_setup_state() {
   local include_optional="${1:-0}"
   local include_count=""
@@ -188,6 +232,7 @@ assert_setup_state() {
     resolved_link="$(dot_resolve_path "$link_path")"
     [ "$resolved_link" = "$link_target" ] || { err "runcom symlink mismatch: $link_path -> $resolved_link (expected $link_target)"; return 1; }
   done < <(dot_print_prezto_runcom_symlink_entries "$HOME")
+  assert_prezto_modules_present || return 1
   [ -f "$MANIFEST_FILE" ] || { err "setup manifest missing: $MANIFEST_FILE"; return 1; }
   manifest_line="version"$'\t'"$MANIFEST_VERSION"
   grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest version mismatch"; return 1; }

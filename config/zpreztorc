@@ -1,5 +1,5 @@
 # dot-managed Prezto configuration.
-# Keep the default set and add `git` for git aliases/completions.
+# Keep the default set and add interactive modules for git/history UX.
 zstyle ':prezto:*:*' color 'yes'
 
 zstyle ':prezto:load' pmodule \
@@ -7,9 +7,13 @@ zstyle ':prezto:load' pmodule \
   'terminal' \
   'editor' \
   'history' \
+  'history-substring-search' \
   'directory' \
   'spectrum' \
   'utility' \
   'completion' \
+  'command-not-found' \
+  'autosuggestions' \
   'git' \
-  'prompt'
+  'prompt' \
+  'syntax-highlighting'

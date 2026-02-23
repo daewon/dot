@@ -43,8 +43,8 @@ fi
 
 # History policy: large, append immediately, shared across sessions.
 HISTFILE="${ZDOTDIR:-$HOME}/.zsh_history"
-HISTSIZE=10000000
-SAVEHIST=10000000
+HISTSIZE=1000000
+SAVEHIST=1000000
 unsetopt APPEND_HISTORY
 setopt INC_APPEND_HISTORY_TIME
 setopt SHARE_HISTORY
