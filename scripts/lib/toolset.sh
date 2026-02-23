@@ -5,7 +5,7 @@
 DOT_REQUIRED_MISE_TOOLS=(
   node@24.13.1
   python@3.12.12
-  tmux@3.6a
+  github:tmux/tmux-builds@3.6a
   lazygit@0.59.0
   uv@0.10.4
   coursier@2.1.25-M23

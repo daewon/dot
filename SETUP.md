@@ -40,6 +40,7 @@ exec "$SHELL" -l
 
 설치 시 수행되는 일:
 - 필수/선택 도구 설치 (`scripts/lib/toolset.sh` 기준)
+- `tmux`는 prebuilt backend(`github:tmux/tmux-builds`)로 설치(소스 빌드 회피)
 - 필수(global) 도구에 Scala 런처 `coursier(cs)` 포함
 - 선택 도구 설치 시 Python LSP(`pyright`), Scala 도구 체인(`java 21`, `mill` + `metals` launcher), TypeScript 도구 체인(`typescript-language-server`, `tsc`), `dmux`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)를 설치
 - zprezto 준비 및 관리형 `~/.zshrc` 구성
@@ -115,3 +116,22 @@ git status --short
 - `zsh` 없음: OS 패키지로 먼저 설치
 - `chsh` 실패: 시스템 정책/권한 확인 후 재시도
 - 일부 도구 미검출: `mise current`로 활성 버전 확인
+- `tmux` 설치가 소스 빌드로 빠지는 경우:
+  - `setup.sh`는 `github:tmux/tmux-builds` prebuilt backend를 사용합니다.
+  - 레거시 asdf backend가 우선되는 환경이면 아래로 정렬:
+    ```bash
+    mise install github:tmux/tmux-builds@3.6a
+    mise use -g github:tmux/tmux-builds@3.6a
+    ```
+- ARM 장치 설치:
+  - `tmux-builds`는 `linux-arm64`, `macos-arm64` 아티팩트를 제공하므로 별도 C 빌드 도구 없이 설치 가능합니다.
+- `mise` 설치 중 `Permission denied (os error 13)`:
+  - 권한 점검: `ls -ld ~/.config/mise ~/.local/share/mise ~/.local/state/mise ~/.cache/mise`
+  - root 소유면 소유권 복구:
+    ```bash
+    sudo chown -R "$USER:$(id -gn)" \
+      ~/.config/mise \
+      ~/.local/share/mise \
+      ~/.local/state/mise \
+      ~/.cache/mise
+    ```

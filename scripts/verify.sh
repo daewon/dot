@@ -352,17 +352,13 @@ for file in "${VERIFY_LINT_TARGETS[@]}"; do
   bash -n "$REPO_ROOT/$file"
 done
 SHELLCHECK_BIN=""
-if dot_require_cmd shellcheck; then
-  SHELLCHECK_BIN="$(command -v shellcheck)"
-elif dot_require_cmd mise; then
-  SHELLCHECK_BIN="$(mise which shellcheck 2>/dev/null || true)"
-fi
+SHELLCHECK_BIN="$(dot_find_cmd shellcheck 2>/dev/null || true)"
 if [ -n "${SHELLCHECK_BIN:-}" ]; then
   SHELLCHECK_TARGETS=()
   for file in "${VERIFY_LINT_TARGETS[@]}"; do
     SHELLCHECK_TARGETS+=("$REPO_ROOT/$file")
   done
-  "$SHELLCHECK_BIN" "${SHELLCHECK_TARGETS[@]}"
+  "$SHELLCHECK_BIN" -x "${SHELLCHECK_TARGETS[@]}"
   ok "shellcheck passed"
 else
   warn "shellcheck not found; skipped static shell analysis"

@@ -35,6 +35,7 @@ manifest 계약:
 setup:
 1. 입력/환경 검증
 2. global 도구 설치(`mise use -g`, required/optional)
+   - `tmux`는 `github:tmux/tmux-builds` prebuilt backend를 우선 사용(ARM 포함)
 3. (선택 도구 활성 시) `java 21`/`mill`/`pyright`/`typescript-language-server`/`typescript`/`dmux` 설치 후(기본 required `coursier(cs)` 사용) `metals` launcher를 구성하고, `vim` binary + `~/.vim_runtime` + plugin update를 적용
 4. zsh/prezto 준비
 5. 관리 대상 symlink 연결

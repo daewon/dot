@@ -45,6 +45,10 @@
 - `REMOVE_GLOBAL_TOOLS=1 ./cleanup.sh`
 - `./verify.sh --profile full|stress`
 
+추가 참고:
+- `tmux`는 `mise`의 prebuilt backend(`github:tmux/tmux-builds`)로 설치합니다(소스 빌드 의존성 최소화).
+- ARM 지원: `tmux-builds`는 `linux-arm64`, `macos-arm64` 아티팩트를 제공합니다.
+
 ## 저장소 구조
 - `config/`: zsh, tmux, helix, lazygit, git 설정
 - `scripts/`: 실제 setup/cleanup/verify 구현
