@@ -3,6 +3,12 @@
 # shellcheck disable=SC2034
 
 DOT_REQUIRED_MISE_TOOLS=(
+  node@24.13.1
+  python@3.12.12
+  tmux@3.6a
+  lazygit@0.59.0
+  uv@0.10.4
+  coursier@2.1.25-M23
   fzf@0.68.0
   rg@15.1.0
   fd@10.3.0
@@ -10,6 +16,7 @@ DOT_REQUIRED_MISE_TOOLS=(
   jq@1.8.1
   yq@4.52.4
   shellcheck@0.11.0
+  helix@25.07.1
   marksman@2026-02-08
   difftastic@0.67.0
   npm:vscode-langservers-extracted@4.10.0
@@ -19,13 +26,20 @@ DOT_REQUIRED_MISE_TOOLS=(
 
 DOT_OPTIONAL_MISE_TOOLS=(
   java@temurin-21.0.10+7.0.LTS
-  npm:pyright@1.1.408
-  coursier@2.1.25-M23
   mill@1.1.2
+  npm:pyright@1.1.408
+  npm:typescript-language-server@5.1.3
+  npm:typescript@5.9.3
   npm:dmux@5.2.0
 )
 
 DOT_REQUIRED_CLI_COMMANDS=(
+  node
+  python
+  tmux
+  lazygit
+  uv
+  cs
   fzf
   rg
   fd
@@ -33,15 +47,17 @@ DOT_REQUIRED_CLI_COMMANDS=(
   jq
   yq
   shellcheck
+  hx
   marksman
   difft
 )
 
 DOT_OPTIONAL_CLI_COMMANDS=(
-  pyright-langserver
   java
-  cs
   mill
+  pyright-langserver
+  typescript-language-server
+  tsc
   dmux
 )
 

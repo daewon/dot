@@ -10,14 +10,14 @@
 - 구현: `scripts/setup.sh`, `scripts/cleanup.sh`, `scripts/verify.sh`
 - 공통 계약: `scripts/lib/toolset.sh`
 - 공통 유틸: `scripts/lib/scriptlib.sh`
-- 버전 선언: `mise.toml`
+- 로컬 오버라이드 방지 placeholder: `mise.toml`
 - 상태 경로: `${XDG_STATE_HOME:-$HOME/.local/state}/dot`
 
 SSOT 원칙:
 - 저장소(`dot`)가 단일 기준이며, 시스템 전역 설정은 setup/cleanup 실행 결과로 파생된다.
-- 도구 정책 분리:
-  - 로컬 기본 툴체인: `mise.toml`
+- 도구 정책 단일화:
   - 전역 설치 정책(required/optional): `scripts/lib/toolset.sh`
+  - `mise.toml`은 로컬 툴체인 선언 없이 placeholder로 유지
 
 ## 핵심 계약
 도구 계약(`scripts/lib/toolset.sh`):
@@ -34,8 +34,8 @@ manifest 계약:
 ## 동작 흐름
 setup:
 1. 입력/환경 검증
-2. `mise trust/install` + 도구 설치
-3. (선택 도구 활성 시) `java 21`/`pyright`/`coursier(cs)`/`mill`/`dmux` 설치 후 `cs` 기반 `metals` launcher 구성
+2. global 도구 설치(`mise use -g`, required/optional)
+3. (선택 도구 활성 시) `java 21`/`mill`/`pyright`/`typescript-language-server`/`typescript`/`dmux` 설치 후(기본 required `coursier(cs)` 사용) `metals` launcher 구성
 4. zsh/prezto 준비
 5. 관리 대상 symlink 연결
 6. git include 정규화
@@ -61,6 +61,6 @@ verify:
 - 실패 시 즉시 중단하고 원인 로그를 남김
 
 ## 변경 시 체크
-- 도구/버전 변경: 로컬 기본 툴 변경은 `mise.toml`, global required/optional 변경은 `scripts/lib/toolset.sh` + 관련 문서(`SETUP.md`, `README.md`)
+- 도구/버전 변경: `scripts/lib/toolset.sh` + 관련 문서(`SETUP.md`, `README.md`)
 - 상태 계약 변경: `scripts/*` + `docs/architecture.md`
 - 최소 검증: `./verify.sh --profile fast`

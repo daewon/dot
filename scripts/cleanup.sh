@@ -284,9 +284,7 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-for flag_name in DRY_RUN REMOVE_GLOBAL_TOOLS FORCE_REMOVE_ZSHRC; do
-  dot_validate_bool_01 "$flag_name" "${!flag_name}" || exit 2
-done
+dot_validate_bool_flags_01 DRY_RUN REMOVE_GLOBAL_TOOLS FORCE_REMOVE_ZSHRC || exit 2
 
 step "preflight"
 if ! dot_require_cmd git; then

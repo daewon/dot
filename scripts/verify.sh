@@ -272,7 +272,9 @@ run_setup_default() {
 }
 
 run_cleanup() {
-  run_with_log "$1" env REMOVE_GLOBAL_TOOLS=0 "$REPO_ROOT/cleanup.sh"
+  local name="$1"
+  local remove_global="${2:-0}"
+  run_with_log "$name" env REMOVE_GLOBAL_TOOLS="$remove_global" "$REPO_ROOT/cleanup.sh"
 }
 
 while [ "$#" -gt 0 ]; do
@@ -317,12 +319,8 @@ while [ "$#" -gt 0 ]; do
 done
 
 apply_profile_defaults
-for flag_name in RUN_DEFAULT_SETUP RESTORE_AT_END; do
-  dot_validate_bool_01 "$flag_name" "${!flag_name}" || exit 2
-done
-for flag_name in SETUP_ONLY_LOOPS CYCLE_LOOPS DEFAULT_SETUP_LOOPS; do
-  dot_validate_nonneg_int "$flag_name" "${!flag_name}" || exit 2
-done
+dot_validate_bool_flags_01 RUN_DEFAULT_SETUP RESTORE_AT_END || exit 2
+dot_validate_nonneg_int_flags SETUP_ONLY_LOOPS CYCLE_LOOPS DEFAULT_SETUP_LOOPS || exit 2
 
 step "preflight"
 for cmd in "${VERIFY_REQUIRED_CMDS[@]}"; do
@@ -443,6 +441,7 @@ else
 fi
 
 if [ "$RESTORE_AT_END" = "1" ]; then
+  run_cleanup "final-restore-cleanup" 1
   run_setup_min "final-restore"
   assert_setup_state 0
   ok "final restore complete"

@@ -1,11 +1,29 @@
 #!/usr/bin/env bash
 
+dot_find_cmd() {
+  local cmd="$1"
+  local resolved=""
+
+  resolved="$(command -v "$cmd" 2>/dev/null || true)"
+  if [ -n "$resolved" ]; then
+    printf '%s\n' "$resolved"
+    return 0
+  fi
+
+  if command -v mise >/dev/null 2>&1; then
+    resolved="$(mise which "$cmd" 2>/dev/null || true)"
+    if [ -n "$resolved" ]; then
+      printf '%s\n' "$resolved"
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
 dot_require_cmd() {
   local cmd="$1"
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    return 1
-  fi
-  return 0
+  dot_find_cmd "$cmd" >/dev/null 2>&1
 }
 
 dot_resolve_path() {
@@ -84,6 +102,15 @@ dot_validate_bool_01() {
   esac
 }
 
+dot_validate_bool_flags_01() {
+  local flag_name=""
+  local flag_value=""
+  for flag_name in "$@"; do
+    flag_value="${!flag_name-}"
+    dot_validate_bool_01 "$flag_name" "$flag_value" || return 1
+  done
+}
+
 dot_validate_nonneg_int() {
   local name="$1"
   local value="$2"
@@ -92,4 +119,34 @@ dot_validate_nonneg_int() {
   fi
   printf '[error] %s must be a non-negative integer (got: %s)\n' "$name" "$value" >&2
   return 1
+}
+
+dot_validate_nonneg_int_flags() {
+  local flag_name=""
+  local flag_value=""
+  for flag_name in "$@"; do
+    flag_value="${!flag_name-}"
+    dot_validate_nonneg_int "$flag_name" "$flag_value" || return 1
+  done
+}
+
+dot_is_interactive_tty() {
+  [ -t 0 ] && [ -t 1 ]
+}
+
+dot_parse_yes_no_to_bool_01() {
+  local value="${1:-}"
+  case "$value" in
+    [yY]|[yY][eE][sS])
+      printf '1'
+      return 0
+      ;;
+    [nN]|[nN][oO]|"")
+      printf '0'
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
 }

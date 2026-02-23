@@ -8,11 +8,11 @@ source "$REPO_ROOT/scripts/lib/toolset.sh"
 # shellcheck source=scripts/lib/scriptlib.sh
 source "$REPO_ROOT/scripts/lib/scriptlib.sh"
 
-TOTAL_STEPS=11
+TOTAL_STEPS=10
 STEP=0
 FAILED_STEP=0
 
-INSTALL_OPTIONAL_TOOLS="${INSTALL_OPTIONAL_TOOLS:-0}" # 1 or 0
+INSTALL_OPTIONAL_TOOLS="${INSTALL_OPTIONAL_TOOLS-}"   # 1 or 0 (resolved later)
 SET_DEFAULT_SHELL="${SET_DEFAULT_SHELL:-0}"           # 1 or 0
 INSTALL_TMUX_PLUGINS="${INSTALL_TMUX_PLUGINS:-1}"     # 1 or 0
 DRY_RUN="${DRY_RUN:-0}"                               # 1 or 0
@@ -52,7 +52,8 @@ Options:
   --help, -h     Show this help
 
 Env flags:
-  INSTALL_OPTIONAL_TOOLS=0|1   Install optional tools (default: 0)
+  INSTALL_OPTIONAL_TOOLS=0|1   Install optional tools
+                               (default: prompt on interactive TTY, otherwise 0)
   INSTALL_TMUX_PLUGINS=0|1     Install tmux plugins with TPM (default: 1)
   SET_DEFAULT_SHELL=0|1        Try switching login shell to zsh (default: 0)
 EOF
@@ -179,6 +180,30 @@ ensure_managed_clone() {
   fi
 }
 
+resolve_install_optional_tools() {
+  local reply=""
+  local selected_value=""
+
+  if [ -n "$INSTALL_OPTIONAL_TOOLS" ]; then
+    return
+  fi
+
+  if dot_is_interactive_tty; then
+    printf '\n[setup] Install optional tools (Python/Scala/TypeScript/dmux + metals launcher)? [y/N]: '
+    IFS= read -r reply || true
+    if selected_value="$(dot_parse_yes_no_to_bool_01 "$reply")"; then
+      INSTALL_OPTIONAL_TOOLS="$selected_value"
+    else
+      warn "invalid response '$reply'; defaulting to no"
+      INSTALL_OPTIONAL_TOOLS=0
+    fi
+    ok "interactive selection: INSTALL_OPTIONAL_TOOLS=$INSTALL_OPTIONAL_TOOLS"
+    return
+  fi
+
+  INSTALL_OPTIONAL_TOOLS=0
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --dry-run|-n) DRY_RUN=1 ;;
@@ -195,9 +220,9 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-for flag_name in INSTALL_OPTIONAL_TOOLS INSTALL_TMUX_PLUGINS SET_DEFAULT_SHELL DRY_RUN; do
-  dot_validate_bool_01 "$flag_name" "${!flag_name}" || exit 2
-done
+resolve_install_optional_tools
+
+dot_validate_bool_flags_01 INSTALL_OPTIONAL_TOOLS INSTALL_TMUX_PLUGINS SET_DEFAULT_SHELL DRY_RUN || exit 2
 
 step "preflight"
 if ! dot_require_cmd git; then
@@ -213,23 +238,20 @@ if [ "$DRY_RUN" = "1" ]; then
   warn "dry-run mode enabled (no files or settings will be changed)"
 fi
 
-step "trust and install local mise toolchain"
-run mise trust "$REPO_ROOT/mise.toml"
-run mise install
-ok "mise.toml toolchain installed"
-
-step "install global required tools (CLI/LSP/formatter)"
+step "install global required tools (CLI/runtime/LSP/formatter)"
 run mise use -g "${DOT_REQUIRED_MISE_TOOLS[@]}"
 ok "required global tools installed"
 
 step "install optional tools"
 if [ "$INSTALL_OPTIONAL_TOOLS" = "1" ]; then
   run mise use -g "${DOT_OPTIONAL_MISE_TOOLS[@]}"
-  if dot_require_cmd cs; then
-    run cs install --install-dir "$HOME/.local/bin" metals
+  CS_BIN=""
+  if CS_BIN="$(dot_find_cmd cs 2>/dev/null)"; then
+    run "$CS_BIN" install --install-dir "$HOME/.local/bin" metals
     ok "metals installed via coursier"
   else
-    warn "coursier (cs) not found; skipped metals install"
+    err "required command not found for metals install: cs"
+    exit 1
   fi
   ok "optional global tools installed"
 else
@@ -390,14 +412,14 @@ printf '  dot-difft  : %s\n' "$(dot_resolve_path "$HOME/.local/bin/dot-difft")"
 printf '  dot-difft-pager: %s\n' "$(dot_resolve_path "$HOME/.local/bin/dot-difft-pager")"
 printf '  dot-lazygit-theme: %s\n' "$(dot_resolve_path "$HOME/.local/bin/dot-lazygit-theme")"
 printf '  setup manifest: %s\n' "$MANIFEST_FILE"
-printf '  mise toolset (repo):\n'
+printf '  mise toolset (effective):\n'
 if [ "$DRY_RUN" = "1" ]; then
   warn "skipped 'mise current' in dry-run mode"
 else
   if MISE_CURRENT_OUTPUT="$(mise current 2>&1)"; then
     printf '%s\n' "$MISE_CURRENT_OUTPUT" | sed 's/^/    /'
   else
-    warn "failed to read 'mise current'; run: mise trust \"$REPO_ROOT/mise.toml\" && mise install"
+    warn "failed to read 'mise current'; run: mise current"
     printf '%s\n' "$MISE_CURRENT_OUTPUT" | sed 's/^/    /'
   fi
 fi

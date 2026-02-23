@@ -25,16 +25,20 @@
 ## SSOT 원칙
 - 이 저장소(`dot`)가 단일 기준(Single Source of Truth)입니다.
 - 시스템 전역 설정(`~/.config/mise/config.toml` 등)은 `setup.sh` 실행 결과로만 파생되어야 하며 수동 편집을 권장하지 않습니다.
-- 설치 정책의 기준은 `scripts/lib/toolset.sh`(required/optional), 로컬 기본 툴체인은 `mise.toml`입니다.
+- 설치 도구 정책의 기준은 `scripts/lib/toolset.sh`(required/optional, global)입니다.
+- `mise.toml`은 로컬 오버라이드를 만들지 않기 위한 빈 placeholder로 유지합니다.
 
 주요 개발 도구:
 - Helix LSP: Markdown(`marksman`), JSON(`vscode-json-language-server`), YAML(`yaml-language-server`)
-- Python/Scala 체인(선택 설치): Python(`uv 로컬 .venv 우선 + global pyright fallback`), Scala(`java 21` + `mill` + `coursier(cs)` + `metals`)
+- Scala 런처(required): `coursier(cs)`
+- 선택 체인(optional): Python LSP(`pyright`), Scala(`java 21` + `mill` + `metals` launcher), TypeScript(`typescript-language-server` + `tsc`), `dmux`
 
 ## 자주 쓰는 옵션
 - `./setup.sh --dry-run`
 - `INSTALL_OPTIONAL_TOOLS=1 ./setup.sh`
-- `INSTALL_OPTIONAL_TOOLS=0` (default)
+- `INSTALL_OPTIONAL_TOOLS=0 ./setup.sh`
+- `./setup.sh` 실행 시(인터랙티브 TTY, 변수 미지정) 선택 도구 설치 여부 프롬프트 표시
+- 비대화형 실행(예: CI, 파이프)에서 변수 미지정 시 `INSTALL_OPTIONAL_TOOLS=0` 기본값 적용
 - `INSTALL_TMUX_PLUGINS=0 ./setup.sh`
 - `SET_DEFAULT_SHELL=1 ./setup.sh`
 - `./cleanup.sh --dry-run`
@@ -46,7 +50,7 @@
 - `scripts/`: 실제 setup/cleanup/verify 구현
 - `scripts/lib/toolset.sh`: 설치 도구 목록 단일 소스
 - `scripts/lib/scriptlib.sh`: 공통 셸 유틸
-- `mise.toml`: 버전 고정 도구 선언
+- `mise.toml`: 로컬 오버라이드 방지용 placeholder(툴 선언 없음)
 
 ## 운영 원칙
 - 도구 버전은 가능하면 pin(고정)하여 재현성을 유지합니다.
