@@ -9,6 +9,13 @@
 - `zsh`가 없으면 `setup.sh`가 자동 설치 시도
 - 저장소를 원하는 경로에 clone (경로 고정 필요 없음)
 
+`mise`가 없다면:
+```bash
+curl https://mise.run | sh
+export PATH="$HOME/.local/bin:$PATH"
+exec "$SHELL" -l
+```
+
 ## SSOT 원칙
 - `dot` 저장소가 설치/도구 정책의 단일 기준입니다.
 - `~/.config/mise/config.toml` 등 전역 파일은 `setup.sh` 결과로만 관리합니다(수동 편집 비권장).

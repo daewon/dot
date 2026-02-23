@@ -43,6 +43,15 @@ err() {
   printf '  [error] %s\n' "$*" >&2
 }
 
+print_mise_install_hint() {
+  warn "install mise, reload your shell, then re-run setup:"
+  cat <<'EOF'
+    curl https://mise.run | sh
+    export PATH="$HOME/.local/bin:$PATH"
+    exec "$SHELL" -l
+EOF
+}
+
 usage() {
   cat <<'EOF'
 Usage: ./setup.sh [--dry-run|-n]
@@ -231,6 +240,7 @@ if ! dot_require_cmd git; then
 fi
 if ! dot_require_cmd mise; then
   err "required command not found: mise"
+  print_mise_install_hint
   exit 1
 fi
 ok "repo: $REPO_ROOT"

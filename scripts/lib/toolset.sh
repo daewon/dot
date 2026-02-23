@@ -26,7 +26,7 @@ DOT_REQUIRED_MISE_TOOLS=(
 
 DOT_OPTIONAL_MISE_TOOLS=(
   java@temurin-21.0.10+7.0.LTS
-  mill@1.1.2
+  asdf:mise-plugins/mise-mill@1.1.2
   npm:pyright@1.1.408
   npm:typescript-language-server@5.1.3
   npm:typescript@5.9.3
