@@ -174,6 +174,8 @@ assert_setup_state() {
   local link_target=""
   local clone_path=""
   local clone_origin=""
+  local optional_file=""
+  local optional_marker=""
   local cmd=""
 
   include_count="$(count_git_include)"
@@ -214,6 +216,14 @@ assert_setup_state() {
     for cmd in "${DOT_OPTIONAL_CLI_COMMANDS[@]}"; do
       tool_available "$cmd" || { err "optional command not found after default setup: $cmd"; return 1; }
     done
+    while IFS=$'\t' read -r clone_path clone_origin; do
+      manifest_line="git_clone_origin"$'\t'"$clone_path"$'\t'"$clone_origin"
+      grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest missing optional clone entry: $clone_path"; return 1; }
+    done < <(dot_print_optional_managed_git_clones "$HOME")
+    while IFS=$'\t' read -r optional_file optional_marker; do
+      manifest_line="managed_file_contains"$'\t'"$optional_file"$'\t'"$optional_marker"
+      grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest missing optional managed file entry: $optional_file"; return 1; }
+    done < <(dot_print_optional_managed_file_markers "$HOME")
   fi
 
   ok "state check passed (include=1, links aligned, optional=${include_optional})"

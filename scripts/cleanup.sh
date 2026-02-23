@@ -206,6 +206,12 @@ manifest_validate_schema() {
 }
 
 remove_static_managed_artifacts() {
+  local optional_file=""
+  local optional_marker=""
+  local optional_clone=""
+  local optional_origin=""
+  local optional_runtime_managed=0
+
   while IFS=$'\t' read -r managed_link managed_target; do
     remove_if_link_target "$managed_link" "$managed_target" "$managed_link"
   done < <(dot_print_repo_symlink_entries "$REPO_ROOT")
@@ -216,6 +222,17 @@ remove_static_managed_artifacts() {
     remove_existing_path_forced "$HOME/.zshrc"
   else
     remove_if_managed_file_contains "$HOME/.zshrc" "dot-setup managed zshrc" "$HOME/.zshrc"
+  fi
+  while IFS=$'\t' read -r optional_file optional_marker; do
+    if [ -f "$optional_file" ] && [ ! -L "$optional_file" ] && grep -Fq "$optional_marker" "$optional_file" 2>/dev/null; then
+      optional_runtime_managed=1
+    fi
+    remove_if_managed_file_contains "$optional_file" "$optional_marker" "$optional_file"
+  done < <(dot_print_optional_managed_file_markers "$HOME")
+  if [ "$optional_runtime_managed" = "1" ]; then
+    while IFS=$'\t' read -r optional_clone optional_origin; do
+      remove_if_git_clone_origin "$optional_clone" "$optional_origin" "$optional_clone"
+    done < <(dot_print_optional_managed_git_clones "$HOME")
   fi
 }
 
@@ -300,7 +317,7 @@ if [ "$DRY_RUN" = "1" ]; then
   warn "dry-run mode enabled (no files/settings will be changed)"
 fi
 
-step "remove zsh/tmux/dotfile artifacts"
+step "remove zsh/tmux/dotfile/editor artifacts"
 if manifest_repo_matches; then
   manifest_validate_schema
   remove_from_manifest
@@ -369,6 +386,8 @@ for p in \
   "$HOME/.local/bin/dot-difft-pager" \
   "$HOME/.local/bin/dot-lazygit-theme" \
   "$HOME/.local/bin/metals" \
+  "$HOME/.vim_runtime" \
+  "$HOME/.vimrc" \
   "$HOME/.zshrc" \
   "$MANIFEST_FILE"; do
   if [ -e "$p" ] || [ -L "$p" ]; then

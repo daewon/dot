@@ -31,7 +31,7 @@ exec "$SHELL" -l
 
 자주 쓰는 옵션:
 - `./setup.sh --dry-run`: 변경 없이 계획만 확인
-- `INSTALL_OPTIONAL_TOOLS=1 ./setup.sh`: 선택 도구(Python/Scala/TypeScript/dmux + metals launcher) 설치 포함
+- `INSTALL_OPTIONAL_TOOLS=1 ./setup.sh`: 선택 도구(Python/Scala/TypeScript/dmux + metals launcher + vim runtime) 설치 포함
 - `INSTALL_OPTIONAL_TOOLS=0 ./setup.sh`: 선택 도구 설치 생략
 - 인터랙티브 TTY에서 `INSTALL_OPTIONAL_TOOLS` 미지정 시: 설치 시작 전에 선택 도구 설치 여부를 프롬프트로 확인
 - 비대화형 실행에서 `INSTALL_OPTIONAL_TOOLS` 미지정 시: `0`으로 처리
@@ -41,7 +41,7 @@ exec "$SHELL" -l
 설치 시 수행되는 일:
 - 필수/선택 도구 설치 (`scripts/lib/toolset.sh` 기준)
 - 필수(global) 도구에 Scala 런처 `coursier(cs)` 포함
-- 선택 도구 설치 시 Python LSP(`pyright`), Scala 도구 체인(`java 21`, `mill` + `metals` launcher), TypeScript 도구 체인(`typescript-language-server`, `tsc`), `dmux`를 설치
+- 선택 도구 설치 시 Python LSP(`pyright`), Scala 도구 체인(`java 21`, `mill` + `metals` launcher), TypeScript 도구 체인(`typescript-language-server`, `tsc`), `dmux`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)를 설치
 - zprezto 준비 및 관리형 `~/.zshrc` 구성
 - `config/*`와 helper 스크립트 symlink 연결
 - git `include.path` 정규화
@@ -57,6 +57,7 @@ exec "$SHELL" -l
 - Scala: `java 21` + `mill` + `metals` launcher(`~/.local/bin/metals`, `coursier(cs)` 사용)
 - JavaScript/TypeScript: `typescript-language-server` + `tsc`
 - 기타: `dmux`
+- Vim: `vim` binary + `~/.vim_runtime` clone + 관리형 `~/.vimrc` + `update_plugins.py`
 
 ## 2) 검증
 빠른 검증:

@@ -59,6 +59,7 @@ DOT_OPTIONAL_CLI_COMMANDS=(
   typescript-language-server
   tsc
   dmux
+  vim
 )
 
 DOT_PREZTO_RUNCOMS=(
@@ -105,4 +106,14 @@ dot_print_managed_git_clones() {
   local home_dir="${1:-$HOME}"
   printf '%s\t%s\n' "$home_dir/.zprezto" "sorin-ionescu/prezto"
   printf '%s\t%s\n' "$home_dir/.tmux/plugins/tpm" "tmux-plugins/tpm"
+}
+
+dot_print_optional_managed_git_clones() {
+  local home_dir="${1:-$HOME}"
+  printf '%s\t%s\n' "$home_dir/.vim_runtime" "amix/vimrc"
+}
+
+dot_print_optional_managed_file_markers() {
+  local home_dir="${1:-$HOME}"
+  printf '%s\t%s\n' "$home_dir/.vimrc" "dot-setup managed vimrc"
 }
