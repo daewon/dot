@@ -150,3 +150,43 @@ dot_parse_yes_no_to_bool_01() {
       ;;
   esac
 }
+
+step() {
+  STEP=$((STEP + 1))
+  printf '\n[%d/%d] %s\n' "$STEP" "$TOTAL_STEPS" "$*"
+}
+
+ok() {
+  printf '  [ok] %s\n' "$*"
+}
+
+warn() {
+  printf '  [warn] %s\n' "$*"
+}
+
+err() {
+  printf '  [error] %s\n' "$*" >&2
+}
+
+run() {
+  if [ "${DRY_RUN:-0}" = "1" ]; then
+    printf '  [dry-run]'
+    printf ' %q' "$@"
+    printf '\n'
+  else
+    "$@"
+  fi
+}
+
+dot_git_shared_include_path() {
+  local repo_root="$1"
+  printf '%s/config/gitconfig.shared\n' "$repo_root"
+}
+
+dot_git_include_count() {
+  local include_path="$1"
+  local c=""
+  c="$(git config --global --get-all include.path 2>/dev/null | grep -Fxc "$include_path" || true)"
+  c="$(printf '%s' "$c" | tr -d '[:space:]')"
+  printf '%s' "${c:-0}"
+}
