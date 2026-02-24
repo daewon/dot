@@ -65,26 +65,80 @@ setopt HIST_FCNTL_LOCK
 
 # tmux helpers.
 typeset -g DOT_TMUX_SESSION_NAME="${DOT_TMUX_SESSION_NAME:-main}"
+typeset -g __DOT_AUTO_TMUX_ATTEMPTED="${__DOT_AUTO_TMUX_ATTEMPTED:-0}"
+
+dot_tmux_attach_or_create() {
+  local session_name="$1"
+  if dot_tmux_has_session "$session_name"; then
+    tmux attach-session -t "$session_name"
+  else
+    tmux new-session -s "$session_name"
+  fi
+}
+
+dot_tmux_has_session() {
+  local session_name="$1"
+  tmux has-session -t "$session_name" >/dev/null 2>&1
+}
+
+dot_tmux_has_any_sessions() {
+  tmux list-sessions >/dev/null 2>&1
+}
+
+dot_tmux_attach_existing() {
+  local session_name="$1"
+  if dot_tmux_has_session "$session_name"; then
+    tmux attach-session -t "$session_name"
+  else
+    tmux attach-session
+  fi
+}
+
 ta() {
   local session_name="${1:-$DOT_TMUX_SESSION_NAME}"
   if ! command -v tmux >/dev/null 2>&1; then
     echo "tmux not found in PATH" >&2
     return 127
   fi
-  tmux new-session -A -s "$session_name"
+  dot_tmux_attach_or_create "$session_name"
+}
+
+dot_should_auto_enter_tmux_on_ssh() {
+  [[ -o interactive ]] || return 1
+  [[ -o login ]] || return 1
+  [[ -t 0 ]] || return 1
+  [[ -t 1 ]] || return 1
+  [[ -n "${SSH_CONNECTION:-${SSH_TTY:-}}" ]] || return 1
+  [[ -n "${SSH_TTY:-}" ]] || return 1
+  [[ -z "${SSH_ORIGINAL_COMMAND:-}" ]] || return 1
+  [[ -z "${TMUX:-}" ]] || return 1
+  [[ -z "${STY:-}" ]] || return 1
+  [[ -z "${ZELLIJ:-}" ]] || return 1
+  [[ "${DOT_AUTO_TMUX_ON_SSH:-1}" == "1" ]] || return 1
+  command -v tmux >/dev/null 2>&1 || return 1
+  return 0
+}
+
+dot_auto_enter_tmux_on_ssh() {
+  local session_name=""
+  if [[ "${__DOT_AUTO_TMUX_ATTEMPTED:-0}" == "1" ]]; then
+    return 0
+  fi
+  typeset -g __DOT_AUTO_TMUX_ATTEMPTED=1
+
+  dot_should_auto_enter_tmux_on_ssh || return 0
+
+  session_name="${DOT_AUTO_TMUX_SESSION_NAME:-$DOT_TMUX_SESSION_NAME}"
+  if ! dot_tmux_has_any_sessions; then
+    return 0
+  fi
+  if ! dot_tmux_attach_existing "$session_name"; then
+    printf '[warn] auto tmux attach failed (session=%s)\n' "$session_name" >&2
+  fi
 }
 
 # Auto-enter tmux on first SSH login shell unless explicitly disabled.
-if [[ -o interactive ]] \
-  && [[ -o login ]] \
-  && [[ -t 0 ]] \
-  && [[ -t 1 ]] \
-  && [[ -n "${SSH_CONNECTION:-${SSH_TTY:-}}" ]] \
-  && [[ -z "${TMUX:-}" ]] \
-  && [[ "${DOT_AUTO_TMUX_ON_SSH:-1}" == "1" ]] \
-  && command -v tmux >/dev/null 2>&1; then
-  ta "${DOT_AUTO_TMUX_SESSION_NAME:-$DOT_TMUX_SESSION_NAME}"
-fi
+dot_auto_enter_tmux_on_ssh
 
 # Quality-of-life aliases.
 function lazygit() {
