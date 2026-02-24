@@ -13,7 +13,7 @@ STEP=0
 FAILED_STEP=0
 
 INSTALL_OPTIONAL_TOOLS="${INSTALL_OPTIONAL_TOOLS-}"   # 1 or 0 (resolved later)
-SET_DEFAULT_SHELL="${SET_DEFAULT_SHELL:-0}"           # 1 or 0
+SET_DEFAULT_SHELL="${SET_DEFAULT_SHELL-}"             # 1 or 0 (resolved later)
 INSTALL_TMUX_PLUGINS="${INSTALL_TMUX_PLUGINS:-1}"     # 1 or 0
 DRY_RUN="${DRY_RUN:-0}"                               # 1 or 0
 MANIFEST_FILE="$(dot_setup_manifest_file)"
@@ -89,7 +89,9 @@ EOF
 }
 
 dot_preferred_tmux_tool() {
+  local tmux_version=""
   local tool=""
+  tmux_version="$(dot_tmux_version_from_required)"
   for tool in "${DOT_REQUIRED_MISE_TOOLS[@]}"; do
     case "$tool" in
       github:tmux/tmux-builds@*)
@@ -98,7 +100,139 @@ dot_preferred_tmux_tool() {
         ;;
     esac
   done
-  printf '%s\n' "github:tmux/tmux-builds@3.6a"
+  printf '%s\n' "github:tmux/tmux-builds@$tmux_version"
+}
+
+dot_tmux_version_from_required() {
+  local tool=""
+  if tool="$(dot_required_tmux_tool 2>/dev/null)"; then
+    printf '%s\n' "${tool##*@}"
+    return 0
+  fi
+  printf '%s\n' "3.6a"
+}
+
+dot_fallback_tmux_tool() {
+  local preferred_tmux_tool=""
+  local tmux_version=""
+  preferred_tmux_tool="$(dot_preferred_tmux_tool)"
+  tmux_version="$(dot_tmux_version_from_required)"
+  case "$preferred_tmux_tool" in
+    github:tmux/tmux-builds@*)
+      printf '%s\n' "asdf:tmux@${preferred_tmux_tool##*@}"
+      ;;
+    asdf:tmux@*)
+      printf '%s\n' "github:tmux/tmux-builds@${preferred_tmux_tool##*@}"
+      ;;
+    *)
+      printf '%s\n' "asdf:tmux@$tmux_version"
+      ;;
+  esac
+}
+
+dot_detect_tmux_backend_from_path() {
+  local tmux_path="$1"
+  case "$tmux_path" in
+    */github-tmux-tmux-builds/*)
+      printf '%s\n' "prebuilt"
+      ;;
+    */asdf-tmux/*)
+      printf '%s\n' "source"
+      ;;
+    *)
+      printf '%s\n' "unknown"
+      ;;
+  esac
+}
+
+dot_required_tmux_tool() {
+  local tool=""
+  for tool in "${DOT_REQUIRED_MISE_TOOLS[@]}"; do
+    case "$tool" in
+      github:tmux/tmux-builds@*|asdf:tmux@*)
+        printf '%s\n' "$tool"
+        return 0
+        ;;
+    esac
+  done
+  return 1
+}
+
+dot_required_tmux_uses_source_backend() {
+  local tmux_tool=""
+  if ! tmux_tool="$(dot_required_tmux_tool 2>/dev/null)"; then
+    return 1
+  fi
+  case "$tmux_tool" in
+    asdf:tmux@*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+ensure_tmux_source_build_prerequisites() {
+  local need_toolchain=0
+  local need_pkg_config=0
+  local need_ncurses=0
+
+  if ! command -v cc >/dev/null 2>&1 && ! command -v gcc >/dev/null 2>&1 && ! command -v clang >/dev/null 2>&1; then
+    need_toolchain=1
+  fi
+  if ! command -v make >/dev/null 2>&1; then
+    need_toolchain=1
+  fi
+  if ! command -v pkg-config >/dev/null 2>&1; then
+    need_pkg_config=1
+  fi
+  if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists ncurses 2>/dev/null; then
+    :
+  elif [ -e /usr/include/ncurses.h ] || [ -e /usr/include/ncurses/ncurses.h ]; then
+    :
+  else
+    need_ncurses=1
+  fi
+
+  if [ "$need_toolchain" = "0" ] && [ "$need_pkg_config" = "0" ] && [ "$need_ncurses" = "0" ]; then
+    ok "tmux source-build prerequisites already present"
+    return 0
+  fi
+
+  warn "installing tmux source-build prerequisites"
+
+  if command -v apt-get >/dev/null 2>&1; then
+    if [ "$need_toolchain" = "1" ]; then
+      install_system_package build-essential build-essential "tmux build toolchain" || return 1
+    fi
+    if [ "$need_pkg_config" = "1" ]; then
+      install_system_package pkg-config pkg-config "pkg-config for tmux build" || return 1
+    fi
+    if [ "$need_ncurses" = "1" ]; then
+      if ! install_system_package libncurses-dev ncurses "ncurses headers for tmux build"; then
+        install_system_package ncurses-dev ncurses "ncurses headers for tmux build" || return 1
+      fi
+    fi
+    return 0
+  fi
+
+  if command -v brew >/dev/null 2>&1; then
+    if [ "$need_pkg_config" = "1" ]; then
+      run brew install pkg-config
+    fi
+    if [ "$need_ncurses" = "1" ]; then
+      run brew install ncurses
+    fi
+    if [ "$need_toolchain" = "1" ]; then
+      warn "compiler toolchain is missing; install Xcode CLT manually: xcode-select --install"
+      return 1
+    fi
+    return 0
+  fi
+
+  err "tmux source-build prerequisites missing: compiler toolchain, pkg-config, ncurses headers"
+  return 1
 }
 
 install_system_package() {
@@ -224,6 +358,199 @@ run_mise_use_global() {
   return 1
 }
 
+prepend_path_dir_if_missing() {
+  local dir="$1"
+  [ -n "$dir" ] || return 0
+  case ":$PATH:" in
+    *":$dir:"*) return 0 ;;
+  esac
+  PATH="$dir:$PATH"
+}
+
+ensure_cmd_on_path() {
+  local cmd="$1"
+  local resolved=""
+  local cmd_dir=""
+
+  if command -v "$cmd" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if ! resolved="$(dot_find_cmd "$cmd" 2>/dev/null)"; then
+    return 1
+  fi
+
+  case "$resolved" in
+    */*)
+      cmd_dir="$(dirname "$resolved")"
+      prepend_path_dir_if_missing "$cmd_dir"
+      ;;
+  esac
+
+  return 0
+}
+
+ensure_working_tmux_binary_or_fallback() {
+  local tmux_bin=""
+  local check_output=""
+  local active_backend=""
+  local fallback_tool=""
+  local remove_tool=""
+
+  if [ "$DRY_RUN" = "1" ]; then
+    ok "tmux health check skipped in dry-run mode"
+    return 0
+  fi
+
+  if ! ensure_cmd_on_path tmux; then
+    err "required command not found after install: tmux"
+    return 1
+  fi
+  if ! tmux_bin="$(dot_find_cmd tmux 2>/dev/null)"; then
+    err "required command not found after install: tmux"
+    return 1
+  fi
+
+  check_output="$(mktemp)"
+  if "$tmux_bin" -V >"$check_output" 2>&1; then
+    ok "tmux ready: $(head -n 1 "$check_output")"
+    rm -f "$check_output"
+    return 0
+  fi
+
+  warn "tmux failed health check: $tmux_bin"
+  head -n 2 "$check_output" | sed 's/^/    /'
+  rm -f "$check_output"
+
+  active_backend="$(dot_detect_tmux_backend_from_path "$tmux_bin")"
+  case "$active_backend" in
+    prebuilt)
+      fallback_tool="$(dot_fallback_tmux_tool)"
+      remove_tool="github:tmux/tmux-builds"
+      ;;
+    source)
+      fallback_tool="$(dot_preferred_tmux_tool)"
+      remove_tool="asdf:tmux"
+      ;;
+    *)
+      err "unable to determine tmux backend for fallback: $tmux_bin"
+      return 1
+      ;;
+  esac
+
+  case "$fallback_tool" in
+    asdf:tmux@*)
+      ensure_tmux_source_build_prerequisites
+      ;;
+  esac
+
+  warn "switching tmux backend to fallback: $fallback_tool"
+  run_mise_use_global "$fallback_tool"
+  run mise use -g --remove "$remove_tool" || true
+
+  if ! ensure_cmd_on_path tmux; then
+    err "required command not found after tmux fallback: tmux"
+    return 1
+  fi
+  if ! tmux_bin="$(dot_find_cmd tmux 2>/dev/null)"; then
+    err "required command not found after tmux fallback: tmux"
+    return 1
+  fi
+
+  check_output="$(mktemp)"
+  if "$tmux_bin" -V >"$check_output" 2>&1; then
+    ok "tmux fallback ready: $(head -n 1 "$check_output")"
+    rm -f "$check_output"
+    return 0
+  fi
+
+  err "tmux is still unusable after fallback: $tmux_bin"
+  head -n 4 "$check_output" | sed 's/^/    /' >&2
+  rm -f "$check_output"
+  return 1
+}
+
+dot_coursier_jvm_launcher_url() {
+  printf '%s\n' "https://github.com/coursier/launchers/raw/master/coursier"
+}
+
+dot_coursier_jvm_launcher_path() {
+  printf '%s\n' "${XDG_CACHE_HOME:-$HOME/.cache}/dot/coursier/coursier"
+}
+
+download_coursier_jvm_launcher() {
+  local url="$1"
+  local dst="$2"
+
+  if command -v curl >/dev/null 2>&1; then
+    run curl -fsSL "$url" -o "$dst"
+    return 0
+  fi
+  if command -v wget >/dev/null 2>&1; then
+    run wget -qO "$dst" "$url"
+    return 0
+  fi
+  err "failed to download JVM coursier launcher: neither curl nor wget is available"
+  return 1
+}
+
+ensure_coursier_jvm_launcher() {
+  local launcher_path=""
+  local launcher_url=""
+  local check_output=""
+
+  launcher_path="$(dot_coursier_jvm_launcher_path)"
+  launcher_url="$(dot_coursier_jvm_launcher_url)"
+
+  if ! ensure_cmd_on_path java; then
+    err "java runtime is unavailable on PATH; required for JVM coursier launcher"
+    return 1
+  fi
+
+  if [ -x "$launcher_path" ]; then
+    if [ "$DRY_RUN" = "1" ] || "$launcher_path" --help >/dev/null 2>&1; then
+      printf '%s\n' "$launcher_path"
+      return 0
+    fi
+    warn "cached JVM coursier launcher failed health check; re-downloading" >&2
+  fi
+
+  run mkdir -p "$(dirname "$launcher_path")"
+  download_coursier_jvm_launcher "$launcher_url" "$launcher_path" || return 1
+  run chmod +x "$launcher_path"
+
+  if [ "$DRY_RUN" = "1" ]; then
+    printf '%s\n' "$launcher_path"
+    return 0
+  fi
+
+  check_output="$(mktemp)"
+  if "$launcher_path" --help >"$check_output" 2>&1; then
+    rm -f "$check_output"
+    printf '%s\n' "$launcher_path"
+    return 0
+  fi
+
+  err "downloaded JVM coursier launcher failed health check: $launcher_path"
+  head -n 4 "$check_output" | sed 's/^/    /' >&2
+  rm -f "$check_output"
+  return 1
+}
+
+resolve_working_coursier_bin() {
+  local cs_bin=""
+
+  if cs_bin="$(dot_find_cmd cs 2>/dev/null)"; then
+    if [ "$DRY_RUN" = "1" ] || "$cs_bin" --help >/dev/null 2>&1; then
+      printf '%s\n' "$cs_bin"
+      return 0
+    fi
+    warn "native coursier launcher failed health check; falling back to JVM launcher" >&2
+  fi
+
+  ensure_coursier_jvm_launcher
+}
+
 usage() {
   cat <<'EOF'
 Usage: ./setup.sh [--dry-run|-n]
@@ -237,7 +564,8 @@ Env flags:
                                (Python/Scala/TypeScript/dmux + metals + vim runtime)
                                (default: prompt on interactive TTY, otherwise 0)
   INSTALL_TMUX_PLUGINS=0|1     Install tmux plugins with TPM (default: 1)
-  SET_DEFAULT_SHELL=0|1        Try switching login shell to zsh (default: 0)
+  SET_DEFAULT_SHELL=0|1        Try switching login shell to zsh
+                               (default: prompt on interactive TTY [Y/n], otherwise 0)
 EOF
 }
 
@@ -501,6 +829,37 @@ resolve_install_optional_tools() {
   INSTALL_OPTIONAL_TOOLS=0
 }
 
+resolve_set_default_shell() {
+  local reply=""
+  local selected_value=""
+
+  if [ -n "$SET_DEFAULT_SHELL" ]; then
+    return
+  fi
+
+  if dot_is_interactive_tty; then
+    printf '\n[setup] Switch default login shell to zsh? [Y/n]: '
+    IFS= read -r reply || true
+    case "$reply" in
+      [yY]|[yY][eE][sS]|"")
+        selected_value=1
+        ;;
+      [nN]|[nN][oO])
+        selected_value=0
+        ;;
+      *)
+        warn "invalid response '$reply'; defaulting to yes"
+        selected_value=1
+        ;;
+    esac
+    SET_DEFAULT_SHELL="$selected_value"
+    ok "interactive selection: SET_DEFAULT_SHELL=$SET_DEFAULT_SHELL"
+    return
+  fi
+
+  SET_DEFAULT_SHELL=0
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --dry-run|-n) DRY_RUN=1 ;;
@@ -518,6 +877,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 resolve_install_optional_tools
+resolve_set_default_shell
 
 dot_validate_bool_flags_01 INSTALL_OPTIONAL_TOOLS INSTALL_TMUX_PLUGINS SET_DEFAULT_SHELL DRY_RUN || exit 2
 
@@ -538,18 +898,30 @@ fi
 
 step "install global required tools (CLI/runtime/LSP/formatter)"
 ensure_mise_global_prerequisites_or_exit
+if dot_required_tmux_uses_source_backend; then
+  ensure_tmux_source_build_prerequisites
+fi
 run_mise_use_global "${DOT_REQUIRED_MISE_TOOLS[@]}"
+ensure_working_tmux_binary_or_fallback
 ok "required global tools installed"
 
 step "install optional tools"
 if [ "$INSTALL_OPTIONAL_TOOLS" = "1" ]; then
   run_mise_use_global "${DOT_OPTIONAL_MISE_TOOLS[@]}"
   CS_BIN=""
-  if CS_BIN="$(dot_find_cmd cs 2>/dev/null)"; then
+  if CS_BIN="$(resolve_working_coursier_bin)"; then
+    # resolve_working_coursier_bin runs in command substitution (subshell),
+    # so PATH updates done there are not visible here.
+    if [ "$CS_BIN" = "$(dot_coursier_jvm_launcher_path)" ]; then
+      if ! ensure_cmd_on_path java; then
+        err "java runtime is unavailable on PATH; required for JVM coursier launcher"
+        exit 1
+      fi
+    fi
     run "$CS_BIN" install --install-dir "$HOME/.local/bin" metals
-    ok "metals installed via coursier"
+    ok "metals installed via coursier: $CS_BIN"
   else
-    err "required command not found for metals install: cs"
+    err "unable to resolve a working coursier launcher for metals install"
     exit 1
   fi
   ensure_optional_vim_binary
@@ -684,18 +1056,23 @@ else
 fi
 
 step "final check and optional default shell switch"
-if [ "$SET_DEFAULT_SHELL" = "1" ]; then
-  if [ "$DRY_RUN" = "1" ]; then
-    printf '  [dry-run] %q %q %q %q\n' chsh -s "$(command -v zsh)" "$USER"
+ZSH_BIN="$(command -v zsh 2>/dev/null || true)"
+if [ -z "$ZSH_BIN" ]; then
+  warn "zsh command is unavailable; skipped default shell switch"
+elif [ "$SET_DEFAULT_SHELL" = "1" ]; then
+  if [ "$(dot_current_login_shell)" = "$ZSH_BIN" ]; then
+    ok "default login shell already zsh: $ZSH_BIN"
+  elif [ "$DRY_RUN" = "1" ]; then
+    printf '  [dry-run] %q %q %q %q\n' chsh -s "$ZSH_BIN" "$USER"
     ok "default login shell would be switched to zsh"
-  elif chsh -s "$(command -v zsh)" "$USER"; then
+  elif chsh -s "$ZSH_BIN" "$USER"; then
     ok "default login shell switched to zsh"
   else
     warn "chsh failed. try interactively or run:"
     if command -v usermod >/dev/null 2>&1; then
-      warn "sudo usermod -s \"$(command -v zsh)\" \"$USER\""
+      warn "sudo usermod -s \"$ZSH_BIN\" \"$USER\""
     else
-      warn "chsh -s \"$(command -v zsh)\" \"$USER\""
+      warn "chsh -s \"$ZSH_BIN\" \"$USER\""
     fi
   fi
 else

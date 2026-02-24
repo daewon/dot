@@ -14,6 +14,12 @@ path=("$HOME/.local/bin" "$HOME/bin" $path)
 export PATH
 typeset -g DOT_REPO_ROOT="${${(%):-%N}:A:h:h}"
 
+# Some terminals/session managers keep SHELL from an older parent process.
+# Normalize it for child processes spawned from this zsh session.
+if [[ -n "${commands[zsh]:-}" ]]; then
+  export SHELL="${commands[zsh]}"
+fi
+
 # Parent process sometimes sets no-color flags (e.g., NO_COLOR=1).
 # Unset them so interactive terminal apps (Helix, etc.) keep ANSI colors.
 if [[ -o interactive ]]; then
@@ -117,3 +123,4 @@ alias ll='ls -alF'
 if [[ -f "$HOME/.zsh.local" ]]; then
   source "$HOME/.zsh.local"
 fi
+[ -f "$HOME/.alias" ] && source "$HOME/.alias"

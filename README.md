@@ -43,13 +43,16 @@
 - 비대화형 실행(예: CI, 파이프)에서 변수 미지정 시 `INSTALL_OPTIONAL_TOOLS=0` 기본값 적용
 - `INSTALL_TMUX_PLUGINS=0 ./setup.sh`
 - `SET_DEFAULT_SHELL=1 ./setup.sh`
+- `SET_DEFAULT_SHELL=0 ./setup.sh`
+- 인터랙티브 TTY에서 `SET_DEFAULT_SHELL` 미지정 시 zsh 전환 여부를 프롬프트로 확인(`[Y/n]`, 기본 Yes)
+- 비대화형 실행에서 `SET_DEFAULT_SHELL` 미지정 시 기본값 `0`(전환 생략)
 - `./cleanup.sh --dry-run`
 - `REMOVE_GLOBAL_TOOLS=1 ./cleanup.sh`
 - `./verify.sh --profile full|stress`
 
 추가 참고:
-- `tmux`는 `mise`의 prebuilt backend(`github:tmux/tmux-builds`)로 설치합니다(소스 빌드 의존성 최소화).
-- ARM 지원: `tmux-builds`는 `linux-arm64`, `macos-arm64` 아티팩트를 제공합니다.
+- `tmux`는 `scripts/lib/toolset.sh`에 정의된 backend로 설치하고, 설치 후 `tmux -V` health check가 실패하면 prebuilt/source backend 간 자동 fallback을 시도합니다.
+- 선택 도구에서 `metals` 설치 시 native `cs`가 CPU 미지원으로 실패하면 JVM launcher(`coursier` script)로 자동 fallback합니다.
 
 ## 저장소 구조
 - `config/`: zsh, tmux, helix, lazygit, git 설정

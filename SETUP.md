@@ -37,10 +37,11 @@ exec "$SHELL" -l
 - 비대화형 실행에서 `INSTALL_OPTIONAL_TOOLS` 미지정 시: `0`으로 처리
 - `INSTALL_TMUX_PLUGINS=0 ./setup.sh`: TPM 플러그인 설치 생략
 - `SET_DEFAULT_SHELL=1 ./setup.sh`: 기본 셸을 zsh로 변경 시도
+- `SET_DEFAULT_SHELL=0 ./setup.sh`: 기본 셸 변경 생략
 
 설치 시 수행되는 일:
 - 필수/선택 도구 설치 (`scripts/lib/toolset.sh` 기준)
-- `tmux`는 prebuilt backend(`github:tmux/tmux-builds`)로 설치(소스 빌드 회피)
+- `tmux` 설치 후 `tmux -V` health check를 수행하고, 실패 시 prebuilt/source backend 간 자동 fallback 시도
 - 필수(global) 도구에 Scala 런처 `coursier(cs)` 포함
 - 선택 도구 설치 시 Python LSP(`pyright`), Scala 도구 체인(`java 21`, `mill` + `metals` launcher), TypeScript 도구 체인(`typescript-language-server`, `tsc`), `dmux`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)를 설치
 - zprezto 준비 및 관리형 `~/.zshrc` 구성
@@ -54,10 +55,12 @@ exec "$SHELL" -l
 기본값:
 - 인터랙티브 TTY: 프롬프트 응답값 사용(`Enter`는 No)
 - 비대화형: `INSTALL_OPTIONAL_TOOLS=0` (선택 도구 미설치)
+- 인터랙티브 TTY에서 `SET_DEFAULT_SHELL` 미지정: zsh 전환 여부를 프롬프트로 확인(`[Y/n]`, `Enter`는 Yes)
+- 비대화형에서 `SET_DEFAULT_SHELL` 미지정: `0` (기본 셸 전환 생략)
 
 선택 도구 구성(`INSTALL_OPTIONAL_TOOLS=1`):
 - Python: global `pyright` 설치(Helix는 `.venv`의 `pyright`/`basedpyright` 우선, 없으면 global fallback)
-- Scala: `java 21` + `mill` + `metals` launcher(`~/.local/bin/metals`, `coursier(cs)` 사용)
+- Scala: `java 21` + `mill` + `metals` launcher(`~/.local/bin/metals`, `coursier(cs)` 사용, native `cs` 실패 시 JVM launcher fallback)
 - JavaScript/TypeScript: `typescript-language-server` + `tsc`
 - 기타: `dmux`
 - Vim: `vim` binary + `~/.vim_runtime` clone + 관리형 `~/.vimrc` + `update_plugins.py`
@@ -121,15 +124,13 @@ git status --short
   - passwordless sudo가 불가하면 사전에 `zsh`/`vim`을 설치하거나 인터랙티브 셸에서 실행하세요.
 - `chsh` 실패: 시스템 정책/권한 확인 후 재시도
 - 일부 도구 미검출: `mise current`로 활성 버전 확인
-- `tmux` 설치가 소스 빌드로 빠지는 경우:
-  - `setup.sh`는 `github:tmux/tmux-builds` prebuilt backend를 사용합니다.
-  - 레거시 asdf backend가 우선되는 환경이면 아래로 정렬:
+- `tmux`가 설치됐지만 실행(`tmux -V`)이 CPU feature 부족으로 실패하는 경우:
+  - `setup.sh`는 자동으로 반대 backend(prebuilt <-> source)로 1회 fallback을 시도합니다.
+  - 수동 전환이 필요하면 아래를 실행하세요.
     ```bash
-    mise install github:tmux/tmux-builds@3.6a
-    mise use -g github:tmux/tmux-builds@3.6a
+    mise use -g --remove github:tmux/tmux-builds
+    mise use -g asdf:tmux@3.6a
     ```
-- ARM 장치 설치:
-  - `tmux-builds`는 `linux-arm64`, `macos-arm64` 아티팩트를 제공하므로 별도 C 빌드 도구 없이 설치 가능합니다.
 - `mise` 설치 중 `Permission denied (os error 13)`:
   - 권한 점검: `ls -ld ~/.config/mise ~/.local/share/mise ~/.local/state/mise ~/.cache/mise`
   - root 소유면 소유권 복구:

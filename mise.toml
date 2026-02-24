@@ -1,3 +1,6 @@
 [tools]
+codex = "latest"
+"npm:@openai/codex" = "latest"
+"npm:openai/codex" = "latest"
 # Intentionally empty.
 # This repository installs tools via global policy in scripts/lib/toolset.sh.
