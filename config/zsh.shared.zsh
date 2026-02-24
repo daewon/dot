@@ -57,8 +57,30 @@ setopt HIST_REDUCE_BLANKS
 setopt EXTENDED_HISTORY
 setopt HIST_FCNTL_LOCK
 
+# tmux helpers.
+typeset -g DOT_TMUX_SESSION_NAME="${DOT_TMUX_SESSION_NAME:-main}"
+ta() {
+  local session_name="${1:-$DOT_TMUX_SESSION_NAME}"
+  if ! command -v tmux >/dev/null 2>&1; then
+    echo "tmux not found in PATH" >&2
+    return 127
+  fi
+  tmux new-session -A -s "$session_name"
+}
+
+# Auto-enter tmux on first SSH login shell unless explicitly disabled.
+if [[ -o interactive ]] \
+  && [[ -o login ]] \
+  && [[ -t 0 ]] \
+  && [[ -t 1 ]] \
+  && [[ -n "${SSH_CONNECTION:-${SSH_TTY:-}}" ]] \
+  && [[ -z "${TMUX:-}" ]] \
+  && [[ "${DOT_AUTO_TMUX_ON_SSH:-1}" == "1" ]] \
+  && command -v tmux >/dev/null 2>&1; then
+  ta "${DOT_AUTO_TMUX_SESSION_NAME:-$DOT_TMUX_SESSION_NAME}"
+fi
+
 # Quality-of-life aliases.
-alias ta='tmux attach'
 function lazygit() {
   local lazygit_bin="${commands[lazygit]:-}"
   if [[ -z "$lazygit_bin" ]]; then

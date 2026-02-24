@@ -19,14 +19,7 @@ MANIFEST_FILE="$(dot_setup_manifest_file)"
 MANIFEST_DIR="$(dirname "$MANIFEST_FILE")"
 MANIFEST_USED=0
 MANIFEST_VERSION="1"
-
-step() {
-  STEP=$((STEP + 1))
-  printf '\n[%d/%d] %s\n' "$STEP" "$TOTAL_STEPS" "$*"
-}
-ok() { printf '  [ok] %s\n' "$*"; }
-warn() { printf '  [warn] %s\n' "$*"; }
-err() { printf '  [error] %s\n' "$*" >&2; }
+GIT_SHARED_INCLUDE_PATH="$(dot_git_shared_include_path "$REPO_ROOT")"
 
 usage() {
   cat <<'EOF'
@@ -47,16 +40,6 @@ on_error() {
   err "failed at step ${FAILED_STEP}"
 }
 trap on_error ERR
-
-run() {
-  if [ "$DRY_RUN" = "1" ]; then
-    printf '  [dry-run]'
-    printf ' %q' "$@"
-    printf '\n'
-  else
-    "$@"
-  fi
-}
 
 remove_existing_path_forced() {
   local path="$1"
@@ -337,15 +320,15 @@ else
 fi
 
 step "remove git include and optional global tool entries"
-if git config --global --get-all include.path | grep -Fx "$REPO_ROOT/config/gitconfig.shared" >/dev/null; then
-  run git config --global --unset-all include.path "$REPO_ROOT/config/gitconfig.shared"
+if [ "$(dot_git_include_count "$GIT_SHARED_INCLUDE_PATH")" != "0" ]; then
+  run git config --global --unset-all include.path "$GIT_SHARED_INCLUDE_PATH"
   if [ "$DRY_RUN" = "1" ]; then
-    ok "would remove git include.path: $REPO_ROOT/config/gitconfig.shared"
+    ok "would remove git include.path: $GIT_SHARED_INCLUDE_PATH"
   else
-    ok "removed git include.path: $REPO_ROOT/config/gitconfig.shared"
+    ok "removed git include.path: $GIT_SHARED_INCLUDE_PATH"
   fi
 else
-  warn "git include.path already absent: $REPO_ROOT/config/gitconfig.shared"
+  warn "git include.path already absent: $GIT_SHARED_INCLUDE_PATH"
 fi
 
 if [ "$REMOVE_GLOBAL_TOOLS" = "1" ]; then

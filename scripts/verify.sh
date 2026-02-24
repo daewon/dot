@@ -22,6 +22,7 @@ RESTORE_AT_END="${RESTORE_AT_END:-}" # 1 or 0
 LOG_DIR="${TMPDIR:-/tmp}/dot-verify-$(date +%Y%m%d-%H%M%S)"
 MANIFEST_FILE="$(dot_setup_manifest_file)"
 MANIFEST_VERSION="1"
+GIT_SHARED_INCLUDE_PATH="$(dot_git_shared_include_path "$REPO_ROOT")"
 CONTRACT_TMP=""
 
 VERIFY_REQUIRED_CMDS=(
@@ -51,13 +52,6 @@ VERIFY_LINT_TARGETS=(
 )
 
 log() { printf '[verify] %s\n' "$*"; }
-step() {
-  STEP=$((STEP + 1))
-  printf '\n[%d/%d] %s\n' "$STEP" "$TOTAL_STEPS" "$*"
-}
-ok() { printf '  [ok] %s\n' "$*"; }
-warn() { printf '  [warn] %s\n' "$*"; }
-err() { printf '  [error] %s\n' "$*" >&2; }
 
 usage() {
   cat <<'EOF'
@@ -135,10 +129,7 @@ count_matches() {
 }
 
 count_git_include() {
-  local c=""
-  c="$(git config --global --get-all include.path 2>/dev/null | grep -Fxc "$REPO_ROOT/config/gitconfig.shared" || true)"
-  c="$(printf '%s' "$c" | tr -d '[:space:]')"
-  printf '%s' "${c:-0}"
+  dot_git_include_count "$GIT_SHARED_INCLUDE_PATH"
 }
 
 tool_available() {

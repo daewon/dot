@@ -19,29 +19,13 @@ DRY_RUN="${DRY_RUN:-0}"                               # 1 or 0
 MANIFEST_FILE="$(dot_setup_manifest_file)"
 MANIFEST_DIR="$(dirname "$MANIFEST_FILE")"
 MANIFEST_VERSION="1"
+GIT_SHARED_INCLUDE_PATH="$(dot_git_shared_include_path "$REPO_ROOT")"
 TS="$(date +%Y%m%d-%H%M%S)"
 APT_UPDATED=0
 declare -a MANIFEST_ENTRIES=()
 
 log() {
   printf '[setup] %s\n' "$*"
-}
-
-step() {
-  STEP=$((STEP + 1))
-  printf '\n[%d/%d] %s\n' "$STEP" "$TOTAL_STEPS" "$*"
-}
-
-ok() {
-  printf '  [ok] %s\n' "$*"
-}
-
-warn() {
-  printf '  [warn] %s\n' "$*"
-}
-
-err() {
-  printf '  [error] %s\n' "$*" >&2
 }
 
 print_mise_install_hint() {
@@ -247,23 +231,6 @@ on_error() {
 }
 trap on_error ERR
 
-run() {
-  if [ "$DRY_RUN" = "1" ]; then
-    printf '  [dry-run]'
-    printf ' %q' "$@"
-    printf '\n'
-  else
-    "$@"
-  fi
-}
-
-capture_tsv_entries_file() {
-  local output_file=""
-  output_file="$(mktemp)"
-  "$@" >"$output_file"
-  printf '%s\n' "$output_file"
-}
-
 manifest_add_entry() {
   local kind="$1"
   local path="$2"
@@ -400,9 +367,7 @@ ensure_optional_vim_runtime() {
   local vimrc_path=""
   local vimrc_marker=""
   local python_bin=""
-  local entries_file=""
 
-  entries_file="$(capture_tsv_entries_file dot_print_optional_managed_git_clones "$HOME")"
   while IFS=$'\t' read -r clone_path clone_origin; do
     ensure_managed_clone \
       "$clone_path" \
@@ -412,10 +377,8 @@ ensure_optional_vim_runtime() {
       "0" \
       "vimrcs/basic.vim"
     manifest_add_entry "git_clone_origin" "$clone_path" "$clone_origin"
-  done <"$entries_file"
-  rm -f "$entries_file"
+  done < <(dot_print_optional_managed_git_clones "$HOME")
 
-  entries_file="$(capture_tsv_entries_file dot_print_optional_managed_file_markers "$HOME")"
   while IFS=$'\t' read -r vimrc_path vimrc_marker; do
     if [ -e "$vimrc_path" ] || [ -L "$vimrc_path" ]; then
       if [ ! -L "$vimrc_path" ] && grep -Fq "$vimrc_marker" "$vimrc_path" 2>/dev/null; then
@@ -450,8 +413,7 @@ EOF
     fi
     ok "vimrc configured: $vimrc_path"
     manifest_add_entry "managed_file_contains" "$vimrc_path" "$vimrc_marker"
-  done <"$entries_file"
-  rm -f "$entries_file"
+  done < <(dot_print_optional_managed_file_markers "$HOME")
 
   if [ -f "$HOME/.vim_runtime/update_plugins.py" ]; then
     if python_bin="$(dot_find_cmd python3 2>/dev/null)"; then
@@ -580,13 +542,11 @@ ensure_managed_clone \
   "init.zsh"
 
 step "link prezto runcoms and write ~/.zshrc wrapper"
-ENTRIES_FILE="$(capture_tsv_entries_file dot_print_prezto_runcom_symlink_entries "$HOME")"
 while IFS=$'\t' read -r runcom_link runcom_target; do
   backup_if_unmanaged_path "$runcom_link" "$runcom_target" "$TS"
   run ln -sfn "$runcom_target" "$runcom_link"
   manifest_add_entry "symlink" "$runcom_link" "$runcom_target"
-done <"$ENTRIES_FILE"
-rm -f "$ENTRIES_FILE"
+done < <(dot_print_prezto_runcom_symlink_entries "$HOME")
 if [ -e "$HOME/.zshrc" ] || [ -L "$HOME/.zshrc" ]; then
   if [ ! -L "$HOME/.zshrc" ] && grep -Fq "dot-setup managed zshrc" "$HOME/.zshrc" 2>/dev/null; then
     run rm -f "$HOME/.zshrc"
@@ -619,17 +579,13 @@ manifest_add_entry "managed_file_contains" "$HOME/.zshrc" "dot-setup managed zsh
 step "link dotfiles from repo"
 run mkdir -p "$HOME/.config"
 run mkdir -p "$HOME/.local/bin"
-ENTRIES_FILE="$(capture_tsv_entries_file dot_print_repo_symlink_entries "$REPO_ROOT")"
 while IFS=$'\t' read -r managed_link managed_target; do
   backup_if_unmanaged_path "$managed_link" "$managed_target" "$TS"
-done <"$ENTRIES_FILE"
-rm -f "$ENTRIES_FILE"
-ENTRIES_FILE="$(capture_tsv_entries_file dot_print_repo_symlink_entries "$REPO_ROOT")"
+done < <(dot_print_repo_symlink_entries "$REPO_ROOT")
 while IFS=$'\t' read -r managed_link managed_target; do
   run ln -sfn "$managed_target" "$managed_link"
   manifest_add_entry "symlink" "$managed_link" "$managed_target"
-done <"$ENTRIES_FILE"
-rm -f "$ENTRIES_FILE"
+done < <(dot_print_repo_symlink_entries "$REPO_ROOT")
 if [ "$DRY_RUN" = "1" ]; then
   ok "would create/update symlinks"
 else
@@ -637,28 +593,27 @@ else
 fi
 
 step "configure git include and tmux plugins"
-INCLUDE_COUNT="$(git config --global --get-all include.path 2>/dev/null | grep -Fxc "$REPO_ROOT/config/gitconfig.shared" || true)"
-INCLUDE_COUNT="$(printf '%s' "$INCLUDE_COUNT" | tr -d '[:space:]')"
+INCLUDE_COUNT="$(dot_git_include_count "$GIT_SHARED_INCLUDE_PATH")"
 if [ "${INCLUDE_COUNT:-0}" = "0" ]; then
-  run git config --global --add include.path "$REPO_ROOT/config/gitconfig.shared"
+  run git config --global --add include.path "$GIT_SHARED_INCLUDE_PATH"
   if [ "$DRY_RUN" = "1" ]; then
-    ok "would add git include.path: $REPO_ROOT/config/gitconfig.shared"
+    ok "would add git include.path: $GIT_SHARED_INCLUDE_PATH"
   else
-    ok "added git include.path: $REPO_ROOT/config/gitconfig.shared"
+    ok "added git include.path: $GIT_SHARED_INCLUDE_PATH"
   fi
 elif [ "${INCLUDE_COUNT:-0}" = "1" ]; then
   ok "git include.path already configured"
 else
   warn "duplicate git include.path entries found (${INCLUDE_COUNT}); normalizing to one"
-  run git config --global --unset-all include.path "$REPO_ROOT/config/gitconfig.shared"
-  run git config --global --add include.path "$REPO_ROOT/config/gitconfig.shared"
+  run git config --global --unset-all include.path "$GIT_SHARED_INCLUDE_PATH"
+  run git config --global --add include.path "$GIT_SHARED_INCLUDE_PATH"
   if [ "$DRY_RUN" = "1" ]; then
     ok "would normalize git include.path to one entry"
   else
     ok "normalized git include.path to one entry"
   fi
 fi
-manifest_add_entry "git_include_path" "$REPO_ROOT/config/gitconfig.shared"
+manifest_add_entry "git_include_path" "$GIT_SHARED_INCLUDE_PATH"
 ensure_managed_clone \
   "$HOME/.tmux/plugins/tpm" \
   "https://github.com/tmux-plugins/tpm" \
@@ -666,11 +621,9 @@ ensure_managed_clone \
   "tmux tpm" \
   "0" \
   "tpm"
-ENTRIES_FILE="$(capture_tsv_entries_file dot_print_managed_git_clones "$HOME")"
 while IFS=$'\t' read -r clone_path clone_origin; do
   manifest_add_entry "git_clone_origin" "$clone_path" "$clone_origin"
-done <"$ENTRIES_FILE"
-rm -f "$ENTRIES_FILE"
+done < <(dot_print_managed_git_clones "$HOME")
 if [ "$INSTALL_TMUX_PLUGINS" = "1" ]; then
   if [ "$DRY_RUN" = "1" ]; then
     printf '  [dry-run] %q\n' "$HOME/.tmux/plugins/tpm/bin/install_plugins"
