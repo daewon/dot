@@ -23,6 +23,15 @@ exec "$SHELL" -l
   - `scripts/lib/toolset.sh`: global required/optional 도구 정책(단일 기준)
   - `mise.toml`: 로컬 오버라이드 방지용 빈 placeholder
 
+## 옵션 빠른 참조
+| 변수 | 스크립트 | 값 | 인터랙티브 미지정 | 비대화형 미지정 |
+| --- | --- | --- | --- | --- |
+| `INSTALL_OPTIONAL_TOOLS` | `setup.sh` | `0/1` | 프롬프트 `[y/N]` | `0` |
+| `SET_DEFAULT_SHELL` | `setup.sh` | `0/1` | 프롬프트 `[Y/n]` | `0` |
+| `INSTALL_TMUX_PLUGINS` | `setup.sh` | `0/1` | `1` | `1` |
+| `REMOVE_GLOBAL_TOOLS` | `cleanup.sh` | `0/1` | 프롬프트 `[y/N]` | `0` |
+| `FORCE_REMOVE_ZSHRC` | `cleanup.sh` | `0/1` | `0` | `0` |
+
 ## 1) 설치
 기본 설치:
 ```bash
@@ -102,6 +111,8 @@ exec "$SHELL" -l
 - `./cleanup.sh --dry-run`
 - `REMOVE_GLOBAL_TOOLS=1 ./cleanup.sh`
 - `FORCE_REMOVE_ZSHRC=1 ./cleanup.sh`
+- `./cleanup.sh` 실행 시(인터랙티브 TTY, `REMOVE_GLOBAL_TOOLS` 미지정): global tool 엔트리 제거 여부를 프롬프트로 확인(`[y/N]`, 기본 No)
+- 비대화형 실행에서 `REMOVE_GLOBAL_TOOLS` 미지정 시: `0`으로 처리
 
 정리 원칙:
 - setup가 관리한 항목만 삭제

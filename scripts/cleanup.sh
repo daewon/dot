@@ -13,7 +13,7 @@ STEP=0
 FAILED_STEP=0
 
 DRY_RUN="${DRY_RUN:-0}"                         # 1 or 0
-REMOVE_GLOBAL_TOOLS="${REMOVE_GLOBAL_TOOLS:-0}" # 1 or 0
+REMOVE_GLOBAL_TOOLS="${REMOVE_GLOBAL_TOOLS-}"   # 1 or 0 (resolved later)
 FORCE_REMOVE_ZSHRC="${FORCE_REMOVE_ZSHRC:-0}"   # 1 or 0
 MANIFEST_FILE="$(dot_setup_manifest_file)"
 MANIFEST_DIR="$(dirname "$MANIFEST_FILE")"
@@ -30,7 +30,8 @@ Options:
   --help, -h     Show this help
 
 Env flags:
-  REMOVE_GLOBAL_TOOLS=0|1  Remove global mise tool entries added by setup (default: 0)
+  REMOVE_GLOBAL_TOOLS=0|1  Remove global mise tool entries added by setup
+                           (default: prompt on interactive TTY [y/N], otherwise 0)
   FORCE_REMOVE_ZSHRC=0|1   Remove ~/.zshrc even if not managed by setup (default: 0)
 EOF
 }
@@ -41,16 +42,21 @@ on_error() {
 }
 trap on_error ERR
 
+report_removed() {
+  local label="$1"
+  if [ "$DRY_RUN" = "1" ]; then
+    ok "would remove $label"
+  else
+    ok "removed $label"
+  fi
+}
+
 remove_existing_path_forced() {
   local path="$1"
   local label="${2:-$path}"
   if [ -e "$path" ] || [ -L "$path" ]; then
     run rm -rf "$path"
-    if [ "$DRY_RUN" = "1" ]; then
-      ok "would remove $label (forced)"
-    else
-      ok "removed $label (forced)"
-    fi
+    report_removed "$label (forced)"
   else
     warn "already missing: $path"
   fi
@@ -64,11 +70,7 @@ remove_if_link_target() {
   if [ -L "$path" ]; then
     if dot_is_link_target "$path" "$expected_target"; then
       run rm -f "$path"
-      if [ "$DRY_RUN" = "1" ]; then
-        ok "would remove $label"
-      else
-        ok "removed $label"
-      fi
+      report_removed "$label"
     else
       warn "kept $label (symlink target differs from expected managed target)"
     fi
@@ -86,11 +88,7 @@ remove_if_managed_file_contains() {
   if [ -e "$path" ] || [ -L "$path" ]; then
     if [ ! -L "$path" ] && grep -Fq "$marker" "$path" 2>/dev/null; then
       run rm -rf "$path"
-      if [ "$DRY_RUN" = "1" ]; then
-        ok "would remove $label (managed)"
-      else
-        ok "removed $label (managed)"
-      fi
+      report_removed "$label (managed)"
     else
       warn "kept $label (not managed by setup marker)"
     fi
@@ -114,11 +112,7 @@ remove_if_git_clone_origin() {
     origin="$(git -C "$path" remote get-url origin 2>/dev/null || true)"
     if printf '%s' "$origin" | grep -Fq "$expected_url_snippet"; then
       run rm -rf "$path"
-      if [ "$DRY_RUN" = "1" ]; then
-        ok "would remove $label"
-      else
-        ok "removed $label"
-      fi
+      report_removed "$label"
       return
     fi
   fi
@@ -257,15 +251,65 @@ remove_setup_manifest_if_used() {
   fi
   if [ -f "$MANIFEST_FILE" ]; then
     run rm -f "$MANIFEST_FILE"
-    if [ "$DRY_RUN" = "1" ]; then
-      ok "would remove setup manifest: $MANIFEST_FILE"
-    else
-      ok "removed setup manifest: $MANIFEST_FILE"
-    fi
+    report_removed "setup manifest: $MANIFEST_FILE"
   fi
   if [ "$DRY_RUN" = "0" ]; then
     rmdir "$MANIFEST_DIR" 2>/dev/null || true
   fi
+}
+
+resolve_remove_global_tools() {
+  local reply=""
+  local selected_value=""
+
+  if [ -n "$REMOVE_GLOBAL_TOOLS" ]; then
+    return
+  fi
+
+  if dot_is_interactive_tty; then
+    printf '\n[cleanup] Remove global mise tool entries installed by setup? [y/N]: '
+    IFS= read -r reply || true
+    if selected_value="$(dot_parse_yes_no_to_bool_01 "$reply")"; then
+      REMOVE_GLOBAL_TOOLS="$selected_value"
+    else
+      warn "invalid response '$reply'; defaulting to no"
+      REMOVE_GLOBAL_TOOLS=0
+    fi
+    ok "interactive selection: REMOVE_GLOBAL_TOOLS=$REMOVE_GLOBAL_TOOLS"
+    return
+  fi
+
+  REMOVE_GLOBAL_TOOLS=0
+}
+
+remove_git_include_path_entry() {
+  if [ "$(dot_git_include_count "$GIT_SHARED_INCLUDE_PATH")" != "0" ]; then
+    run git config --global --unset-all include.path "$GIT_SHARED_INCLUDE_PATH"
+    report_removed "git include.path: $GIT_SHARED_INCLUDE_PATH"
+  else
+    warn "git include.path already absent: $GIT_SHARED_INCLUDE_PATH"
+  fi
+}
+
+remove_global_mise_tools_if_requested() {
+  local tool=""
+
+  if [ "$REMOVE_GLOBAL_TOOLS" != "1" ]; then
+    warn "skipped global tool entry removal (REMOVE_GLOBAL_TOOLS=0)"
+    return
+  fi
+
+  # mise --remove is more reliable when applied per-tool.
+  for tool in "${DOT_REQUIRED_MISE_TOOLS[@]}" "${DOT_OPTIONAL_MISE_TOOLS[@]}"; do
+    run mise use -g --remove "$(dot_strip_tool_version "$tool")" || true
+  done
+  if [ -e "$HOME/.local/bin/metals" ] || [ -L "$HOME/.local/bin/metals" ]; then
+    run rm -f "$HOME/.local/bin/metals"
+    report_removed "coursier-installed metals launcher"
+  else
+    warn "metals launcher already absent: $HOME/.local/bin/metals"
+  fi
+  report_removed "global mise tool entries added by setup"
 }
 
 while [ "$#" -gt 0 ]; do
@@ -283,6 +327,8 @@ while [ "$#" -gt 0 ]; do
   esac
   shift
 done
+
+resolve_remove_global_tools
 
 dot_validate_bool_flags_01 DRY_RUN REMOVE_GLOBAL_TOOLS FORCE_REMOVE_ZSHRC || exit 2
 
@@ -320,40 +366,8 @@ else
 fi
 
 step "remove git include and optional global tool entries"
-if [ "$(dot_git_include_count "$GIT_SHARED_INCLUDE_PATH")" != "0" ]; then
-  run git config --global --unset-all include.path "$GIT_SHARED_INCLUDE_PATH"
-  if [ "$DRY_RUN" = "1" ]; then
-    ok "would remove git include.path: $GIT_SHARED_INCLUDE_PATH"
-  else
-    ok "removed git include.path: $GIT_SHARED_INCLUDE_PATH"
-  fi
-else
-  warn "git include.path already absent: $GIT_SHARED_INCLUDE_PATH"
-fi
-
-if [ "$REMOVE_GLOBAL_TOOLS" = "1" ]; then
-  # mise --remove is more reliable when applied per-tool.
-  for tool in "${DOT_REQUIRED_MISE_TOOLS[@]}" "${DOT_OPTIONAL_MISE_TOOLS[@]}"; do
-    run mise use -g --remove "$(dot_strip_tool_version "$tool")" || true
-  done
-  if [ -e "$HOME/.local/bin/metals" ] || [ -L "$HOME/.local/bin/metals" ]; then
-    run rm -f "$HOME/.local/bin/metals"
-    if [ "$DRY_RUN" = "1" ]; then
-      ok "would remove coursier-installed metals launcher"
-    else
-      ok "removed coursier-installed metals launcher"
-    fi
-  else
-    warn "metals launcher already absent: $HOME/.local/bin/metals"
-  fi
-  if [ "$DRY_RUN" = "1" ]; then
-    ok "would remove global mise tool entries added by setup"
-  else
-    ok "removed global mise tool entries added by setup"
-  fi
-else
-  warn "skipped global tool entry removal (REMOVE_GLOBAL_TOOLS=0)"
-fi
+remove_git_include_path_entry
+remove_global_mise_tools_if_requested
 remove_setup_manifest_if_used
 
 step "summary"

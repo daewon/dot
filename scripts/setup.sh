@@ -117,7 +117,7 @@ dot_fallback_tmux_tool() {
 dot_detect_tmux_backend_from_path() {
   local tmux_path="$1"
   case "$tmux_path" in
-    */github-tmux-tmux-builds/*)
+    */github-tmux-tmux-builds/*|*/installs/tmux/*)
       printf '%s\n' "prebuilt"
       ;;
     */asdf-tmux/*)
@@ -142,14 +142,57 @@ dot_required_tmux_tool() {
   return 1
 }
 
-dot_required_tmux_uses_source_backend() {
+dot_tmux_backend_from_tool() {
+  local tmux_tool="${1:-}"
+  case "$tmux_tool" in
+    github:tmux/tmux-builds@*)
+      printf '%s\n' "prebuilt"
+      ;;
+    asdf:tmux@*)
+      printf '%s\n' "source"
+      ;;
+    *)
+      printf '%s\n' "unknown"
+      ;;
+  esac
+}
+
+dot_required_tmux_backend() {
   local tmux_tool=""
   if ! tmux_tool="$(dot_required_tmux_tool 2>/dev/null)"; then
+    printf '%s\n' "unknown"
     return 1
   fi
-  case "$tmux_tool" in
-    asdf:tmux@*)
-      return 0
+  dot_tmux_backend_from_tool "$tmux_tool"
+}
+
+dot_required_tmux_uses_source_backend() {
+  [ "$(dot_required_tmux_backend)" = "source" ]
+}
+
+dot_tmux_remove_tool_for_backend() {
+  local backend="$1"
+  case "$backend" in
+    prebuilt)
+      printf '%s\n' "github:tmux/tmux-builds"
+      ;;
+    source)
+      printf '%s\n' "asdf:tmux"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+dot_tmux_fallback_tool_for_backend() {
+  local backend="$1"
+  case "$backend" in
+    prebuilt)
+      dot_fallback_tmux_tool
+      ;;
+    source)
+      dot_preferred_tmux_tool
       ;;
     *)
       return 1
@@ -374,10 +417,56 @@ ensure_cmd_on_path() {
   return 0
 }
 
+resolve_tmux_bin_or_fail() {
+  local phase="$1"
+  local tmux_bin=""
+
+  if ! ensure_cmd_on_path tmux; then
+    err "required command not found after ${phase}: tmux"
+    return 1
+  fi
+  if ! tmux_bin="$(dot_find_cmd tmux 2>/dev/null)"; then
+    err "required command not found after ${phase}: tmux"
+    return 1
+  fi
+
+  printf '%s\n' "$tmux_bin"
+}
+
+check_tmux_binary_health() {
+  local tmux_bin="$1"
+  local success_message="$2"
+  local failure_message="$3"
+  local failure_level="${4:-warn}"
+  local failure_head_lines="${5:-2}"
+  local check_output=""
+
+  check_output="$(mktemp)"
+  if "$tmux_bin" -V >"$check_output" 2>&1; then
+    ok "${success_message}: $(head -n 1 "$check_output")"
+    rm -f "$check_output"
+    return 0
+  fi
+
+  case "$failure_level" in
+    err)
+      err "${failure_message}: $tmux_bin"
+      head -n "$failure_head_lines" "$check_output" | sed 's/^/    /' >&2
+      ;;
+    *)
+      warn "${failure_message}: $tmux_bin"
+      head -n "$failure_head_lines" "$check_output" | sed 's/^/    /'
+      ;;
+  esac
+  rm -f "$check_output"
+  return 1
+}
+
 ensure_working_tmux_binary_or_fallback() {
   local tmux_bin=""
-  local check_output=""
   local active_backend=""
+  local required_backend=""
+  local fallback_backend=""
   local fallback_tool=""
   local remove_tool=""
 
@@ -386,41 +475,35 @@ ensure_working_tmux_binary_or_fallback() {
     return 0
   fi
 
-  if ! ensure_cmd_on_path tmux; then
-    err "required command not found after install: tmux"
-    return 1
-  fi
-  if ! tmux_bin="$(dot_find_cmd tmux 2>/dev/null)"; then
-    err "required command not found after install: tmux"
+  if ! tmux_bin="$(resolve_tmux_bin_or_fail "install")"; then
     return 1
   fi
 
-  check_output="$(mktemp)"
-  if "$tmux_bin" -V >"$check_output" 2>&1; then
-    ok "tmux ready: $(head -n 1 "$check_output")"
-    rm -f "$check_output"
+  if check_tmux_binary_health "$tmux_bin" "tmux ready" "tmux failed health check"; then
     return 0
   fi
 
-  warn "tmux failed health check: $tmux_bin"
-  head -n 2 "$check_output" | sed 's/^/    /'
-  rm -f "$check_output"
-
   active_backend="$(dot_detect_tmux_backend_from_path "$tmux_bin")"
+  fallback_backend="$active_backend"
   case "$active_backend" in
-    prebuilt)
-      fallback_tool="$(dot_fallback_tmux_tool)"
-      remove_tool="github:tmux/tmux-builds"
-      ;;
-    source)
-      fallback_tool="$(dot_preferred_tmux_tool)"
-      remove_tool="asdf:tmux"
+    prebuilt|source)
+      :
       ;;
     *)
-      err "unable to determine tmux backend for fallback: $tmux_bin"
-      return 1
+      required_backend="$(dot_required_tmux_backend || true)"
+      warn "unable to infer tmux backend from path; using required backend policy: ${required_backend:-unknown}"
+      fallback_backend="$required_backend"
       ;;
   esac
+
+  if ! fallback_tool="$(dot_tmux_fallback_tool_for_backend "$fallback_backend" 2>/dev/null)"; then
+    err "unable to determine tmux fallback backend (path=$tmux_bin, active=${active_backend:-unknown}, required=${required_backend:-unknown})"
+    return 1
+  fi
+  if ! remove_tool="$(dot_tmux_remove_tool_for_backend "$fallback_backend" 2>/dev/null)"; then
+    err "unable to resolve tmux remove tool for backend: ${fallback_backend:-unknown}"
+    return 1
+  fi
 
   case "$fallback_tool" in
     asdf:tmux@*)
@@ -432,25 +515,13 @@ ensure_working_tmux_binary_or_fallback() {
   run_mise_use_global "$fallback_tool"
   run mise use -g --remove "$remove_tool" || true
 
-  if ! ensure_cmd_on_path tmux; then
-    err "required command not found after tmux fallback: tmux"
-    return 1
-  fi
-  if ! tmux_bin="$(dot_find_cmd tmux 2>/dev/null)"; then
-    err "required command not found after tmux fallback: tmux"
+  if ! tmux_bin="$(resolve_tmux_bin_or_fail "tmux fallback")"; then
     return 1
   fi
 
-  check_output="$(mktemp)"
-  if "$tmux_bin" -V >"$check_output" 2>&1; then
-    ok "tmux fallback ready: $(head -n 1 "$check_output")"
-    rm -f "$check_output"
+  if check_tmux_binary_health "$tmux_bin" "tmux fallback ready" "tmux is still unusable after fallback" "err" 4; then
     return 0
   fi
-
-  err "tmux is still unusable after fallback: $tmux_bin"
-  head -n 4 "$check_output" | sed 's/^/    /' >&2
-  rm -f "$check_output"
   return 1
 }
 

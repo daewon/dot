@@ -48,7 +48,19 @@
 - 비대화형 실행에서 `SET_DEFAULT_SHELL` 미지정 시 기본값 `0`(전환 생략)
 - `./cleanup.sh --dry-run`
 - `REMOVE_GLOBAL_TOOLS=1 ./cleanup.sh`
+- `./cleanup.sh` 실행 시(인터랙티브 TTY, 변수 미지정) global tool 엔트리 제거 여부 프롬프트 표시
+- 비대화형 실행에서 `REMOVE_GLOBAL_TOOLS` 미지정 시 `0` 기본값 적용
 - `./verify.sh --profile full|stress`
+
+옵션 한눈에 보기:
+
+| 변수 | 스크립트 | 값 | 인터랙티브 미지정 | 비대화형 미지정 |
+| --- | --- | --- | --- | --- |
+| `INSTALL_OPTIONAL_TOOLS` | `setup.sh` | `0/1` | 프롬프트 `[y/N]` | `0` |
+| `SET_DEFAULT_SHELL` | `setup.sh` | `0/1` | 프롬프트 `[Y/n]` | `0` |
+| `INSTALL_TMUX_PLUGINS` | `setup.sh` | `0/1` | `1` | `1` |
+| `REMOVE_GLOBAL_TOOLS` | `cleanup.sh` | `0/1` | 프롬프트 `[y/N]` | `0` |
+| `FORCE_REMOVE_ZSHRC` | `cleanup.sh` | `0/1` | `0` | `0` |
 
 추가 참고:
 - `tmux`는 `scripts/lib/toolset.sh`에 정의된 backend로 설치하고, 설치 후 `tmux -V` health check가 실패하면 prebuilt/source backend 간 자동 fallback을 시도합니다.

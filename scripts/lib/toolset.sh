@@ -5,7 +5,7 @@
 DOT_REQUIRED_MISE_TOOLS=(
   node@24.13.1
   python@3.12.12
-  asdf:tmux@3.6a
+  github:tmux/tmux-builds@3.6a
   lazygit@0.59.0
   uv@0.10.4
   coursier@2.1.25-M23
@@ -26,7 +26,7 @@ DOT_REQUIRED_MISE_TOOLS=(
 
 DOT_OPTIONAL_MISE_TOOLS=(
   java@temurin-21.0.10+7.0.LTS
-  # asdf:mise-plugins/mise-mill@1.1.2
+  asdf:mise-plugins/mise-mill@1.1.2
   npm:pyright@1.1.408
   npm:typescript-language-server@5.1.3
   npm:typescript@5.9.3
