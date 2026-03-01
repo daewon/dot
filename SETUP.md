@@ -40,7 +40,7 @@ exec "$SHELL" -l
 
 자주 쓰는 옵션:
 - `./setup.sh --dry-run`: 변경 없이 계획만 확인
-- `INSTALL_OPTIONAL_TOOLS=1 ./setup.sh`: 선택 도구(Python/Scala/TypeScript/dmux + metals launcher + vim runtime) 설치 포함
+- `INSTALL_OPTIONAL_TOOLS=1 ./setup.sh`: 선택 도구(Python/Scala/TypeScript/dmux/codex + metals launcher + vim runtime) 설치 포함
 - `INSTALL_OPTIONAL_TOOLS=0 ./setup.sh`: 선택 도구 설치 생략
 - 인터랙티브 TTY에서 `INSTALL_OPTIONAL_TOOLS` 미지정 시: 설치 시작 전에 선택 도구 설치 여부를 프롬프트로 확인
 - 비대화형 실행에서 `INSTALL_OPTIONAL_TOOLS` 미지정 시: `0`으로 처리
@@ -52,7 +52,7 @@ exec "$SHELL" -l
 - 필수/선택 도구 설치 (`scripts/lib/toolset.sh` 기준)
 - `tmux` 설치 후 `tmux -V` health check를 수행하고, 실패 시 prebuilt/source backend 간 자동 fallback 시도
 - 필수(global) 도구에 Scala 런처 `coursier(cs)` 포함
-- 선택 도구 설치 시 Python LSP(`pyright`), Scala 도구 체인(`java 21`, `mill` + `metals` launcher), TypeScript 도구 체인(`typescript-language-server`, `tsc`), `dmux`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)를 설치
+- 선택 도구 설치 시 Python LSP(`pyright`), Scala 도구 체인(`java 21`, `mill` + `metals` launcher), TypeScript 도구 체인(`typescript-language-server`, `tsc`), `dmux`, `codex`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)를 설치
 - zprezto 준비 및 관리형 `~/.zshrc` 구성
 - zsh 공유 정책 적용: `HISTSIZE/SAVEHIST=1000000`, 즉시 append, 세션 간 history 공유, 중복 축소
 - Prezto 모듈(`completion`, `command-not-found`, `git`, `history-substring-search`, `autosuggestions`, `syntax-highlighting`) 활성
@@ -71,7 +71,7 @@ exec "$SHELL" -l
 - Python: global `pyright` 설치(Helix는 `.venv`의 `pyright`/`basedpyright` 우선, 없으면 global fallback)
 - Scala: `java 21` + `mill` + `metals` launcher(`~/.local/bin/metals`, `coursier(cs)` 사용, native `cs` 실패 시 JVM launcher fallback)
 - JavaScript/TypeScript: `typescript-language-server` + `tsc`
-- 기타: `dmux`
+- 기타: `dmux`, `codex`
 - Vim: `vim` binary + `~/.vim_runtime` clone + 관리형 `~/.vimrc` + `update_plugins.py`
 
 ## 2) 검증
@@ -121,6 +121,7 @@ exec "$SHELL" -l
 
 ## 4) 운영 규칙
 - 도구/버전 변경: global required/optional 정책은 `scripts/lib/toolset.sh`에서 관리
+- optional `codex`는 최신 빌드 추종을 위해 unpinned로 관리
 - 구조 변경: `docs/architecture.md` 동시 갱신
 - 최종 확인:
 ```bash

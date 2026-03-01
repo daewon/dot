@@ -36,7 +36,7 @@ setup:
 1. 입력/환경 검증
 2. global 도구 설치(`mise use -g`, required/optional)
    - `tmux`는 설치 후 health check(`tmux -V`)를 수행하고 필요 시 prebuilt/source backend 간 fallback
-3. (선택 도구 활성 시) `java 21`/`mill`/`pyright`/`typescript-language-server`/`typescript`/`dmux` 설치 후(`coursier(cs)` 사용, native `cs` 실패 시 JVM launcher fallback) `metals` launcher를 구성하고, `vim` binary + `~/.vim_runtime` + plugin update를 적용
+3. (선택 도구 활성 시) `java 21`/`mill`/`pyright`/`typescript-language-server`/`typescript`/`dmux`/`codex` 설치 후(`coursier(cs)` 사용, native `cs` 실패 시 JVM launcher fallback) `metals` launcher를 구성하고, `vim` binary + `~/.vim_runtime` + plugin update를 적용
 4. zsh/prezto 준비(`HISTSIZE/SAVEHIST=1000000`, history 공유/중복 축소, `completion`/`command-not-found`/`git`/`history-substring-search`/`autosuggestions`/`syntax-highlighting` 활성)
 5. 관리 대상 symlink 연결
 6. git include 정규화

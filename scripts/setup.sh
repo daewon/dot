@@ -616,7 +616,7 @@ Options:
 
 Env flags:
   INSTALL_OPTIONAL_TOOLS=0|1   Install optional tools
-                               (Python/Scala/TypeScript/dmux + metals + vim runtime)
+                               (Python/Scala/TypeScript/dmux/codex + metals + vim runtime)
                                (default: prompt on interactive TTY, otherwise 0)
   INSTALL_TMUX_PLUGINS=0|1     Install tmux plugins with TPM (default: 1)
   SET_DEFAULT_SHELL=0|1        Try switching login shell to zsh
@@ -847,7 +847,7 @@ resolve_install_optional_tools() {
   fi
 
   if dot_is_interactive_tty; then
-    printf '\n[setup] Install optional tools (Python/Scala/TypeScript/dmux + metals launcher + vim runtime)? [y/N]: '
+    printf '\n[setup] Install optional tools (Python/Scala/TypeScript/dmux/codex + metals launcher + vim runtime)? [y/N]: '
     IFS= read -r reply || true
     if selected_value="$(dot_parse_yes_no_to_bool_01 "$reply")"; then
       INSTALL_OPTIONAL_TOOLS="$selected_value"

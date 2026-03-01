@@ -31,7 +31,7 @@
 주요 개발 도구:
 - Helix LSP: Markdown(`marksman`), JSON(`vscode-json-language-server`), YAML(`yaml-language-server`)
 - Scala 런처(required): `coursier(cs)`
-- 선택 체인(optional): Python LSP(`pyright`), Scala(`java 21` + `mill` + `metals` launcher), TypeScript(`typescript-language-server` + `tsc`), `dmux`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)
+- 선택 체인(optional): Python LSP(`pyright`), Scala(`java 21` + `mill` + `metals` launcher), TypeScript(`typescript-language-server` + `tsc`), `dmux`, `codex`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)
 - zsh 기본 정책: `HISTSIZE/SAVEHIST=1000000`, 즉시 append + 세션 간 공유 + 중복 축소
 - Prezto 모듈: `completion`, `command-not-found`, `git`, `history-substring-search`, `autosuggestions`, `syntax-highlighting` 포함
 
@@ -74,7 +74,7 @@
 - `mise.toml`: 로컬 오버라이드 방지용 placeholder(툴 선언 없음)
 
 ## 운영 원칙
-- 도구 버전은 가능하면 pin(고정)하여 재현성을 유지합니다.
+- 도구 버전은 가능하면 pin(고정)하여 재현성을 유지합니다(예외: optional `codex`는 최신 빌드 추종).
 - 동작이 바뀌면 문서(`README.md`, `SETUP.md`, `docs/architecture.md`)를 함께 갱신합니다.
 
 ## 추가 문서

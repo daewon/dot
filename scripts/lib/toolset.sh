@@ -31,6 +31,8 @@ DOT_OPTIONAL_MISE_TOOLS=(
   npm:typescript-language-server@5.1.3
   npm:typescript@5.9.3
   npm:dmux@5.2.0
+  # Intentionally unpinned to follow latest Codex CLI builds.
+  npm:@openai/codex
 )
 
 DOT_REQUIRED_CLI_COMMANDS=(
@@ -59,6 +61,7 @@ DOT_OPTIONAL_CLI_COMMANDS=(
   typescript-language-server
   tsc
   dmux
+  codex
   vim
 )
 
