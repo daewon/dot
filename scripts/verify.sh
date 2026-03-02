@@ -35,6 +35,11 @@ MANIFEST_FILE="$(dot_setup_manifest_file)"
 MANIFEST_VERSION="1"
 GIT_SHARED_INCLUDE_PATH="$(dot_git_shared_include_path "$REPO_ROOT")"
 CONTRACT_TMP=""
+DOT_GH_CREDENTIAL_HELPER='!$HOME/.local/share/mise/shims/gh auth git-credential'
+DOT_GH_CREDENTIAL_HOSTS=(
+  "https://github.com"
+  "https://gist.github.com"
+)
 
 VERIFY_REQUIRED_CMDS=(
   bash
@@ -154,6 +159,7 @@ fi
 
 log "summary"
 printf '  include.path count: %s\n' "$(count_git_include)"
+printf '  gh helper cmd     : %s\n' "$DOT_GH_CREDENTIAL_HELPER"
 printf '  helix link        : %s\n' "$(dot_resolve_path "$HOME/.config/helix")"
 printf '  lazygit link      : %s\n' "$(dot_resolve_path "$HOME/.config/lazygit")"
 printf '  tmux link         : %s\n' "$(dot_resolve_path "$HOME/.tmux.conf")"

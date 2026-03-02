@@ -52,6 +52,7 @@ brew --version
 - 선택 체인(optional): Python LSP(`pyright`), Scala(`java 21` + `mill` + `metals` launcher), TypeScript(`typescript-language-server` + `tsc`), `dmux`, `codex`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)
 - zsh 기본 정책: `HISTSIZE/SAVEHIST=1000000`, 즉시 append + 세션 간 공유 + 중복 축소
 - Prezto 모듈: `completion`, `command-not-found`, `git`, `history-substring-search`, `autosuggestions`, `syntax-highlighting` 포함
+- GitHub/Gist credential helper는 `config/gitconfig.shared`에서 `!$HOME/.local/share/mise/shims/gh auth git-credential`로 관리(글로벌 `~/.gitconfig` host override 금지)
 
 ## 자주 쓰는 옵션
 - `./setup.sh --dry-run`

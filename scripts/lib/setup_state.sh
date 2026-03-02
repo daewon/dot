@@ -109,3 +109,48 @@ ensure_managed_clone() {
     fi
   fi
 }
+
+normalize_git_host_credential_helpers() {
+  local host=""
+  local key=""
+  local origin=""
+  local origin_file=""
+  local removed=""
+
+  for host in "${DOT_GH_CREDENTIAL_HOSTS[@]}"; do
+    key="credential.${host}.helper"
+    removed=0
+
+    while IFS=$'\t' read -r origin _; do
+      [ -n "$origin" ] || continue
+      case "$origin" in
+        file:*)
+          origin_file="${origin#file:}"
+          ;;
+        *)
+          continue
+          ;;
+      esac
+
+      # Keep include-managed host helpers in shared config; remove only direct global overrides.
+      if [ "$origin_file" = "$GIT_SHARED_INCLUDE_PATH" ]; then
+        continue
+      fi
+
+      if git config --file "$origin_file" --get-all "$key" >/dev/null 2>&1; then
+        run git config --file "$origin_file" --unset-all "$key"
+        removed=1
+      fi
+    done < <(git config --global --show-origin --get-all "$key" 2>/dev/null || true)
+
+    if [ "$removed" = "1" ]; then
+      if [ "$DRY_RUN" = "1" ]; then
+        ok "would remove stale direct global credential helper: $host"
+      else
+        ok "removed stale direct global credential helper: $host"
+      fi
+    else
+      ok "global credential helper already clean: $host"
+    fi
+  done
+}

@@ -34,6 +34,10 @@ MANIFEST_VERSION="1"
 GIT_SHARED_INCLUDE_PATH="$(dot_git_shared_include_path "$REPO_ROOT")"
 TS="$(date +%Y%m%d-%H%M%S)"
 APT_UPDATED=0
+DOT_GH_CREDENTIAL_HOSTS=(
+  "https://github.com"
+  "https://gist.github.com"
+)
 declare -a MANIFEST_ENTRIES=()
 
 log() {
@@ -384,6 +388,7 @@ else
     ok "normalized git include.path to one entry"
   fi
 fi
+normalize_git_host_credential_helpers
 manifest_add_entry "git_include_path" "$GIT_SHARED_INCLUDE_PATH"
 ensure_managed_clone \
   "$HOME/.tmux/plugins/tpm" \

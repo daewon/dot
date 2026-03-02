@@ -43,7 +43,7 @@ setup:
 3. (선택 도구 활성 시) `java 21`/`mill`/`pyright`/`typescript-language-server`/`typescript`/`dmux`/`codex` 설치 후(`coursier(cs)` 사용, native `cs` 실패 시 JVM launcher fallback) `metals` launcher를 구성하고, `vim` binary + `~/.vim_runtime` + plugin update를 적용
 4. zsh/prezto 준비(`HISTSIZE/SAVEHIST=1000000`, history 공유/중복 축소, `completion`/`command-not-found`/`git`/`history-substring-search`/`autosuggestions`/`syntax-highlighting` 활성)
 5. 관리 대상 symlink 연결
-6. git include 정규화
+6. git include 정규화 + GitHub/Gist credential helper를 include 기반(`$HOME/.local/share/mise/shims/gh`)으로 고정하고 글로벌 host override 정리
 7. manifest 기록
 
 cleanup:
@@ -65,6 +65,7 @@ verify:
 - 예상과 다른 symlink는 보존
 - managed clone 경로가 예상과 다르면 삭제 대신 백업 후 재구성
 - git include 중복은 정규화
+- GitHub/Gist host별 credential helper는 글로벌(`~/.gitconfig`)에 직접 두지 않고 include(`config/gitconfig.shared`)로만 관리
 - 실패 시 즉시 중단하고 원인 로그를 남김
 
 ## 변경 시 체크

@@ -13,6 +13,39 @@ count_git_include() {
   dot_git_include_count "$GIT_SHARED_INCLUDE_PATH"
 }
 
+assert_github_credential_helper_contract() {
+  local host=""
+  local key=""
+  local helper_values=""
+  local origin=""
+  local origin_file=""
+
+  for host in "${DOT_GH_CREDENTIAL_HOSTS[@]}"; do
+    key="credential.${host}.helper"
+    helper_values="$(git config --get-all "$key" 2>/dev/null || true)"
+    printf '%s\n' "$helper_values" | grep -Fqx "$DOT_GH_CREDENTIAL_HELPER" \
+      || { err "missing include-managed gh credential helper for $host"; return 1; }
+
+    while IFS=$'\t' read -r origin _; do
+      [ -n "$origin" ] || continue
+      case "$origin" in
+        file:*)
+          origin_file="${origin#file:}"
+          ;;
+        *)
+          continue
+          ;;
+      esac
+      if [ "$origin_file" != "$GIT_SHARED_INCLUDE_PATH" ]; then
+        err "global config must not define $key directly (found in: $origin_file)"
+        return 1
+      fi
+    done < <(git config --global --show-origin --get-all "$key" 2>/dev/null || true)
+  done
+
+  ok "git credential helper contract passed"
+}
+
 tool_available() {
   local cmd="$1"
 
@@ -132,6 +165,7 @@ assert_setup_state() {
 
   include_count="$(count_git_include)"
   [ "$include_count" = "1" ] || { err "git include.path count expected 1, got: $include_count"; return 1; }
+  assert_github_credential_helper_contract || return 1
   while IFS=$'\t' read -r link_path link_target; do
     resolved_link="$(dot_resolve_path "$link_path")"
     [ "$resolved_link" = "$link_target" ] || { err "symlink mismatch: $link_path -> $resolved_link (expected $link_target)"; return 1; }

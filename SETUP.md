@@ -71,6 +71,7 @@ brew --version
 - Prezto 모듈(`completion`, `command-not-found`, `git`, `history-substring-search`, `autosuggestions`, `syntax-highlighting`) 활성
 - `config/*`와 helper 스크립트 symlink 연결
 - git `include.path` 정규화
+- GitHub/Gist credential helper를 `config/gitconfig.shared`의 `!$HOME/.local/share/mise/shims/gh auth git-credential`로 고정하고 `~/.gitconfig` host override를 자동 정리
 - 기존 managed clone(`~/.zprezto`, `~/.tmux/plugins/tpm`)이 비정상/비관리 상태면 백업 후 재구성
 - setup manifest 기록
 
