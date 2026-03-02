@@ -11,7 +11,7 @@
 - 공통 계약: `scripts/lib/toolset.sh`
 - 공통 유틸: `scripts/lib/scriptlib.sh`
 - setup 기능 모듈: `scripts/lib/setup_clipboard.sh`, `scripts/lib/setup_tmux.sh`, `scripts/lib/setup_coursier.sh`, `scripts/lib/setup_state.sh`, `scripts/lib/setup_vim.sh`, `scripts/lib/setup_options.sh`
-- verify 기능 모듈: `scripts/lib/verify_assert.sh`, `scripts/lib/verify_runner.sh`, `scripts/lib/verify_contract.sh`
+- verify 기능 모듈: `scripts/lib/verify_assert.sh`, `scripts/lib/verify_runner.sh`, `scripts/lib/verify_contract.sh`, `scripts/lib/verify_options.sh`, `scripts/lib/verify_preflight.sh`
 - 로컬 오버라이드 방지 placeholder: `mise.toml`
 - 상태 경로: `${XDG_STATE_HOME:-$HOME/.local/state}/dot`
 
