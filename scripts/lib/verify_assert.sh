@@ -90,6 +90,42 @@ check_clipboard_runtime_if_enabled() {
   return 1
 }
 
+assert_setup_dry_run_log_contract() {
+  local logfile="$1"
+  local clipboard_policy=""
+
+  [ -f "$logfile" ] || { err "setup dry-run log missing: $logfile"; return 1; }
+
+  grep -Fq "dry-run mode enabled (no files or settings will be changed)" "$logfile" \
+    || { err "setup dry-run log missing preflight dry-run marker"; return 1; }
+  grep -Fq "[dry-run] mise use -g" "$logfile" \
+    || { err "setup dry-run log missing simulated mise install command"; return 1; }
+  if grep -Fq "[error]" "$logfile"; then
+    err "setup dry-run log contains [error] lines: $logfile"
+    return 1
+  fi
+
+  clipboard_policy="$(dot_required_clipboard_policy_label)"
+  case "$clipboard_policy" in
+    wl-copy\|xclip\|xsel)
+      if dot_find_available_clipboard_cmd >/dev/null 2>&1; then
+        ok "dry-run clipboard simulation check skipped (backend already available)"
+      else
+        if ! grep -Eiq '\[dry-run\].*(apt-get install -y|brew install).*(wl-clipboard|xclip|xsel)' "$logfile"; then
+          err "setup dry-run log missing simulated clipboard install command (policy: $clipboard_policy)"
+          return 1
+        fi
+        ok "dry-run clipboard simulation command check passed"
+      fi
+      ;;
+    *)
+      ok "dry-run clipboard simulation check skipped (policy: $clipboard_policy)"
+      ;;
+  esac
+
+  ok "setup dry-run log contract passed"
+}
+
 count_backup_files() {
   local c=""
 
