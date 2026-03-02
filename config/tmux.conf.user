@@ -74,29 +74,38 @@ bind-key -T copy-mode-vi V send -X select-line
 # Note: actual copy-mode bindings are applied after TPM load below.
 set -g @copy_command ""
 
-if-shell "uname | grep -q Darwin" {
-    if-shell "command -v reattach-to-user-namespace >/dev/null 2>&1" {
-        set -g @copy_command "reattach-to-user-namespace pbcopy"
-    } {
-        set -g @copy_command "pbcopy"
+# Preferred clipboard command: portable wrapper installed by setup.
+if-shell "[ -x \"$HOME/.local/bin/sclip\" ]" {
+    set -g @copy_command "$HOME/.local/bin/sclip"
+} {
+    if-shell "command -v sclip >/dev/null 2>&1" {
+        set -g @copy_command "sclip"
     }
 }
 
-if-shell "uname | grep -qi microsoft" {
-    set -g @copy_command "clip.exe"
-}
-
-# Linux clipboard backends (fallback only)
+# Fallback backends when sclip is unavailable.
 if-shell -F '#{==:#{@copy_command},}' {
-    if-shell "uname | grep -q Linux" {
-        if-shell "command -v wl-copy >/dev/null 2>&1" {
-            set -g @copy_command "wl-copy"
+    if-shell "uname | grep -q Darwin" {
+        if-shell "command -v reattach-to-user-namespace >/dev/null 2>&1" {
+            set -g @copy_command "reattach-to-user-namespace pbcopy"
         } {
-            if-shell "command -v xclip >/dev/null 2>&1" {
-                set -g @copy_command "xclip -in -selection clipboard"
-            } {
-                if-shell "command -v xsel >/dev/null 2>&1" {
-                    set -g @copy_command "xsel --clipboard --input"
+            set -g @copy_command "pbcopy"
+        }
+    } {
+        if-shell "uname | grep -qi microsoft" {
+            set -g @copy_command "clip.exe"
+        } {
+            if-shell "uname | grep -q Linux" {
+                if-shell "command -v wl-copy >/dev/null 2>&1" {
+                    set -g @copy_command "wl-copy"
+                } {
+                    if-shell "command -v xclip >/dev/null 2>&1" {
+                        set -g @copy_command "xclip -in -selection clipboard"
+                    } {
+                        if-shell "command -v xsel >/dev/null 2>&1" {
+                            set -g @copy_command "xsel --clipboard --input"
+                        }
+                    }
                 }
             }
         }

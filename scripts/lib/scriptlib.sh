@@ -26,6 +26,132 @@ dot_require_cmd() {
   dot_find_cmd "$cmd" >/dev/null 2>&1
 }
 
+dot_host_uname_s() {
+  uname -s 2>/dev/null || printf 'unknown'
+}
+
+dot_host_uname_r() {
+  uname -r 2>/dev/null || printf ''
+}
+
+dot_host_is_wsl() {
+  local uname_r=""
+  uname_r="$(dot_host_uname_r)"
+  if printf '%s' "$uname_r" | grep -qi microsoft; then
+    return 0
+  fi
+  if [ -r /proc/version ] && grep -qi microsoft /proc/version 2>/dev/null; then
+    return 0
+  fi
+  return 1
+}
+
+dot_required_clipboard_candidates() {
+  local uname_s=""
+  uname_s="$(dot_host_uname_s)"
+  case "$uname_s" in
+    Darwin)
+      printf '%s\n' "pbcopy"
+      ;;
+    Linux)
+      if dot_host_is_wsl; then
+        printf '%s\n' "clip.exe"
+      else
+        printf '%s\n' "wl-copy"
+        printf '%s\n' "xclip"
+        printf '%s\n' "xsel"
+      fi
+      ;;
+    *)
+      ;;
+  esac
+}
+
+dot_required_clipboard_policy_label() {
+  local uname_s=""
+  uname_s="$(dot_host_uname_s)"
+  case "$uname_s" in
+    Darwin)
+      printf '%s\n' "pbcopy"
+      ;;
+    Linux)
+      if dot_host_is_wsl; then
+        printf '%s\n' "clip.exe"
+      else
+        printf '%s\n' "wl-copy|xclip|xsel"
+      fi
+      ;;
+    *)
+      printf '%s\n' "none"
+      ;;
+  esac
+}
+
+dot_find_available_clipboard_cmd() {
+  local cmd=""
+  while IFS= read -r cmd; do
+    [ -n "$cmd" ] || continue
+    if command -v "$cmd" >/dev/null 2>&1; then
+      printf '%s\n' "$cmd"
+      return 0
+    fi
+  done < <(dot_required_clipboard_candidates)
+  return 1
+}
+
+dot_select_clipboard_runtime_backend() {
+  local uname_s=""
+  uname_s="$(dot_host_uname_s)"
+
+  case "$uname_s" in
+    Darwin)
+      if command -v reattach-to-user-namespace >/dev/null 2>&1 && command -v pbcopy >/dev/null 2>&1; then
+        printf '%s\n' "reattach-pbcopy"
+        return 0
+      fi
+      if command -v pbcopy >/dev/null 2>&1; then
+        printf '%s\n' "pbcopy"
+        return 0
+      fi
+      return 1
+      ;;
+    Linux)
+      if dot_host_is_wsl; then
+        if command -v clip.exe >/dev/null 2>&1; then
+          printf '%s\n' "clip.exe"
+          return 0
+        fi
+        return 1
+      fi
+
+      if [ "${XDG_SESSION_TYPE:-}" = "wayland" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
+        if command -v wl-copy >/dev/null 2>&1; then
+          printf '%s\n' "wl-copy"
+          return 0
+        fi
+      fi
+      if [ -n "${DISPLAY:-}" ]; then
+        if command -v xclip >/dev/null 2>&1; then
+          printf '%s\n' "xclip"
+          return 0
+        fi
+        if command -v xsel >/dev/null 2>&1; then
+          printf '%s\n' "xsel"
+          return 0
+        fi
+      fi
+      ;;
+    *)
+      ;;
+  esac
+
+  if [ -n "${TMUX:-}" ] && command -v tmux >/dev/null 2>&1; then
+    printf '%s\n' "tmux-load-buffer"
+    return 0
+  fi
+  return 1
+}
+
 dot_resolve_path() {
   local path="$1"
   local out=""

@@ -18,6 +18,7 @@ CYCLE_LOOPS="${CYCLE_LOOPS:-}"
 RUN_DEFAULT_SETUP="${RUN_DEFAULT_SETUP:-}" # 1 or 0
 DEFAULT_SETUP_LOOPS="${DEFAULT_SETUP_LOOPS:-}"
 RESTORE_AT_END="${RESTORE_AT_END:-}" # 1 or 0
+VERIFY_CLIPBOARD_RUNTIME="${VERIFY_CLIPBOARD_RUNTIME:-0}" # 1 or 0
 
 LOG_DIR="${TMPDIR:-/tmp}/dot-verify-$(date +%Y%m%d-%H%M%S)"
 MANIFEST_FILE="$(dot_setup_manifest_file)"
@@ -44,11 +45,17 @@ VERIFY_LINT_TARGETS=(
   scripts/setup.sh
   scripts/cleanup.sh
   scripts/verify.sh
+  scripts/lib/setup_tmux.sh
+  scripts/lib/setup_coursier.sh
+  scripts/lib/setup_clipboard.sh
+  scripts/lib/setup_state.sh
+  scripts/lib/setup_vim.sh
   scripts/lib/toolset.sh
   scripts/lib/scriptlib.sh
   scripts/difft-external.sh
   scripts/difft-pager.sh
   scripts/lazygit-theme.sh
+  scripts/sclip.sh
 )
 
 log() { printf '[verify] %s\n' "$*"; }
@@ -73,6 +80,7 @@ Environment flags (same meaning as options):
   RUN_DEFAULT_SETUP=0|1=profile default
   DEFAULT_SETUP_LOOPS=<int>=profile default
   RESTORE_AT_END=0|1=profile default
+  VERIFY_CLIPBOARD_RUNTIME=0|1=run sclip runtime check (default: 0)
 EOF
 }
 
@@ -143,6 +151,38 @@ tool_available() {
   return 1
 }
 
+check_clipboard_runtime_if_enabled() {
+  local clipboard_policy="$1"
+  local sclip_bin=""
+  local backend=""
+
+  if [ "$VERIFY_CLIPBOARD_RUNTIME" != "1" ]; then
+    return 0
+  fi
+
+  sclip_bin="$(dot_find_cmd sclip 2>/dev/null || true)"
+  if [ -z "$sclip_bin" ] && [ -x "$HOME/.local/bin/sclip" ]; then
+    sclip_bin="$HOME/.local/bin/sclip"
+  fi
+  if [ -z "$sclip_bin" ]; then
+    err "clipboard runtime check enabled but sclip is unavailable on PATH"
+    return 1
+  fi
+
+  if ! backend="$(dot_select_clipboard_runtime_backend 2>/dev/null)"; then
+    warn "clipboard runtime check skipped: no active runtime backend context (policy=$clipboard_policy)"
+    return 0
+  fi
+
+  if printf 'dot-verify-clipboard\n' | "$sclip_bin" >/dev/null 2>&1; then
+    ok "clipboard runtime check passed via sclip (backend=$backend)"
+    return 0
+  fi
+
+  err "clipboard runtime check failed via sclip (backend=$backend)"
+  return 1
+}
+
 count_backup_files() {
   local c=""
   c="$(find "$HOME" -maxdepth 3 \
@@ -150,7 +190,7 @@ count_backup_files() {
        -o -name '.zlogin.bak.*' -o -name '.zlogout.bak.*' -o -name '.zprofile.bak.*' \
        -o -name '.zshenv.bak.*' -o -name '.zpreztorc.bak.*' -o -name 'helix.bak.*' \
        -o -name 'lazygit.bak.*' -o -name 'dot-difft.bak.*' -o -name 'dot-difft-pager.bak.*' \
-       -o -name 'dot-lazygit-theme.bak.*' \) \
+       -o -name 'dot-lazygit-theme.bak.*' -o -name 'sclip.bak.*' \) \
     2>/dev/null | wc -l || true)"
   c="$(printf '%s' "$c" | tr -d '[:space:]')"
   printf '%s' "${c:-0}"
@@ -212,6 +252,8 @@ assert_setup_state() {
   local optional_file=""
   local optional_marker=""
   local cmd=""
+  local clipboard_policy=""
+  local clipboard_cmd=""
 
   include_count="$(count_git_include)"
   [ "$include_count" = "1" ] || { err "git include.path count expected 1, got: $include_count"; return 1; }
@@ -248,6 +290,15 @@ assert_setup_state() {
   for cmd in "${DOT_REQUIRED_CLI_COMMANDS[@]}"; do
     tool_available "$cmd" || { err "command not found after setup: $cmd"; return 1; }
   done
+  clipboard_policy="$(dot_required_clipboard_policy_label)"
+  if [ "$clipboard_policy" != "none" ]; then
+    if ! clipboard_cmd="$(dot_find_available_clipboard_cmd 2>/dev/null)"; then
+      err "required clipboard command not found after setup (expected: $clipboard_policy)"
+      return 1
+    fi
+    ok "clipboard command check passed: $clipboard_cmd"
+    check_clipboard_runtime_if_enabled "$clipboard_policy" || return 1
+  fi
   if [ "$include_optional" = "1" ]; then
     for cmd in "${DOT_OPTIONAL_CLI_COMMANDS[@]}"; do
       tool_available "$cmd" || { err "optional command not found after default setup: $cmd"; return 1; }
@@ -262,7 +313,7 @@ assert_setup_state() {
     done < <(dot_print_optional_managed_file_markers "$HOME")
   fi
 
-  ok "state check passed (include=1, links aligned, optional=${include_optional})"
+  ok "state check passed (git include.path=1, links aligned, optional=${include_optional})"
 }
 
 run_with_log() {
@@ -365,7 +416,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 apply_profile_defaults
-dot_validate_bool_flags_01 RUN_DEFAULT_SETUP RESTORE_AT_END || exit 2
+dot_validate_bool_flags_01 RUN_DEFAULT_SETUP RESTORE_AT_END VERIFY_CLIPBOARD_RUNTIME || exit 2
 dot_validate_nonneg_int_flags SETUP_ONLY_LOOPS CYCLE_LOOPS DEFAULT_SETUP_LOOPS || exit 2
 
 step "preflight"
@@ -381,7 +432,7 @@ done
 mkdir -p "$LOG_DIR"
 ok "repo: $REPO_ROOT"
 ok "logs: $LOG_DIR"
-ok "config: profile=$VERIFY_PROFILE setup_only=$SETUP_ONLY_LOOPS cycle=$CYCLE_LOOPS default=$RUN_DEFAULT_SETUP default_loops=$DEFAULT_SETUP_LOOPS restore=$RESTORE_AT_END"
+ok "config: profile=$VERIFY_PROFILE setup_only=$SETUP_ONLY_LOOPS cycle=$CYCLE_LOOPS default=$RUN_DEFAULT_SETUP default_loops=$DEFAULT_SETUP_LOOPS restore=$RESTORE_AT_END clipboard_runtime=$VERIFY_CLIPBOARD_RUNTIME"
 
 step "syntax check"
 for file in "${VERIFY_LINT_TARGETS[@]}"; do
@@ -500,6 +551,7 @@ printf '  zsh shared link   : %s\n' "$(dot_resolve_path "$HOME/.zsh.shared.zsh")
 printf '  dot-difft link    : %s\n' "$(dot_resolve_path "$HOME/.local/bin/dot-difft")"
 printf '  dot-difft-pager   : %s\n' "$(dot_resolve_path "$HOME/.local/bin/dot-difft-pager")"
 printf '  dot-lazygit-theme : %s\n' "$(dot_resolve_path "$HOME/.local/bin/dot-lazygit-theme")"
+printf '  sclip link        : %s\n' "$(dot_resolve_path "$HOME/.local/bin/sclip")"
 printf '  setup manifest    : %s\n' "$MANIFEST_FILE"
 printf '  logs              : %s\n' "$LOG_DIR"
 ok "verification completed"

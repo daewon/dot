@@ -65,6 +65,18 @@ DOT_OPTIONAL_CLI_COMMANDS=(
   vim
 )
 
+DOT_REPO_SYMLINK_REL_ENTRIES=(
+  ".config/helix"$'\t'"config/helix"
+  ".config/lazygit"$'\t'"config/lazygit"
+  ".tmux.conf"$'\t'"config/tmux.conf.user"
+  ".zsh.shared.zsh"$'\t'"config/zsh.shared.zsh"
+  ".zpreztorc"$'\t'"config/zpreztorc"
+  ".local/bin/dot-difft"$'\t'"scripts/difft-external.sh"
+  ".local/bin/dot-difft-pager"$'\t'"scripts/difft-pager.sh"
+  ".local/bin/dot-lazygit-theme"$'\t'"scripts/lazygit-theme.sh"
+  ".local/bin/sclip"$'\t'"scripts/sclip.sh"
+)
+
 DOT_PREZTO_RUNCOMS=(
   zlogin
   zlogout
@@ -87,14 +99,14 @@ dot_setup_manifest_file() {
 
 dot_print_repo_symlink_entries() {
   local repo_root="$1"
-  printf '%s\t%s\n' "$HOME/.config/helix" "$repo_root/config/helix"
-  printf '%s\t%s\n' "$HOME/.config/lazygit" "$repo_root/config/lazygit"
-  printf '%s\t%s\n' "$HOME/.tmux.conf" "$repo_root/config/tmux.conf.user"
-  printf '%s\t%s\n' "$HOME/.zsh.shared.zsh" "$repo_root/config/zsh.shared.zsh"
-  printf '%s\t%s\n' "$HOME/.zpreztorc" "$repo_root/config/zpreztorc"
-  printf '%s\t%s\n' "$HOME/.local/bin/dot-difft" "$repo_root/scripts/difft-external.sh"
-  printf '%s\t%s\n' "$HOME/.local/bin/dot-difft-pager" "$repo_root/scripts/difft-pager.sh"
-  printf '%s\t%s\n' "$HOME/.local/bin/dot-lazygit-theme" "$repo_root/scripts/lazygit-theme.sh"
+  local rel_link=""
+  local rel_target=""
+  local entry=""
+  for entry in "${DOT_REPO_SYMLINK_REL_ENTRIES[@]}"; do
+    rel_link="${entry%%$'\t'*}"
+    rel_target="${entry#*$'\t'}"
+    printf '%s\t%s\n' "$HOME/$rel_link" "$repo_root/$rel_target"
+  done
 }
 
 dot_print_prezto_runcom_symlink_entries() {
