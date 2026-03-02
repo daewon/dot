@@ -17,6 +17,23 @@
 ./cleanup.sh
 ```
 
+상세 설치/복구/문제해결은 `SETUP.md`를 기준으로 확인하세요.
+
+## 플랫폼/패키지 관리자 기준
+- Linux(Ubuntu/Debian): `apt-get`
+- macOS: `Homebrew` (기본/권장 패키지 관리자)
+
+macOS에서 `brew`가 없다면:
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+if [ -x /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -x /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+brew --version
+```
+
 ## 주요 스크립트
 - `setup.sh`: 도구 설치, 설정 symlink 연결, 초기 상태 구성
 - `cleanup.sh`: setup가 관리한 항목만 안전하게 제거
@@ -31,6 +48,7 @@
 주요 개발 도구:
 - Helix LSP: Markdown(`marksman`), JSON(`vscode-json-language-server`), YAML(`yaml-language-server`)
 - Scala 런처(required): `coursier(cs)`
+- 공통 클립보드 유틸(required): `sclip` (`stdin -> 시스템 클립보드`, 내부 backend: macOS `pbcopy`, WSL `clip.exe`, Linux `wl-copy|xclip|xsel`)
 - 선택 체인(optional): Python LSP(`pyright`), Scala(`java 21` + `mill` + `metals` launcher), TypeScript(`typescript-language-server` + `tsc`), `dmux`, `codex`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)
 - zsh 기본 정책: `HISTSIZE/SAVEHIST=1000000`, 즉시 append + 세션 간 공유 + 중복 축소
 - Prezto 모듈: `completion`, `command-not-found`, `git`, `history-substring-search`, `autosuggestions`, `syntax-highlighting` 포함
@@ -64,7 +82,10 @@
 
 추가 참고:
 - `tmux`는 `scripts/lib/toolset.sh`에 정의된 backend로 설치하고, 설치 후 `tmux -V` health check가 실패하면 prebuilt/source backend 간 자동 fallback을 시도합니다.
+- `tmux` copy-command는 `sclip`을 우선 사용하고, 없으면 OS별 backend로 fallback합니다.
+- 직접 사용 예시: `printf 'hello' | sclip`
 - 선택 도구에서 `metals` 설치 시 native `cs`가 CPU 미지원으로 실패하면 JVM launcher(`coursier` script)로 자동 fallback합니다.
+- 클립보드 런타임 검증이 필요하면: `VERIFY_CLIPBOARD_RUNTIME=1 ./verify.sh --profile fast`
 
 ## 저장소 구조
 - `config/`: zsh, tmux, helix, lazygit, git 설정

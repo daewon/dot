@@ -10,6 +10,7 @@
 - 구현: `scripts/setup.sh`, `scripts/cleanup.sh`, `scripts/verify.sh`
 - 공통 계약: `scripts/lib/toolset.sh`
 - 공통 유틸: `scripts/lib/scriptlib.sh`
+- setup 기능 모듈: `scripts/lib/setup_clipboard.sh`, `scripts/lib/setup_tmux.sh`, `scripts/lib/setup_coursier.sh`, `scripts/lib/setup_state.sh`, `scripts/lib/setup_vim.sh`
 - 로컬 오버라이드 방지 placeholder: `mise.toml`
 - 상태 경로: `${XDG_STATE_HOME:-$HOME/.local/state}/dot`
 
@@ -36,6 +37,8 @@ setup:
 1. 입력/환경 검증
 2. global 도구 설치(`mise use -g`, required/optional)
    - `tmux`는 설치 후 health check(`tmux -V`)를 수행하고 필요 시 prebuilt/source backend 간 fallback
+   - 클립보드 backend는 환경별 정책(`pbcopy`/`clip.exe`/`wl-copy|xclip|xsel`)으로 필수 검증하고, Linux에서 누락 시 패키지 설치 시도
+   - 공통 클립보드 래퍼 `sclip`을 관리형 symlink(`~/.local/bin/sclip`)로 배포
 3. (선택 도구 활성 시) `java 21`/`mill`/`pyright`/`typescript-language-server`/`typescript`/`dmux`/`codex` 설치 후(`coursier(cs)` 사용, native `cs` 실패 시 JVM launcher fallback) `metals` launcher를 구성하고, `vim` binary + `~/.vim_runtime` + plugin update를 적용
 4. zsh/prezto 준비(`HISTSIZE/SAVEHIST=1000000`, history 공유/중복 축소, `completion`/`command-not-found`/`git`/`history-substring-search`/`autosuggestions`/`syntax-highlighting` 활성)
 5. 관리 대상 symlink 연결
@@ -51,6 +54,7 @@ cleanup:
 verify:
 1. 스크립트 문법/정적 점검
    - Prezto 모듈 선언(`~/.zpreztorc`)과 실제 clone(`~/.zprezto/modules`) 일치 여부 검증
+   - `VERIFY_CLIPBOARD_RUNTIME=1` 설정 시 `sclip` 클립보드 런타임 체크 수행
 2. dry-run 스모크
 3. setup-only 반복 검증
 4. cleanup→setup 반복 검증

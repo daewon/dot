@@ -8,12 +8,24 @@
 - `git`, `bash`, `mise` 사용 가능 상태
 - `zsh`가 없으면 `setup.sh`가 자동 설치 시도
 - 저장소를 원하는 경로에 clone (경로 고정 필요 없음)
+- macOS는 `Homebrew`를 기본 패키지 관리자로 사용
 
 `mise`가 없다면:
 ```bash
 curl https://mise.run | sh
 export PATH="$HOME/.local/bin:$PATH"
 exec "$SHELL" -l
+```
+
+macOS에서 `brew`가 없다면:
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+if [ -x /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -x /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+brew --version
 ```
 
 ## SSOT 원칙
@@ -51,6 +63,7 @@ exec "$SHELL" -l
 설치 시 수행되는 일:
 - 필수/선택 도구 설치 (`scripts/lib/toolset.sh` 기준)
 - `tmux` 설치 후 `tmux -V` health check를 수행하고, 실패 시 prebuilt/source backend 간 자동 fallback 시도
+- 공통 클립보드 유틸 `sclip`을 설치(관리형 symlink)하고, 환경별 backend(`pbcopy`/`clip.exe`/`wl-copy|xclip|xsel`)를 필수 검증( Linux 누락 시 OS 패키지 설치 시도)
 - 필수(global) 도구에 Scala 런처 `coursier(cs)` 포함
 - 선택 도구 설치 시 Python LSP(`pyright`), Scala 도구 체인(`java 21`, `mill` + `metals` launcher), TypeScript 도구 체인(`typescript-language-server`, `tsc`), `dmux`, `codex`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)를 설치
 - zprezto 준비 및 관리형 `~/.zshrc` 구성
@@ -94,6 +107,7 @@ exec "$SHELL" -l
 - `SETUP_ONLY_LOOPS=<n>`
 - `CYCLE_LOOPS=<n>`
 - `RUN_DEFAULT_SETUP=0|1`
+- `VERIFY_CLIPBOARD_RUNTIME=1` (선택: `sclip` 기반 클립보드 런타임 검증까지 수행)
 - `./verify.sh --skip-default-setup`
 - `./verify.sh --no-restore`
 
