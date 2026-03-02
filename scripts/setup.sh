@@ -17,6 +17,8 @@ source "$REPO_ROOT/scripts/lib/setup_coursier.sh"
 source "$REPO_ROOT/scripts/lib/setup_state.sh"
 # shellcheck source=scripts/lib/setup_vim.sh
 source "$REPO_ROOT/scripts/lib/setup_vim.sh"
+# shellcheck source=scripts/lib/setup_options.sh
+source "$REPO_ROOT/scripts/lib/setup_options.sh"
 
 TOTAL_STEPS=10
 STEP=0
@@ -226,100 +228,13 @@ ensure_cmd_on_path() {
   return 0
 }
 
-usage() {
-  cat <<'EOF'
-Usage: ./setup.sh [--dry-run|-n]
-
-Options:
-  --dry-run, -n  Show what would run without applying changes
-  --help, -h     Show this help
-
-Env flags:
-  INSTALL_OPTIONAL_TOOLS=0|1   Install optional tools
-                               (Python/Scala/TypeScript/dmux/codex + metals + vim runtime)
-                               (default: prompt on interactive TTY, otherwise 0)
-  INSTALL_TMUX_PLUGINS=0|1     Install tmux plugins with TPM (default: 1)
-  SET_DEFAULT_SHELL=0|1        Try switching login shell to zsh
-                               (default: prompt on interactive TTY [Y/n], otherwise 0)
-EOF
-}
-
 on_error() {
   FAILED_STEP="$STEP"
   err "failed at step ${FAILED_STEP}"
 }
 trap on_error ERR
 
-resolve_install_optional_tools() {
-  local reply=""
-  local selected_value=""
-
-  if [ -n "$INSTALL_OPTIONAL_TOOLS" ]; then
-    return
-  fi
-
-  if dot_is_interactive_tty; then
-    printf '\n[setup] Install optional tools (Python/Scala/TypeScript/dmux/codex + metals launcher + vim runtime)? [y/N]: '
-    IFS= read -r reply || true
-    if selected_value="$(dot_parse_yes_no_to_bool_01 "$reply")"; then
-      INSTALL_OPTIONAL_TOOLS="$selected_value"
-    else
-      warn "invalid response '$reply'; defaulting to no"
-      INSTALL_OPTIONAL_TOOLS=0
-    fi
-    ok "interactive selection: INSTALL_OPTIONAL_TOOLS=$INSTALL_OPTIONAL_TOOLS"
-    return
-  fi
-
-  INSTALL_OPTIONAL_TOOLS=0
-}
-
-resolve_set_default_shell() {
-  local reply=""
-  local selected_value=""
-
-  if [ -n "$SET_DEFAULT_SHELL" ]; then
-    return
-  fi
-
-  if dot_is_interactive_tty; then
-    printf '\n[setup] Switch default login shell to zsh? [Y/n]: '
-    IFS= read -r reply || true
-    case "$reply" in
-      [yY]|[yY][eE][sS]|"")
-        selected_value=1
-        ;;
-      [nN]|[nN][oO])
-        selected_value=0
-        ;;
-      *)
-        warn "invalid response '$reply'; defaulting to yes"
-        selected_value=1
-        ;;
-    esac
-    SET_DEFAULT_SHELL="$selected_value"
-    ok "interactive selection: SET_DEFAULT_SHELL=$SET_DEFAULT_SHELL"
-    return
-  fi
-
-  SET_DEFAULT_SHELL=0
-}
-
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    --dry-run|-n) DRY_RUN=1 ;;
-    --help|-h)
-      usage
-      exit 0
-      ;;
-    *)
-      err "unknown option: $1"
-      usage
-      exit 2
-      ;;
-  esac
-  shift
-done
+parse_setup_args "$@"
 
 resolve_install_optional_tools
 resolve_set_default_shell
