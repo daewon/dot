@@ -85,6 +85,23 @@ if-shell "uname | grep -qi microsoft" {
     set -g @copy_command "clip.exe"
 }
 
+# Linux clipboard backends (fallback only)
+if-shell -F '#{==:#{@copy_command},}' {
+    if-shell "uname | grep -q Linux" {
+        if-shell "command -v wl-copy >/dev/null 2>&1" {
+            set -g @copy_command "wl-copy"
+        } {
+            if-shell "command -v xclip >/dev/null 2>&1" {
+                set -g @copy_command "xclip -in -selection clipboard"
+            } {
+                if-shell "command -v xsel >/dev/null 2>&1" {
+                    set -g @copy_command "xsel --clipboard --input"
+                }
+            }
+        }
+    }
+}
+
 # Prefix navigation
 bind-key C-] last-window
 bind-key C-[ next-window
