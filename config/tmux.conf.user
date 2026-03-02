@@ -38,7 +38,7 @@ if-shell "tmux show-options -gqv allow-passthrough >/dev/null 2>&1" {
 # Statusline style
 set -g status-style "fg=colour252,bg=colour234"
 set -g message-style "fg=colour252,bg=colour238"
-setw -g window-status-style "fg=colour244,bg=colour234,dim"
+setw -g window-status-style "fg=colour246,bg=colour234,dim"
 setw -g window-status-activity-style "fg=colour214,bg=colour234,bold"
 set -g status-left-length 64
 set -g status-right-length 451
