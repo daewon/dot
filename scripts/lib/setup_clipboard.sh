@@ -52,6 +52,11 @@ ensure_required_clipboard_backend() {
         fi
       fi
 
+      if [ "${DRY_RUN:-0}" = "1" ]; then
+        warn "dry-run mode: skipped clipboard backend availability check after simulated install"
+        return 0
+      fi
+
       if clipboard_cmd="$(dot_find_available_clipboard_cmd 2>/dev/null)"; then
         ok "clipboard backend installed: $clipboard_cmd"
         return 0
