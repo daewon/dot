@@ -35,7 +35,7 @@ MANIFEST_FILE="$(dot_setup_manifest_file)"
 MANIFEST_VERSION="1"
 GIT_SHARED_INCLUDE_PATH="$(dot_git_shared_include_path "$REPO_ROOT")"
 CONTRACT_TMP=""
-DOT_GH_CREDENTIAL_HELPER='!$HOME/.local/share/mise/shims/gh auth git-credential'
+DOT_GH_CREDENTIAL_HELPER='!gh auth git-credential'
 DOT_GH_CREDENTIAL_HOSTS=(
   "https://github.com"
   "https://gist.github.com"
