@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <alias>
+    <family>Cascadia Mono</family>
+    <prefer>
+      <family>Noto Sans Mono CJK KR</family>
+      <family>Noto Sans Mono CJK JP</family>
+    </prefer>
+  </alias>
+  <alias>
+    <family>Cascadia Code</family>
+    <prefer>
+      <family>Noto Sans Mono CJK KR</family>
+      <family>Noto Sans Mono CJK JP</family>
+    </prefer>
+  </alias>
+</fontconfig>

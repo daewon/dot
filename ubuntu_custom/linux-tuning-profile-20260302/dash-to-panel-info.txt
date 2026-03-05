@@ -1,0 +1,7 @@
+dash-to-panel@jderose9.github.com
+  Name: Dash to Panel
+  Version: 72
+  Enabled: Yes
+  State: ACTIVE
+  Path: $HOME/.local/share/gnome-shell/extensions/dash-to-panel@jderose9.github.com
+  URL: https://github.com/home-sweet-gnome/dash-to-panel
