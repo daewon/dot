@@ -30,6 +30,7 @@ DOT_OPTIONAL_MISE_TOOLS=(
   npm:pyright@1.1.408
   npm:typescript-language-server@5.1.3
   npm:typescript@5.9.3
+  "rust[profile=default,components=rust-src,rust-analyzer]@1.94.0"
   npm:dmux@5.2.0
   # Intentionally unpinned to follow latest Codex CLI builds.
   npm:@openai/codex
@@ -60,6 +61,10 @@ DOT_OPTIONAL_CLI_COMMANDS=(
   pyright-langserver
   typescript-language-server
   tsc
+  rustc
+  cargo
+  rust-analyzer
+  rustfmt
   dmux
   codex
   vim
@@ -86,7 +91,21 @@ DOT_PREZTO_RUNCOMS=(
 
 dot_strip_tool_version() {
   local tool="$1"
-  printf '%s\n' "${tool%@*}"
+  local base="$tool"
+  local suffix="${tool##*@}"
+
+  case "$tool" in
+    *"]@"*|*"]")
+      base="${tool%%\[*}"
+      ;;
+    *)
+      if [ "$suffix" != "$tool" ] && [[ "$suffix" != */* ]]; then
+        base="${tool%@*}"
+      fi
+      ;;
+  esac
+
+  printf '%s\n' "$base"
 }
 
 dot_state_dir() {

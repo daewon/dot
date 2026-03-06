@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 
+assert_tool_id_parse_equals() {
+  local raw_tool="$1"
+  local expected_id="$2"
+  local actual_id=""
+
+  actual_id="$(dot_strip_tool_version "$raw_tool")"
+  if [ "$actual_id" != "$expected_id" ]; then
+    err "tool id parse mismatch: raw=$raw_tool actual=$actual_id expected=$expected_id"
+    return 1
+  fi
+
+  ok "tool id parse matched: $raw_tool -> $expected_id"
+}
+
 run_repo_local_mise_guard_success() {
   local name="$1"
   local repo_root="$2"
@@ -87,6 +101,9 @@ EOF
   grep -Fq "falling back to static cleanup targets" "$LOG_DIR/cleanup-manifest-version-fallback.log" \
     || { err "cleanup-manifest-version-fallback: expected fallback message"; return 1; }
   ok "cleanup-manifest-version-fallback: fallback path confirmed"
+  assert_tool_id_parse_equals "npm:@openai/codex" "npm:@openai/codex"
+  assert_tool_id_parse_equals "npm:@openai/codex@latest" "npm:@openai/codex"
+  assert_tool_id_parse_equals "rust[profile=default,components=rust-src,rust-analyzer]@1.94.0" "rust"
   run_repo_local_mise_guard_success \
     "repo-local-mise-guard-clean" \
     "$CONTRACT_TMP/repo-clean"

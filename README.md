@@ -50,7 +50,7 @@ brew --version
 - Helix LSP: Markdown(`marksman`), JSON(`vscode-json-language-server`), YAML(`yaml-language-server`)
 - Scala 런처(required): `coursier(cs)`
 - 공통 클립보드 유틸(required): `sclip` (`stdin -> 시스템 클립보드`, 내부 backend: macOS `pbcopy`, WSL `clip.exe`, Linux `wl-copy|xclip|xsel`)
-- 선택 체인(optional): Python LSP(`pyright`), Scala(`java 21` + `mill` + `metals` launcher), TypeScript(`typescript-language-server` + `tsc`), `dmux`, `codex`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)
+- 선택 체인(optional): Python LSP(`pyright`), Scala(`java 21` + `mill` + `metals` launcher), TypeScript(`typescript-language-server` + `tsc`), Rust(`rustc` + `cargo` + `rustfmt` + `rust-analyzer` + `rust-src`), `dmux`, `codex`, Vim(`vim` binary + `~/.vim_runtime` + plugin update)
 - zsh 기본 정책: `HISTSIZE/SAVEHIST=1000000`, 즉시 append + 세션 간 공유 + 중복 축소
 - Prezto 모듈: `completion`, `command-not-found`, `git`, `history-substring-search`, `autosuggestions`, `syntax-highlighting` 포함
 - GitHub/Gist credential helper는 `config/gitconfig.shared`에서 `!$HOME/.local/share/mise/shims/gh auth git-credential`로 관리(글로벌 `~/.gitconfig` host override 금지)
