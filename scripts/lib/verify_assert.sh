@@ -58,6 +58,30 @@ tool_available() {
   return 1
 }
 
+assert_no_repo_local_mise_files() {
+  local repo_root="${1:-$REPO_ROOT}"
+  local path=""
+  local filename=""
+  local -a forbidden_files=(
+    "mise.toml"
+    ".mise.toml"
+    ".tool-versions"
+  )
+
+  [ -d "$repo_root" ] || { err "repo root directory not found for local mise guard: $repo_root"; return 1; }
+
+  for filename in "${forbidden_files[@]}"; do
+    path="$repo_root/$filename"
+    if [ -e "$path" ] || [ -L "$path" ]; then
+      err "repo root must not contain local mise file: $path"
+      err "this repo is global-policy-only; manage tools via scripts/lib/toolset.sh + setup.sh"
+      return 1
+    fi
+  done
+
+  ok "repo local mise file guard passed"
+}
+
 check_clipboard_runtime_if_enabled() {
   local clipboard_policy="$1"
   local sclip_bin=""

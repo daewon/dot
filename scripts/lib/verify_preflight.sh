@@ -37,5 +37,6 @@ verify_syntax_checks() {
   else
     warn "shellcheck not found; skipped static shell analysis"
   fi
+  assert_no_repo_local_mise_files
   ok "bash syntax valid"
 }

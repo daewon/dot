@@ -12,14 +12,13 @@
 - 공통 유틸: `scripts/lib/scriptlib.sh`
 - setup 기능 모듈: `scripts/lib/setup_clipboard.sh`, `scripts/lib/setup_tmux.sh`, `scripts/lib/setup_coursier.sh`, `scripts/lib/setup_state.sh`, `scripts/lib/setup_vim.sh`, `scripts/lib/setup_options.sh`
 - verify 기능 모듈: `scripts/lib/verify_assert.sh`, `scripts/lib/verify_runner.sh`, `scripts/lib/verify_contract.sh`, `scripts/lib/verify_options.sh`, `scripts/lib/verify_preflight.sh`
-- 로컬 오버라이드 방지 placeholder: `mise.toml`
 - 상태 경로: `${XDG_STATE_HOME:-$HOME/.local/state}/dot`
 
 SSOT 원칙:
 - 저장소(`dot`)가 단일 기준이며, 시스템 전역 설정은 setup/cleanup 실행 결과로 파생된다.
 - 도구 정책 단일화:
   - 전역 설치 정책(required/optional): `scripts/lib/toolset.sh`
-  - `mise.toml`은 로컬 툴체인 선언 없이 placeholder로 유지
+  - repo root에는 project-local `mise` 파일(`mise.toml`, `.mise.toml`, `.tool-versions`)을 두지 않음
 
 ## 핵심 계약
 도구 계약(`scripts/lib/toolset.sh`):
@@ -54,6 +53,7 @@ cleanup:
 
 verify:
 1. 스크립트 문법/정적 점검
+   - repo root local `mise` 파일 금지 계약(`mise.toml`, `.mise.toml`, `.tool-versions`) 검증
    - Prezto 모듈 선언(`~/.zpreztorc`)과 실제 clone(`~/.zprezto/modules`) 일치 여부 검증
    - `VERIFY_CLIPBOARD_RUNTIME=1` 설정 시 `sclip` 클립보드 런타임 체크 수행
 2. dry-run 스모크

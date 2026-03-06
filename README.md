@@ -38,12 +38,13 @@ brew --version
 - `setup.sh`: 도구 설치, 설정 symlink 연결, 초기 상태 구성
 - `cleanup.sh`: setup가 관리한 항목만 안전하게 제거
 - `verify.sh`: 멱등성/재현성 검증
+  - repo root에 local `mise` 파일(`mise.toml`, `.mise.toml`, `.tool-versions`)이 없는지도 함께 검증
 
 ## SSOT 원칙
 - 이 저장소(`dot`)가 단일 기준(Single Source of Truth)입니다.
 - 시스템 전역 설정(`~/.config/mise/config.toml` 등)은 `setup.sh` 실행 결과로만 파생되어야 하며 수동 편집을 권장하지 않습니다.
 - 설치 도구 정책의 기준은 `scripts/lib/toolset.sh`(required/optional, global)입니다.
-- `mise.toml`은 로컬 오버라이드를 만들지 않기 위한 빈 placeholder로 유지합니다.
+- 이 저장소는 project-local `mise` 파일을 두지 않으며, 실제 설치 상태는 사용자 전역 `mise` 경로(`~/.config/mise`, `~/.local/share/mise` 등)에 기록됩니다.
 
 주요 개발 도구:
 - Helix LSP: Markdown(`marksman`), JSON(`vscode-json-language-server`), YAML(`yaml-language-server`)
@@ -93,7 +94,6 @@ brew --version
 - `scripts/`: 실제 setup/cleanup/verify 구현
 - `scripts/lib/toolset.sh`: 설치 도구 목록 단일 소스
 - `scripts/lib/scriptlib.sh`: 공통 셸 유틸
-- `mise.toml`: 로컬 오버라이드 방지용 placeholder(툴 선언 없음)
 
 ## 운영 원칙
 - 도구 버전은 가능하면 pin(고정)하여 재현성을 유지합니다(예외: optional `codex`는 최신 빌드 추종).

@@ -15,7 +15,7 @@ ls -la
 ```
 
 추가 확인:
-- 설치/도구 변경: `SETUP.md`, `mise.toml`, `scripts/lib/toolset.sh`
+- 설치/도구 변경: `SETUP.md`, `scripts/lib/toolset.sh`, `scripts/lib/verify_assert.sh`
 - 구조/동작 변경: `docs/architecture.md`, `scripts/setup.sh`, `scripts/cleanup.sh`, `scripts/verify.sh`
 - 셸/터미널 변경: `config/zsh.shared.zsh`, `config/tmux.conf.user`
 
@@ -35,8 +35,9 @@ ls -la
 - LSP/formatter 변경 시 실제 도구 설치 상태 확인
 - 변경 후 `hx --health <lang>`로 확인
 
-`mise/toolset` (`mise.toml`, `scripts/lib/toolset.sh`):
+`mise/toolset` (`scripts/lib/toolset.sh`, `scripts/lib/verify_assert.sh`):
 - 도구 추가/삭제 시 required/optional 명령 검증 범위까지 함께 수정
+- repo root local `mise` 파일 금지 계약 유지
 - 신규 버전은 가능한 pin 사용
 
 ## 5) 완료 전 검증
@@ -44,13 +45,13 @@ ls -la
 git status --short
 git diff -- <수정한 파일>
 bash -n setup.sh cleanup.sh verify.sh
-bash -n scripts/setup.sh scripts/cleanup.sh scripts/verify.sh scripts/lib/toolset.sh scripts/lib/scriptlib.sh scripts/difft-external.sh scripts/difft-pager.sh scripts/lazygit-theme.sh
+bash -n scripts/setup.sh scripts/cleanup.sh scripts/verify.sh scripts/lib/toolset.sh scripts/lib/scriptlib.sh scripts/lib/verify_assert.sh scripts/lib/verify_contract.sh scripts/lib/verify_preflight.sh scripts/difft-external.sh scripts/difft-pager.sh scripts/lazygit-theme.sh scripts/sclip.sh
 ./verify.sh --profile fast
 ```
 
 가능하면 추가:
 ```bash
-mise x shellcheck@0.11.0 -- shellcheck setup.sh cleanup.sh verify.sh scripts/setup.sh scripts/cleanup.sh scripts/verify.sh scripts/lib/toolset.sh scripts/lib/scriptlib.sh scripts/difft-external.sh scripts/difft-pager.sh scripts/lazygit-theme.sh
+mise x shellcheck@0.11.0 -- shellcheck setup.sh cleanup.sh verify.sh scripts/setup.sh scripts/cleanup.sh scripts/verify.sh scripts/lib/toolset.sh scripts/lib/scriptlib.sh scripts/lib/verify_assert.sh scripts/lib/verify_contract.sh scripts/lib/verify_preflight.sh scripts/difft-external.sh scripts/difft-pager.sh scripts/lazygit-theme.sh scripts/sclip.sh
 ```
 
 ## 6) 금지 사항

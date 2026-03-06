@@ -31,9 +31,10 @@ brew --version
 ## SSOT 원칙
 - `dot` 저장소가 설치/도구 정책의 단일 기준입니다.
 - `~/.config/mise/config.toml` 등 전역 파일은 `setup.sh` 결과로만 관리합니다(수동 편집 비권장).
+- 실제 `mise` 설치 상태는 `~/.config/mise`, `~/.local/share/mise`, `~/.local/state/mise`, `~/.cache/mise` 같은 사용자 전역 경로에 기록됩니다.
 - 설치 도구 정책:
   - `scripts/lib/toolset.sh`: global required/optional 도구 정책(단일 기준)
-  - `mise.toml`: 로컬 오버라이드 방지용 빈 placeholder
+  - repo root에는 project-local `mise` 파일(`mise.toml`, `.mise.toml`, `.tool-versions`)을 두지 않음
 
 ## 옵션 빠른 참조
 | 변수 | 스크립트 | 값 | 인터랙티브 미지정 | 비대화형 미지정 |
@@ -111,6 +112,7 @@ brew --version
 - `VERIFY_CLIPBOARD_RUNTIME=1` (선택: `sclip` 기반 클립보드 런타임 검증까지 수행)
 - `./verify.sh --skip-default-setup`
 - `./verify.sh --no-restore`
+- `verify.sh`는 repo root에 local `mise` 파일이 생기면 실패합니다(`mise.toml`, `.mise.toml`, `.tool-versions`).
 
 주의:
 - `verify.sh`는 실제 `setup/cleanup` 루프를 실행하므로 홈 환경을 변경할 수 있습니다.
