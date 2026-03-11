@@ -103,7 +103,9 @@ EOF
   ok "cleanup-manifest-version-fallback: fallback path confirmed"
   assert_tool_id_parse_equals "npm:@openai/codex" "npm:@openai/codex"
   assert_tool_id_parse_equals "npm:@openai/codex@latest" "npm:@openai/codex"
-  assert_tool_id_parse_equals "rust[profile=default,components=rust-src,rust-analyzer]@1.94.0" "rust"
+  assert_tool_id_parse_equals "rust[profile=default,components=rust-src,rustfmt,clippy]@1.94.0" "rust"
+  assert_tool_id_parse_equals "rust-analyzer@2026-03-02" "rust-analyzer"
+  assert_tool_id_parse_equals "watchexec@2.5.0" "watchexec"
   run_repo_local_mise_guard_success \
     "repo-local-mise-guard-clean" \
     "$CONTRACT_TMP/repo-clean"

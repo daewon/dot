@@ -46,6 +46,32 @@ assert_github_credential_helper_contract() {
   ok "git credential helper contract passed"
 }
 
+assert_helix_rust_setup() {
+  local helix_languages="$HOME/.config/helix/languages.toml"
+  local health_output=""
+  local health_clean=""
+
+  [ -f "$helix_languages" ] || { err "missing helix languages config: $helix_languages"; return 1; }
+  grep -Fq 'name = "rust"' "$helix_languages" || { err "helix rust language block missing: $helix_languages"; return 1; }
+  grep -Fq 'command = "rust-analyzer"' "$helix_languages" || { err "helix rust-analyzer command missing: $helix_languages"; return 1; }
+  grep -Fq 'command = "rustfmt"' "$helix_languages" || { err "helix rust formatter missing: $helix_languages"; return 1; }
+
+  rust-analyzer --version >/dev/null 2>&1 || { err "rust-analyzer is not runnable after setup"; return 1; }
+  rustfmt --version >/dev/null 2>&1 || { err "rustfmt is not runnable after setup"; return 1; }
+
+  health_output="$(NO_COLOR=1 hx --health rust 2>/dev/null || true)"
+  [ -n "$health_output" ] || { err "hx --health rust returned no output"; return 1; }
+  health_clean="$(printf '%s\n' "$health_output" | sed -E 's/\x1b\[[0-9;]*m//g')"
+  printf '%s\n' "$health_clean" | grep -Fq 'rust-analyzer:' || { err "helix rust health missing rust-analyzer entry"; return 1; }
+  printf '%s\n' "$health_clean" | grep -Fq 'Configured formatter:' || { err "helix rust health missing formatter entry"; return 1; }
+  if printf '%s\n' "$health_clean" | grep -Fq 'Configured formatter: None'; then
+    err "helix rust formatter is not configured"
+    return 1
+  fi
+
+  ok "helix rust health check passed"
+}
+
 tool_available() {
   local cmd="$1"
 
@@ -272,6 +298,7 @@ assert_setup_state() {
     for cmd in "${DOT_OPTIONAL_CLI_COMMANDS[@]}"; do
       tool_available "$cmd" || { err "optional command not found after default setup: $cmd"; return 1; }
     done
+    assert_helix_rust_setup || return 1
     while IFS=$'\t' read -r clone_path clone_origin; do
       manifest_line="git_clone_origin"$'\t'"$clone_path"$'\t'"$clone_origin"
       grep -Fqx "$manifest_line" "$MANIFEST_FILE" || { err "setup manifest missing optional clone entry: $clone_path"; return 1; }

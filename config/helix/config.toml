@@ -1,7 +1,14 @@
 theme = "ayu_evolve"
 
 [keys.normal]
-D = "kill_to_line_end"
+D = "@vgld"
+"0" = "goto_line_start"
+"$" = "goto_line_end"
+"^" = "goto_first_nonwhitespace"
+"X" = "extend_line_above"
+
+[keys.select]
+"0" = "goto_line_start"
 "$" = "goto_line_end"
 "^" = "goto_first_nonwhitespace"
 

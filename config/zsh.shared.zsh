@@ -34,7 +34,7 @@ fi
 
 # Activate mise for interactive shells when available.
 if [[ -o interactive ]] && command -v mise >/dev/null 2>&1; then
-  eval "$(mise activate zsh --quiet)"
+  eval "$(mise activate zsh --shims --quiet)"
 fi
 
 # Prompt preference (works after Prezto init).

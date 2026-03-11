@@ -81,6 +81,32 @@ typeCheckingMode = "basic"
 autoSearchPaths = true
 extraPaths = []
 
+# Rust 언어 설정 (optional 도구: setup.sh + mise 기준)
+[[language]]
+name = "rust"
+scope = "source.rust"
+injection-regex = "rs|rust"
+file-types = [ "rs" ]
+roots = [ "Cargo.toml", "Cargo.lock" ]
+shebangs = [ "rust-script", "cargo" ]
+auto-format = true
+comment-tokens = [ "//", "///", "//!" ]
+indent = { tab-width = 4, unit = "    " }
+language-servers = [ "rust-analyzer" ]
+persistent-diagnostic-sources = [ "rustc", "clippy" ]
+
+[language.formatter]
+command = "rustfmt"
+
+[language-server.rust-analyzer]
+command = "rust-analyzer"
+args = [ ]
+
+[language-server.rust-analyzer.config]
+check = { command = "clippy" }
+cargo = { allFeatures = true }
+procMacro = { enable = true }
+
 # Scala 언어 설정
 [[language]]
 name = "scala"

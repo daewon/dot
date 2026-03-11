@@ -26,11 +26,13 @@ DOT_REQUIRED_MISE_TOOLS=(
 
 DOT_OPTIONAL_MISE_TOOLS=(
   java@temurin-21.0.10+7.0.LTS
-  asdf:mise-plugins/mise-mill@1.1.2
+  mill@1.1.2
   npm:pyright@1.1.408
   npm:typescript-language-server@5.1.3
   npm:typescript@5.9.3
-  "rust[profile=default,components=rust-src,rust-analyzer]@1.94.0"
+  "rust[profile=default,components=rust-src,rustfmt,clippy]@1.94.0"
+  rust-analyzer@2026-03-02
+  watchexec@2.5.0
   npm:dmux@5.2.0
   # Intentionally unpinned to follow latest Codex CLI builds.
   npm:@openai/codex
@@ -65,6 +67,7 @@ DOT_OPTIONAL_CLI_COMMANDS=(
   cargo
   rust-analyzer
   rustfmt
+  watchexec
   dmux
   codex
   vim
