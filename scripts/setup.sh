@@ -285,8 +285,15 @@ if [ "$INSTALL_OPTIONAL_TOOLS" = "1" ]; then
     fi
     run "$CS_BIN" install --install-dir "$HOME/.local/bin" metals
     ok "metals installed via coursier: $CS_BIN"
+    # mill 1.1.2 is missing from mise/asdf registry and the asdf-mill plugin is broken for 1.x.
+    # Download the bootstrap script directly from Maven.
+    MILL_VERSION="1.1.2"
+    MILL_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${MILL_VERSION}/mill-dist-${MILL_VERSION}-mill.sh"
+    run curl -L "$MILL_URL" -o "$HOME/.local/bin/mill"
+    run chmod +x "$HOME/.local/bin/mill"
+    ok "mill ${MILL_VERSION} installed via direct download"
   else
-    err "unable to resolve a working coursier launcher for metals install"
+    err "unable to resolve a working coursier launcher for metals and mill install"
     exit 1
   fi
   ensure_optional_vim_binary

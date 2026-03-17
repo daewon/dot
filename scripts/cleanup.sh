@@ -309,6 +309,12 @@ remove_global_mise_tools_if_requested() {
   else
     warn "metals launcher already absent: $HOME/.local/bin/metals"
   fi
+  if [ -e "$HOME/.local/bin/mill" ] || [ -L "$HOME/.local/bin/mill" ]; then
+    run rm -f "$HOME/.local/bin/mill"
+    report_removed "manually installed mill bootstrap script"
+  else
+    warn "mill bootstrap script already absent: $HOME/.local/bin/mill"
+  fi
   report_removed "global mise tool entries added by setup"
 }
 
@@ -383,6 +389,7 @@ for p in \
   "$HOME/.local/bin/dot-difft-pager" \
   "$HOME/.local/bin/dot-lazygit-theme" \
   "$HOME/.local/bin/metals" \
+  "$HOME/.local/bin/mill" \
   "$HOME/.vim_runtime" \
   "$HOME/.vimrc" \
   "$HOME/.zshrc" \
