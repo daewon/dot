@@ -50,16 +50,27 @@ assert_helix_rust_setup() {
   local helix_languages="$HOME/.config/helix/languages.toml"
   local health_output=""
   local health_clean=""
+  local ra_bin=""
+  local rf_bin=""
+  local hx_bin=""
 
   [ -f "$helix_languages" ] || { err "missing helix languages config: $helix_languages"; return 1; }
   grep -Fq 'name = "rust"' "$helix_languages" || { err "helix rust language block missing: $helix_languages"; return 1; }
   grep -Fq 'command = "rust-analyzer"' "$helix_languages" || { err "helix rust-analyzer command missing: $helix_languages"; return 1; }
   grep -Fq 'command = "rustfmt"' "$helix_languages" || { err "helix rust formatter missing: $helix_languages"; return 1; }
 
-  rust-analyzer --version >/dev/null 2>&1 || { err "rust-analyzer is not runnable after setup"; return 1; }
-  rustfmt --version >/dev/null 2>&1 || { err "rustfmt is not runnable after setup"; return 1; }
+  ra_bin="$(dot_find_cmd rust-analyzer 2>/dev/null || true)"
+  rf_bin="$(dot_find_cmd rustfmt 2>/dev/null || true)"
+  hx_bin="$(dot_find_cmd hx 2>/dev/null || true)"
 
-  health_output="$(NO_COLOR=1 hx --health rust 2>/dev/null || true)"
+  [ -n "$ra_bin" ] || { err "rust-analyzer binary not found on PATH or via mise"; return 1; }
+  [ -n "$rf_bin" ] || { err "rustfmt binary not found on PATH or via mise"; return 1; }
+  [ -n "$hx_bin" ] || { err "hx binary not found on PATH or via mise"; return 1; }
+
+  "$ra_bin" --version >/dev/null 2>&1 || { err "rust-analyzer is not runnable after setup"; return 1; }
+  "$rf_bin" --version >/dev/null 2>&1 || { err "rustfmt is not runnable after setup"; return 1; }
+
+  health_output="$(NO_COLOR=1 "$hx_bin" --health rust 2>/dev/null || true)"
   [ -n "$health_output" ] || { err "hx --health rust returned no output"; return 1; }
   health_clean="$(printf '%s\n' "$health_output" | sed -E 's/\x1b\[[0-9;]*m//g')"
   printf '%s\n' "$health_clean" | grep -Fq 'rust-analyzer:' || { err "helix rust health missing rust-analyzer entry"; return 1; }
