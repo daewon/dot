@@ -121,3 +121,4 @@ brew --version
 - `SETUP.md`: 설치/복구 절차
 - `docs/architecture.md`: 설계와 계약 요약
 - `agents.md`: 에이전트 작업 규칙
+- `ubuntu_custom/broadcom-wifi-recovery-20260320/README.md`: Broadcom BCM43224 Wi-Fi 성능 저하 복구 자료
