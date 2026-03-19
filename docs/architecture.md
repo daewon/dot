@@ -10,15 +10,38 @@
 - 구현: `scripts/setup.sh`, `scripts/cleanup.sh`, `scripts/verify.sh`
 - 공통 계약: `scripts/lib/toolset.sh`
 - 공통 유틸: `scripts/lib/scriptlib.sh`
-- setup 기능 모듈: `scripts/lib/setup_clipboard.sh`, `scripts/lib/setup_tmux.sh`, `scripts/lib/setup_coursier.sh`, `scripts/lib/setup_state.sh`, `scripts/lib/setup_vim.sh`, `scripts/lib/setup_options.sh`
+- setup 기능 모듈: `scripts/lib/setup_clipboard.sh`, `scripts/lib/setup_tmux.sh`, `scripts/lib/setup_coursier.sh`, `scripts/lib/setup_scala.sh`, `scripts/lib/setup_state.sh`, `scripts/lib/setup_vim.sh`, `scripts/lib/setup_options.sh`, `scripts/lib/setup_runtime.sh`
+- cleanup 기능 모듈: `scripts/lib/cleanup_runtime.sh`
 - verify 기능 모듈: `scripts/lib/verify_assert.sh`, `scripts/lib/verify_runner.sh`, `scripts/lib/verify_contract.sh`, `scripts/lib/verify_options.sh`, `scripts/lib/verify_preflight.sh`
 - 상태 경로: `${XDG_STATE_HOME:-$HOME/.local/state}/dot`
+
+구조 원칙:
+- `scripts/setup.sh`, `scripts/cleanup.sh`는 orchestration만 담당하고, setup/cleanup 전용 helper와 step 구현은 `scripts/lib/*_runtime.sh`로 분리한다.
 
 SSOT 원칙:
 - 저장소(`dot`)가 단일 기준이며, 시스템 전역 설정은 setup/cleanup 실행 결과로 파생된다.
 - 도구 정책 단일화:
   - 전역 설치 정책(required/optional): `scripts/lib/toolset.sh`
   - repo root에는 project-local `mise` 파일(`mise.toml`, `.mise.toml`, `.tool-versions`)을 두지 않음
+
+설치 그룹 정책:
+- `mise-managed global toolchain`
+  - 기본값은 `mise-first`
+  - required/optional userland CLI/runtime는 `scripts/lib/toolset.sh`에서 선언하고 `setup.sh`가 `mise use -g`로 수렴시킨다.
+- `system integration packages`
+  - `zsh`, `vim`, Linux clipboard backend, tmux source-build prerequisite는 OS 패키지 관리자(`apt-get`/`brew`)를 사용한다.
+  - 기본 setup는 missing install만 수행하고, system-wide upgrade는 하지 않는다.
+- `repo-managed wrappers`
+  - `sclip`, `dot-difft`, `dot-difft-pager`, `dot-lazygit-theme`는 저장소 스크립트를 `~/.local/bin`에 symlink로 배포한다.
+  - tmux/git/zsh 같은 1st-party 설정은 이 래퍼를 우선 사용한다.
+- `managed git assets`
+  - `~/.zprezto`, `~/.tmux/plugins/tpm`, optional `~/.vim_runtime`는 managed clone으로 다룬다.
+- `non-mise app wrappers`
+  - Scala는 예외 정책을 둔다: `java`/`coursier`는 `mise`, `metals`는 `coursier`, `mill`은 bootstrap script direct download
+  - fallback JVM `coursier` launcher는 native `cs`가 실패할 때만 보조 경로로 사용한다.
+- `update policy`
+  - 기본 `setup.sh`는 declared-state convergence에 집중한다.
+  - `UPDATE_PACKAGES=1` 또는 `./setup.sh --update-packages`는 managed clone refresh와 non-mise app wrapper refresh를 추가 수행한다.
 
 ## 핵심 계약
 도구 계약(`scripts/lib/toolset.sh`):
@@ -39,11 +62,12 @@ setup:
    - `tmux`는 설치 후 health check(`tmux -V`)를 수행하고 필요 시 prebuilt/source backend 간 fallback
    - 클립보드 backend는 환경별 정책(`pbcopy`/`clip.exe`/`wl-copy|xclip|xsel`)으로 필수 검증하고, Linux에서 누락 시 패키지 설치 시도
    - 공통 클립보드 래퍼 `sclip`을 관리형 symlink(`~/.local/bin/sclip`)로 배포
-3. (선택 도구 활성 시) `java 21`/`mill`/`pyright`/`typescript-language-server`/`typescript`/`rust` toolchain(`rustc`/`cargo`/`rustfmt`/`rust-analyzer`/`rust-src`)/`dmux`/`codex` 설치 후(`coursier(cs)` 사용, native `cs` 실패 시 JVM launcher fallback) `metals` launcher를 구성하고, `vim` binary + `~/.vim_runtime` + plugin update를 적용
+3. (선택 도구 활성 시) `java 21`/`pyright`/`typescript-language-server`/`typescript`/`rust` toolchain(`rustc`/`cargo`/`rustfmt`/`rust-analyzer`/`rust-src`)/`codex`를 설치하고, Scala 예외 체인으로 `coursier(cs)` 기반 `metals` launcher와 direct-download `mill` bootstrap을 구성하며, `vim` binary + `~/.vim_runtime` + plugin update를 적용
 4. zsh/prezto 준비(`HISTSIZE/SAVEHIST=1000000`, history 공유/중복 축소, `completion`/`command-not-found`/`git`/`history-substring-search`/`autosuggestions`/`syntax-highlighting` 활성)
 5. 관리 대상 symlink 연결
 6. git include 정규화 + GitHub/Gist credential helper를 include 기반(`$HOME/.local/share/mise/shims/gh`)으로 고정하고 글로벌 host override 정리
-7. manifest 기록
+7. `UPDATE_PACKAGES=1`이면 managed clone(`prezto`, `tpm`, optional `vim_runtime`)을 `git pull --ff-only`로 refresh하고 non-mise app wrapper(`metals`, `mill`)를 다시 생성
+8. manifest 기록
 
 cleanup:
 1. 입력/환경 검증

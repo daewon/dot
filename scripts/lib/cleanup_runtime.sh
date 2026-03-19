@@ -1,0 +1,370 @@
+#!/usr/bin/env bash
+
+usage() {
+  cat <<'EOF'
+Usage: ./cleanup.sh [--dry-run|-n]
+
+Options:
+  --dry-run, -n  Show what would be removed without applying changes
+  --help, -h     Show this help
+
+Env flags:
+  REMOVE_GLOBAL_TOOLS=0|1  Remove global mise tool entries added by setup
+                           (default: prompt on interactive TTY [y/N], otherwise 0)
+  FORCE_REMOVE_ZSHRC=0|1   Remove ~/.zshrc even if not managed by setup (default: 0)
+EOF
+}
+
+parse_cleanup_args() {
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --dry-run|-n) DRY_RUN=1 ;;
+      --help|-h)
+        usage
+        exit 0
+        ;;
+      *)
+        err "unknown option: $1"
+        usage
+        exit 2
+        ;;
+    esac
+    shift
+  done
+}
+
+report_removed() {
+  local label="$1"
+  if [ "$DRY_RUN" = "1" ]; then
+    ok "would remove $label"
+  else
+    ok "removed $label"
+  fi
+}
+
+remove_existing_path_forced() {
+  local path="$1"
+  local label="${2:-$path}"
+  if [ -e "$path" ] || [ -L "$path" ]; then
+    run rm -rf "$path"
+    report_removed "$label (forced)"
+  else
+    warn "already missing: $path"
+  fi
+}
+
+remove_if_link_target() {
+  local path="$1"
+  local expected_target="$2"
+  local label="$3"
+
+  if [ -L "$path" ]; then
+    if dot_is_link_target "$path" "$expected_target"; then
+      run rm -f "$path"
+      report_removed "$label"
+    else
+      warn "kept $label (symlink target differs from expected managed target)"
+    fi
+  elif [ -e "$path" ]; then
+    warn "kept $label (regular file/dir, not setup-managed symlink)"
+  else
+    warn "already missing: $path"
+  fi
+}
+
+remove_if_managed_file_contains() {
+  local path="$1"
+  local marker="$2"
+  local label="$3"
+  if [ -e "$path" ] || [ -L "$path" ]; then
+    if [ ! -L "$path" ] && grep -Fq "$marker" "$path" 2>/dev/null; then
+      run rm -rf "$path"
+      report_removed "$label (managed)"
+    else
+      warn "kept $label (not managed by setup marker)"
+    fi
+  else
+    warn "already missing: $path"
+  fi
+}
+
+remove_if_git_clone_origin() {
+  local path="$1"
+  local expected_url_snippet="$2"
+  local label="$3"
+  local origin=""
+
+  if [ ! -e "$path" ] && [ ! -L "$path" ]; then
+    warn "already missing: $path"
+    return
+  fi
+
+  if [ -d "$path/.git" ]; then
+    origin="$(git -C "$path" remote get-url origin 2>/dev/null || true)"
+    if printf '%s' "$origin" | grep -Fq "$expected_url_snippet"; then
+      run rm -rf "$path"
+      report_removed "$label"
+      return
+    fi
+  fi
+
+  warn "kept $label (not a managed clone: $path)"
+}
+
+manifest_repo_matches() {
+  local manifest_repo=""
+  local manifest_version=""
+  local expected_manifest_version="${MANIFEST_VERSION:-}"
+  [ -f "$MANIFEST_FILE" ] || return 1
+  manifest_version="$(awk -F '\t' '$1=="version" { print $2; exit }' "$MANIFEST_FILE" 2>/dev/null || true)"
+  if [ -z "$manifest_version" ]; then
+    warn "setup manifest missing version header: $MANIFEST_FILE"
+    return 1
+  fi
+  if [ "$manifest_version" != "$expected_manifest_version" ]; then
+    warn "setup manifest version mismatch (manifest=$manifest_version, expected=$expected_manifest_version)"
+    return 1
+  fi
+  manifest_repo="$(awk -F '\t' '$1=="repo_root" { print $2; exit }' "$MANIFEST_FILE" 2>/dev/null || true)"
+  if [ -z "$manifest_repo" ]; then
+    warn "setup manifest missing repo_root header: $MANIFEST_FILE"
+    return 1
+  fi
+  if [ "$manifest_repo" != "$REPO_ROOT" ]; then
+    warn "setup manifest repo mismatch (manifest=$manifest_repo, current=$REPO_ROOT)"
+    return 1
+  fi
+  return 0
+}
+
+manifest_validate_schema() {
+  local kind=""
+  local path=""
+  local meta=""
+  local extra=""
+  local line_no=0
+  while IFS=$'\t' read -r kind path meta extra; do
+    line_no=$((line_no + 1))
+    case "$kind" in
+      "")
+        ;;
+      version|repo_root)
+        if [ -z "$path" ] || [ -n "$meta" ] || [ -n "$extra" ]; then
+          err "invalid setup manifest row at line $line_no for '$kind'"
+          return 1
+        fi
+        ;;
+      symlink|managed_file_contains|git_clone_origin)
+        if [ -z "$path" ] || [ -z "$meta" ] || [ -n "$extra" ]; then
+          err "invalid setup manifest row at line $line_no for '$kind'"
+          return 1
+        fi
+        ;;
+      git_include_path)
+        if [ -z "$path" ] || [ -n "$meta" ] || [ -n "$extra" ]; then
+          err "invalid setup manifest row at line $line_no for '$kind'"
+          return 1
+        fi
+        ;;
+      *)
+        err "unknown setup manifest entry: $kind"
+        return 1
+        ;;
+    esac
+  done <"$MANIFEST_FILE"
+}
+
+remove_static_managed_artifacts() {
+  local optional_file=""
+  local optional_marker=""
+  local optional_clone=""
+  local optional_origin=""
+  local optional_runtime_managed=0
+
+  while IFS=$'\t' read -r managed_link managed_target; do
+    remove_if_link_target "$managed_link" "$managed_target" "$managed_link"
+  done < <(dot_print_repo_symlink_entries "$REPO_ROOT")
+  while IFS=$'\t' read -r runcom_link runcom_target; do
+    remove_if_link_target "$runcom_link" "$runcom_target" "$runcom_link"
+  done < <(dot_print_prezto_runcom_symlink_entries "$HOME")
+  if [ "$FORCE_REMOVE_ZSHRC" = "1" ]; then
+    remove_existing_path_forced "$HOME/.zshrc"
+  else
+    remove_if_managed_file_contains "$HOME/.zshrc" "dot-setup managed zshrc" "$HOME/.zshrc"
+  fi
+  while IFS=$'\t' read -r optional_file optional_marker; do
+    if [ -f "$optional_file" ] && [ ! -L "$optional_file" ] && grep -Fq "$optional_marker" "$optional_file" 2>/dev/null; then
+      optional_runtime_managed=1
+    fi
+    remove_if_managed_file_contains "$optional_file" "$optional_marker" "$optional_file"
+  done < <(dot_print_optional_managed_file_markers "$HOME")
+  if [ "$optional_runtime_managed" = "1" ]; then
+    while IFS=$'\t' read -r optional_clone optional_origin; do
+      remove_if_git_clone_origin "$optional_clone" "$optional_origin" "$optional_clone"
+    done < <(dot_print_optional_managed_git_clones "$HOME")
+  fi
+}
+
+remove_from_manifest() {
+  local kind=""
+  local path=""
+  local meta=""
+  while IFS=$'\t' read -r kind path meta; do
+    case "$kind" in
+      ""|version|repo_root)
+        ;;
+      symlink)
+        remove_if_link_target "$path" "$meta" "$path"
+        ;;
+      managed_file_contains)
+        if [ "$FORCE_REMOVE_ZSHRC" = "1" ] && [ "$path" = "$HOME/.zshrc" ]; then
+          remove_existing_path_forced "$path"
+        else
+          remove_if_managed_file_contains "$path" "$meta" "$path"
+        fi
+        ;;
+      git_clone_origin)
+        remove_if_git_clone_origin "$path" "$meta" "$path"
+        ;;
+      git_include_path)
+        # Removed in a dedicated step for consistency with previous cleanup behavior.
+        ;;
+      *)
+        err "unknown setup manifest entry: $kind"
+        return 1
+        ;;
+    esac
+  done <"$MANIFEST_FILE"
+}
+
+remove_setup_manifest_if_used() {
+  if [ "$MANIFEST_USED" != "1" ]; then
+    return
+  fi
+  if [ -f "$MANIFEST_FILE" ]; then
+    run rm -f "$MANIFEST_FILE"
+    report_removed "setup manifest: $MANIFEST_FILE"
+  fi
+  if [ "$DRY_RUN" = "0" ]; then
+    rmdir "$MANIFEST_DIR" 2>/dev/null || true
+  fi
+}
+
+resolve_remove_global_tools() {
+  dot_resolve_bool_option_01 \
+    REMOVE_GLOBAL_TOOLS \
+    "[cleanup] Remove global mise tool entries installed by setup? [y/N]: " \
+    0 \
+    0 \
+    "no"
+}
+
+remove_git_include_path_entry() {
+  if [ "$(dot_git_include_count "$GIT_SHARED_INCLUDE_PATH")" != "0" ]; then
+    run git config --global --unset-all include.path "$GIT_SHARED_INCLUDE_PATH"
+    report_removed "git include.path: $GIT_SHARED_INCLUDE_PATH"
+  else
+    warn "git include.path already absent: $GIT_SHARED_INCLUDE_PATH"
+  fi
+}
+
+remove_global_mise_tools_if_requested() {
+  local tool=""
+
+  if [ "$REMOVE_GLOBAL_TOOLS" != "1" ]; then
+    warn "skipped global tool entry removal (REMOVE_GLOBAL_TOOLS=0)"
+    return
+  fi
+
+  # mise --remove is more reliable when applied per-tool.
+  for tool in "${DOT_REQUIRED_MISE_TOOLS[@]}" "${DOT_OPTIONAL_MISE_TOOLS[@]}"; do
+    run mise use -g --remove "$(dot_strip_tool_version "$tool")" || true
+  done
+  if [ -e "$HOME/.local/bin/metals" ] || [ -L "$HOME/.local/bin/metals" ]; then
+    run rm -f "$HOME/.local/bin/metals"
+    report_removed "coursier-installed metals launcher"
+  else
+    warn "metals launcher already absent: $HOME/.local/bin/metals"
+  fi
+  if [ -e "$HOME/.local/bin/mill" ] || [ -L "$HOME/.local/bin/mill" ]; then
+    run rm -f "$HOME/.local/bin/mill"
+    report_removed "manually installed mill bootstrap script"
+  else
+    warn "mill bootstrap script already absent: $HOME/.local/bin/mill"
+  fi
+  report_removed "global mise tool entries added by setup"
+}
+
+cleanup_preflight() {
+  if ! dot_require_cmd git; then
+    err "required command not found: git"
+    exit 1
+  fi
+  if [ "$REMOVE_GLOBAL_TOOLS" = "1" ] && ! dot_require_cmd mise; then
+    err "required command not found: mise (for REMOVE_GLOBAL_TOOLS=1)"
+    exit 1
+  fi
+  ok "repo: $REPO_ROOT"
+  if [ "$DRY_RUN" = "1" ]; then
+    warn "dry-run mode enabled (no files/settings will be changed)"
+  fi
+}
+
+cleanup_remove_managed_artifacts() {
+  if manifest_repo_matches; then
+    manifest_validate_schema
+    remove_from_manifest
+    MANIFEST_USED=1
+  else
+    warn "setup manifest unavailable/mismatched; falling back to static cleanup targets"
+    remove_static_managed_artifacts
+  fi
+}
+
+cleanup_remove_clone_artifacts() {
+  local clone_path=""
+  local clone_origin=""
+
+  if [ "$MANIFEST_USED" = "1" ]; then
+    ok "clone targets already handled by setup manifest entries"
+    return 0
+  fi
+
+  while IFS=$'\t' read -r clone_path clone_origin; do
+    remove_if_git_clone_origin "$clone_path" "$clone_origin" "$clone_path"
+  done < <(dot_print_managed_git_clones "$HOME")
+}
+
+cleanup_remove_git_and_tool_entries() {
+  remove_git_include_path_entry
+  remove_global_mise_tools_if_requested
+  remove_setup_manifest_if_used
+}
+
+cleanup_print_summary() {
+  local p=""
+
+  printf '  login shell: %s\n' "$(dot_current_login_shell)"
+  for p in \
+    "$HOME/.zprezto" \
+    "$HOME/.tmux/plugins/tpm" \
+    "$HOME/.config/helix" \
+    "$HOME/.config/lazygit" \
+    "$HOME/.tmux.conf" \
+    "$HOME/.zsh.shared.zsh" \
+    "$HOME/.local/bin/dot-difft" \
+    "$HOME/.local/bin/dot-difft-pager" \
+    "$HOME/.local/bin/dot-lazygit-theme" \
+    "$HOME/.local/bin/metals" \
+    "$HOME/.local/bin/mill" \
+    "$HOME/.vim_runtime" \
+    "$HOME/.vimrc" \
+    "$HOME/.zshrc" \
+    "$MANIFEST_FILE"; do
+    if [ -e "$p" ] || [ -L "$p" ]; then
+      printf '  remains: %s\n' "$p"
+    else
+      printf '  removed: %s\n' "$p"
+    fi
+  done
+}

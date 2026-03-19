@@ -161,6 +161,10 @@ assert_setup_dry_run_log_contract() {
     || { err "setup dry-run log missing preflight dry-run marker"; return 1; }
   grep -Fq "[dry-run] mise use -g" "$logfile" \
     || { err "setup dry-run log missing simulated mise install command"; return 1; }
+  grep -Fq "skipped optional tools (INSTALL_OPTIONAL_TOOLS=0)" "$logfile" \
+    || { err "setup dry-run log missing non-interactive optional-tools default marker"; return 1; }
+  grep -Fq "default shell switch skipped by config (SET_DEFAULT_SHELL=0)" "$logfile" \
+    || { err "setup dry-run log missing non-interactive default-shell marker"; return 1; }
   if grep -Fq "[error]" "$logfile"; then
     err "setup dry-run log contains [error] lines: $logfile"
     return 1
@@ -185,6 +189,23 @@ assert_setup_dry_run_log_contract() {
   esac
 
   ok "setup dry-run log contract passed"
+}
+
+assert_cleanup_dry_run_log_contract() {
+  local logfile="$1"
+
+  [ -f "$logfile" ] || { err "cleanup dry-run log missing: $logfile"; return 1; }
+
+  grep -Fq "dry-run mode enabled (no files/settings will be changed)" "$logfile" \
+    || { err "cleanup dry-run log missing preflight dry-run marker"; return 1; }
+  grep -Fq "skipped global tool entry removal (REMOVE_GLOBAL_TOOLS=0)" "$logfile" \
+    || { err "cleanup dry-run log missing non-interactive remove-global-tools default marker"; return 1; }
+  if grep -Fq "[error]" "$logfile"; then
+    err "cleanup dry-run log contains [error] lines: $logfile"
+    return 1
+  fi
+
+  ok "cleanup dry-run log contract passed"
 }
 
 count_backup_files() {

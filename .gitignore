@@ -1,6 +1,5 @@
 # Helix
 config/helix/runtime/
-.dmux/
-.dmux-hooks/
 config/lazygit/.current_theme
 out
+.serena

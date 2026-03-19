@@ -261,20 +261,67 @@ dot_is_interactive_tty() {
 }
 
 dot_parse_yes_no_to_bool_01() {
+  dot_parse_yes_no_default_to_bool_01 "${1:-}" 0
+}
+
+dot_parse_yes_no_default_to_bool_01() {
   local value="${1:-}"
+  local default_value="${2:-0}"
+
+  case "$default_value" in
+    0|1)
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
   case "$value" in
     [yY]|[yY][eE][sS])
       printf '1'
       return 0
       ;;
-    [nN]|[nN][oO]|"")
+    [nN]|[nN][oO])
       printf '0'
+      return 0
+      ;;
+    "")
+      printf '%s' "$default_value"
       return 0
       ;;
     *)
       return 1
       ;;
   esac
+}
+
+dot_resolve_bool_option_01() {
+  local var_name="$1"
+  local prompt="$2"
+  local interactive_default="$3"
+  local non_interactive_default="$4"
+  local default_label="$5"
+  local reply=""
+  local selected_value=""
+
+  if [ -n "${!var_name-}" ]; then
+    return 0
+  fi
+
+  if dot_is_interactive_tty; then
+    printf '\n%s' "$prompt"
+    IFS= read -r reply || true
+    if selected_value="$(dot_parse_yes_no_default_to_bool_01 "$reply" "$interactive_default")"; then
+      printf -v "$var_name" '%s' "$selected_value"
+    else
+      warn "invalid response '$reply'; defaulting to $default_label"
+      printf -v "$var_name" '%s' "$interactive_default"
+    fi
+    ok "interactive selection: ${var_name}=${!var_name}"
+    return 0
+  fi
+
+  printf -v "$var_name" '%s' "$non_interactive_default"
 }
 
 step() {

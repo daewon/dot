@@ -32,7 +32,6 @@ DOT_OPTIONAL_MISE_TOOLS=(
   "rust[profile=default,components=rust-src,rustfmt,clippy]@1.94.0"
   rust-analyzer@2026-03-02
   watchexec@2.5.0
-  npm:dmux@5.2.0
   # Intentionally unpinned to follow latest Codex CLI builds.
   npm:@openai/codex
 )
@@ -67,7 +66,6 @@ DOT_OPTIONAL_CLI_COMMANDS=(
   rust-analyzer
   rustfmt
   watchexec
-  dmux
   codex
   vim
 )

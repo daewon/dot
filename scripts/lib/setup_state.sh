@@ -107,6 +107,40 @@ ensure_managed_clone() {
     else
       ok "$label cloned"
     fi
+  elif [ "${UPDATE_PACKAGES:-0}" = "1" ]; then
+    if [ "$DRY_RUN" = "1" ]; then
+      run git -C "$clone_path" pull --ff-only
+      if [ "$recursive" = "1" ]; then
+        run git -C "$clone_path" submodule sync --recursive
+        run git -C "$clone_path" submodule update --init --recursive
+      fi
+      ok "$label would be refreshed"
+      return 0
+    fi
+
+    if [ -n "$(git -C "$clone_path" status --porcelain --untracked-files=no 2>/dev/null || true)" ]; then
+      warn "$label has local modifications; skipped refresh"
+      return 0
+    fi
+    if [ -z "$(git -C "$clone_path" symbolic-ref --quiet --short HEAD 2>/dev/null || true)" ]; then
+      warn "$label is not on a branch; skipped refresh"
+      return 0
+    fi
+    if ! git -C "$clone_path" pull --ff-only >/dev/null 2>&1; then
+      warn "$label refresh failed; keeping current checkout"
+      return 0
+    fi
+    if [ "$recursive" = "1" ]; then
+      if ! git -C "$clone_path" submodule sync --recursive >/dev/null 2>&1; then
+        warn "$label submodule sync failed; keeping current checkout"
+        return 0
+      fi
+      if ! git -C "$clone_path" submodule update --init --recursive >/dev/null 2>&1; then
+        warn "$label submodule update failed; keeping current checkout"
+        return 0
+      fi
+    fi
+    ok "$label refreshed"
   fi
 }
 

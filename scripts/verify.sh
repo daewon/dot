@@ -62,10 +62,13 @@ VERIFY_LINT_TARGETS=(
   scripts/verify.sh
   scripts/lib/setup_tmux.sh
   scripts/lib/setup_coursier.sh
+  scripts/lib/setup_scala.sh
   scripts/lib/setup_clipboard.sh
   scripts/lib/setup_state.sh
   scripts/lib/setup_vim.sh
   scripts/lib/setup_options.sh
+  scripts/lib/setup_runtime.sh
+  scripts/lib/cleanup_runtime.sh
   scripts/lib/verify_assert.sh
   scripts/lib/verify_runner.sh
   scripts/lib/verify_contract.sh
@@ -111,6 +114,7 @@ step "dry-run smoke"
 run_with_log "setup-dry-run" "$REPO_ROOT/setup.sh" --dry-run
 run_with_log "cleanup-dry-run" "$REPO_ROOT/cleanup.sh" --dry-run
 assert_setup_dry_run_log_contract "$LOG_DIR/setup-dry-run.log"
+assert_cleanup_dry_run_log_contract "$LOG_DIR/cleanup-dry-run.log"
 
 step "baseline setup(min profile)"
 run_setup_min "setup-baseline"
