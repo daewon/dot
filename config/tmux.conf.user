@@ -66,6 +66,8 @@ unbind-key -T prefix p
 unbind-key -T prefix N
 
 # Copy mode (vi)
+bind-key -T copy-mode F12 send -X cancel
+bind-key -T copy-mode-vi F12 send -X cancel
 bind-key -T copy-mode-vi r send -X rectangle-toggle
 bind-key -T copy-mode-vi v send -X begin-selection
 bind-key -T copy-mode-vi V send -X select-line
@@ -136,6 +138,7 @@ bind-key -n M-7 select-pane -t 7
 bind-key -n M-8 select-pane -t 8
 bind-key -n M-9 select-pane -t 9
 bind-key -n M-0 copy-mode
+bind-key -n F12 copy-mode
 
 # Linux: quick copy-mode enter
 if-shell "uname | grep -q Linux" {
