@@ -47,6 +47,10 @@ if [[ -o interactive ]] && [[ -t 1 ]] && command -v fzf >/dev/null 2>&1; then
   eval "$(fzf --zsh)"
 fi
 
+# Keep directory names unsuffixed in completion menus and inserted paths.
+unsetopt AUTO_PARAM_SLASH
+unsetopt LIST_TYPES
+
 # History policy: large, append immediately, shared across sessions.
 HISTFILE="${ZDOTDIR:-$HOME}/.zsh_history"
 HISTSIZE=1000000
@@ -187,13 +191,13 @@ alias glog='git log --oneline --graph --decorate --all'
 alias ..='cd ..'
 alias ...='cd ../..'
 if ls --color=auto -d . >/dev/null 2>&1; then
-  alias ls='ls --group-directories-first --color=auto -F'
+  alias ls='ls --group-directories-first --color=auto'
 elif ls -G -d . >/dev/null 2>&1; then
-  alias ls='ls -G -F'
+  alias ls='ls -G'
 fi
-alias l='ls -alF'
+alias l='ls -al'
 alias la='ls -A'
-alias ll='ls -alF'
+alias ll='ls -al'
 
 # Optional machine-local overrides (not tracked in this repo).
 if [[ -f "$HOME/.zsh.local" ]]; then
